@@ -55,9 +55,11 @@ window.TTS_CONFIG = {
      the list is empty.
      Blur out phone numbers and profile photos before you add them. */
   reviewImages: [
-    // 'assets/review-1.jpg',
-    // 'assets/review-2.jpg',
-    // 'assets/review-3.jpg'
+    'assets/review-1.jpg',
+    'assets/review-2.jpg',
+    'assets/review-3.jpg',
+    'assets/review-4.jpg',
+    'assets/review-5.jpg'
   ],
 
   /* Browser-side cache for config/availability, in seconds */
