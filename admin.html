@@ -271,9 +271,15 @@ td select{min-height:34px;padding:5px 8px;background:var(--bg-2);border:1px soli
       if (!j || !j.ok) {
         state.pin = '';
         try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
-        $('#pinErr').textContent = (j && j.code === 'BAD_PIN')
+        $('#pinErr').innerHTML = (j && j.code === 'BAD_PIN')
           ? 'Wrong PIN.'
-          : ((j && j.message) || 'Could not reach the server.');
+          : (j && j.code === 'PIN_NOT_SET')
+            ? 'No PIN is set on the server yet.<br><span style="color:var(--muted);font-size:12.5px">'
+              + 'Apps Script &rarr; Project Settings &rarr; Script Properties &rarr; add <b>ADMIN_PIN</b>.</span>'
+            : (j && j.code === 'UNKNOWN_ACTION')
+              ? 'The Apps Script is still running the old version.<br><span style="color:var(--muted);font-size:12.5px">'
+                + 'Deploy &rarr; Manage deployments &rarr; pencil &rarr; New version.</span>'
+              : esc((j && j.message) || 'Could not reach the server.');
         return false;
       }
       try { sessionStorage.setItem(PIN_KEY, pin); } catch (e) {}

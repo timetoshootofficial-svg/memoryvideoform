@@ -579,23 +579,56 @@ function logEvent_(input) {
  * here carry customer phone numbers, so this must never answer without it.
  */
 function checkAdmin_(pin) {
-  var expected = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN');
-  if (!expected) return false;                       // fail closed until set
-  var given = String(pin || '');
-  if (given.length !== String(expected).length) return false;
+  var raw = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN');
+  /* Trim both sides: the Script Properties box keeps a stray space you cannot
+     see, and that would silently reject the right PIN forever. */
+  var expected = String(raw === null || raw === undefined ? '' : raw).trim();
+  if (!expected) return 'NOT_SET';                   // fail closed until set
+  var given = String(pin === null || pin === undefined ? '' : pin).trim();
+  if (given.length !== expected.length) return false;
   /* constant-time-ish compare so a wrong pin cannot be guessed by timing */
   var diff = 0;
   for (var i = 0; i < given.length; i++) {
-    diff |= given.charCodeAt(i) ^ String(expected).charCodeAt(i);
+    diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
   }
   return diff === 0;
 }
 
-function adminData_(input) {
-  if (!checkAdmin_(input.pin)) {
-    Utilities.sleep(700);                            // slow down guessing
-    return { ok: false, code: 'BAD_PIN', message: 'Wrong PIN.' };
+/** Turns checkAdmin_ into the error the dashboard should show, or null if ok. */
+function adminGate_(pin) {
+  var r = checkAdmin_(pin);
+  if (r === true) return null;
+  Utilities.sleep(700);                              // slow down guessing
+  if (r === 'NOT_SET') {
+    return { ok: false, code: 'PIN_NOT_SET',
+             message: 'No PIN has been set yet. In Apps Script open Project Settings, ' +
+                      'add a Script Property called ADMIN_PIN, and put your PIN in it.' };
   }
+  return { ok: false, code: 'BAD_PIN', message: 'Wrong PIN.' };
+}
+
+/**
+ * Run this to see whether the PIN is stored, without revealing it.
+ * Tells you the length and what it starts with, which is enough to spot a
+ * typo or a stray space.
+ */
+function checkAdminPinIsSet() {
+  var raw = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN');
+  if (raw === null || raw === undefined || String(raw) === '') {
+    Logger.log('ADMIN_PIN is NOT set. Add it in Project Settings > Script Properties.');
+    return 'not set';
+  }
+  var s = String(raw);
+  Logger.log('ADMIN_PIN is set.');
+  Logger.log('  length: ' + s.length + ' characters');
+  Logger.log('  starts with: "' + s.charAt(0) + '"   ends with: "' + s.charAt(s.length - 1) + '"');
+  if (s !== s.trim()) Logger.log('  WARNING: it has a space at the start or end. Remove it.');
+  return 'set';
+}
+
+function adminData_(input) {
+  var gate = adminGate_(input.pin);
+  if (gate) return gate;
 
   var cfg = getConfig_();
   var table = bookingsTable_();
@@ -723,10 +756,8 @@ function funnelStats_(today, yesterday, weekAgo) {
 
 /** Lets the owner change a booking's Status from the dashboard. */
 function adminSetStatus_(input) {
-  if (!checkAdmin_(input.pin)) {
-    Utilities.sleep(700);
-    return { ok: false, code: 'BAD_PIN', message: 'Wrong PIN.' };
-  }
+  var gate = adminGate_(input.pin);
+  if (gate) return gate;
 
   var allowed = ['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Expired'];
   var status = String(input.status || '').trim();

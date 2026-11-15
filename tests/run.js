@@ -708,7 +708,19 @@ test('the admin PIN is never shipped to the browser', () => {
   });
   const gs = fs.readFileSync(path.join(__dirname, '..', 'apps-script', 'Code.gs'), 'utf8');
   assert.ok(/getProperty\('ADMIN_PIN'\)/.test(gs), 'the server must read the PIN from Script Properties');
-  assert.ok(/checkAdmin_\(input\.pin\)/.test(gs), 'admin endpoints must verify the PIN');
+
+  /* Every admin handler must check the PIN before it touches a row. This
+     reads the body of each one rather than grepping the file, so a new admin
+     endpoint that forgets the gate fails here. */
+  ['adminData_', 'adminSetStatus_'].forEach(fn => {
+    const start = gs.indexOf('function ' + fn + '(');
+    assert.ok(start !== -1, fn + ' should exist');
+    const body = gs.slice(start, start + 400);
+    assert.ok(/adminGate_\(input\.pin\)|checkAdmin_\(input\.pin\)/.test(body),
+      fn + ' must verify the PIN before doing anything');
+  });
+  assert.ok(/function adminGate_[\s\S]{0,400}checkAdmin_\(pin\)/.test(gs),
+    'adminGate_ must delegate to checkAdmin_');
 });
 
 test('WhatsApp messages carry no emoji, because wa.me mangles them', () => {
