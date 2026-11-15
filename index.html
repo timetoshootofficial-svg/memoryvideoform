@@ -1176,8 +1176,31 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
       });
   }
 
+  /**
+   * The Sheet is the source of truth, but an older deployment simply does not
+   * know about keys added since. For DISPLAY-ONLY values we fall back to
+   * js/config.js when the server did not mention the key at all, so a new
+   * one works before the script is redeployed.
+   *
+   * A key the server DID send wins, including when it sends 0, so clearing a
+   * row in the Sheet still hides that value.
+   *
+   * Only display values belong here. Anything the server validates a booking
+   * against — prices, units, lead time — must never be filled in locally, or
+   * the page would offer something the server then refuses.
+   */
+  function fillDisplayGaps(serverConfig) {
+    var cfgOut = Object.assign({}, serverConfig);
+    var fb = CFG.fallback || {};
+    (L.LENGTHS || []).forEach(function (code) {
+      var key = 'list_price_' + code;
+      if (!(key in cfgOut) && fb[key] !== undefined) cfgOut[key] = fb[key];
+    });
+    return cfgOut;
+  }
+
   function adoptBootstrap(j) {
-    state.config = j.config;
+    state.config = fillDisplayGaps(j.config);
     state.availability = j.availability || [];
     state.testimonials = j.testimonials || [];
     state.loading = false;
