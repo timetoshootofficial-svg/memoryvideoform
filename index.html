@@ -114,19 +114,22 @@ h1{margin:0 0 18px; font-size:clamp(39px,10.8vw,54px)}
    Each line wipes upward into view behind its own edge, the mark draws
    itself under the second line, and then it keeps moving: a slow swell with
    a light sweeping across it. The words hold still. The headline says the
-   photos are still breathing, so the mark is the thing that breathes.
-   Everything here starts hidden, so the reduced-motion block below has to
-   put it all back. */
+   photos are still breathing, so the mark is the thing that breathes. */
+/* Visible by default. The animation states the hidden-to-shown change in its
+   own keyframes and uses `backwards` fill, which paints the first frame
+   during the delay. If the animation never runs — a throttled tab, an old
+   browser, a slow phone — the text is simply there. Hiding content and
+   relying on an animation to reveal it leaves a blank page when it does not
+   run, which happened on the live site. */
 h1 > span{
-  display:inline-block; opacity:0;
-  transform:translateY(.42em);
-  clip-path:inset(0 -6% 102% -6%);
-  animation:wipe-up .95s cubic-bezier(.16,.84,.3,1) forwards;
+  display:inline-block;
+  animation:wipe-up .95s cubic-bezier(.16,.84,.3,1) backwards;
 }
 h1 > span:first-child{animation-delay:.08s}
 h1 .alt{position:relative; z-index:0; animation-delay:.3s}
 @keyframes wipe-up{
-  to{opacity:1; transform:translateY(0); clip-path:inset(-30% -6% -30% -6%)}
+  from{opacity:0; transform:translateY(.42em); clip-path:inset(0 -6% 102% -6%)}
+  to  {opacity:1; transform:translateY(0);     clip-path:inset(-30% -6% -30% -6%)}
 }
 
 h1 .alt::after{
@@ -138,12 +141,12 @@ h1 .alt::after{
     var(--yellow) 62%, var(--yellow) 100%);
   background-size:320% 100%;
   background-position:140% 0;
-  transform:scaleX(0); transform-origin:left center;
-  animation:draw .7s cubic-bezier(.16,.84,.3,1) .85s forwards,
+  transform:scaleX(1); transform-origin:left center;
+  animation:draw .7s cubic-bezier(.16,.84,.3,1) .85s backwards,
             swell 3.4s ease-in-out 1.6s infinite,
             sweep 3.4s ease-in-out 1.6s infinite;
 }
-@keyframes draw{to{transform:scaleX(1)}}
+@keyframes draw{from{transform:scaleX(0)} to{transform:scaleX(1)}}
 @keyframes swell{
   0%,100%{transform:scaleX(1) scaleY(1)}
   48%    {transform:scaleX(1) scaleY(1.42)}
@@ -154,14 +157,16 @@ h1 .alt::after{
 }
 
 /* the lines around the headline follow it in */
-@keyframes rise{to{opacity:1; transform:translateY(0)}}
+@keyframes rise{
+  from{opacity:0; transform:translateY(14px)}
+  to  {opacity:1; transform:translateY(0)}
+}
 .kicker,.hero p.sub,.hero-proof,.hero .badges,.hero > .wrap > .btn{
-  opacity:0; transform:translateY(14px);
-  animation:rise .66s cubic-bezier(.16,.84,.3,1) forwards;
+  animation:rise .66s cubic-bezier(.16,.84,.3,1) backwards;
 }
 /* listing both keeps the entrance; a bare `animation` here would drop it */
 .hero > .wrap > .btn{
-  animation:rise .66s cubic-bezier(.16,.84,.3,1) forwards,
+  animation:rise .66s cubic-bezier(.16,.84,.3,1) backwards,
             cta-glow 3.6s ease-in-out 1.5s infinite;
 }
 .sticky .btn-primary{animation:cta-glow 3.6s ease-in-out 1.5s infinite}

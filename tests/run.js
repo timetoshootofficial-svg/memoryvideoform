@@ -884,6 +884,32 @@ test('the live Apps Script endpoint is wired up', () => {
   });
 });
 
+test('content is never hidden waiting for an animation to reveal it', () => {
+  /* This shipped to the live site: the hero declared opacity 0 and was shown
+     only by its entrance animation. When the animation did not start, the
+     whole hero rendered blank. Content must be visible by default, with the
+     animation declaring the hidden state in its own keyframes and filling
+     `backwards`. */
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'))
+    .replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');   // rules only
+
+  const CONTENT = ['h1 > span', '.kicker', '.hero p.sub', '.hero-proof',
+                   '.hero .badges', '.hero > .wrap > .btn'];
+  const offenders = [];
+  const rule = /([^{}]+)\{([^{}]*)\}/g;
+  let m;
+  while ((m = rule.exec(css))) {
+    const sel = m[1].trim(), body = m[2];
+    if (!CONTENT.some(c => sel.includes(c))) continue;
+    if (/opacity:\s*0\b/.test(body)) offenders.push(sel + ' sets opacity:0');
+    if (/animation:[^;]*\bforwards\b/.test(body)) {
+      offenders.push(sel + ' fills forwards; use backwards so it shows without the animation');
+    }
+  }
+  assert.deepStrictEqual(offenders, [], offenders.join(' | '));
+});
+
 test('nothing is left permanently invisible without a way back', () => {
   /* Anything hidden at opacity 0 must either animate itself in, or be
      restored by the reduced-motion block. */
