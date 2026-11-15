@@ -3,12 +3,12 @@
  */
 window.TTS_CONFIG = {
   /* Paste the Apps Script Web App URL here (ends with /exec) */
-  apiUrl: 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE',
+  apiUrl: 'https://script.google.com/macros/s/AKfycby4Bo9k1GACPUKu_aF1jPS1kxUPJ78xlkZSZmQ41teoqQ1OYawBRzF9s0eRy1rtpYA/exec',
 
   /* Must match API_TOKEN in Apps Script > Project Settings > Script Properties.
      NOTE: on a static site this is visible to visitors. It stops drive-by spam,
      it is not a secret. Your Sheet ID and Sheet data are never exposed. */
-  apiToken: 'PASTE_YOUR_API_TOKEN_HERE',
+  apiToken: '772329400d0a496a9857643dd0f17ddb1d3cf313',
 
   /* Meta Pixel ID — leave empty to disable the pixel completely */
   pixelId: '',

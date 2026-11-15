@@ -697,13 +697,35 @@ test('index.html loads the three script files that exist on disk', () => {
   });
 });
 
-test('no secret is hard-coded in the page or config', () => {
-  const files = ['index.html', 'js/config.js'];
+test('no real secret is committed', () => {
+  /* The Apps Script URL and apiToken ARE meant to be here: a static site has
+     no server to hide them in, they ship in every visitor's page source, and
+     Apps Script re-validates everything they can reach. What must never land
+     in this repo is anything that grants account access. */
+  const files = ['index.html', 'js/config.js', 'js/logic.js', 'js/i18n.js',
+                 'README.md', 'CHECKLIST.md', '.env.example'];
+  const forbidden = [
+    [/gh[pousr]_[A-Za-z0-9]{20,}/, 'a GitHub token'],
+    [/docs\.google\.com\/spreadsheets\/d\/[\w-]{20,}/, 'a Google Sheet ID'],
+    [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'a private key'],
+    [/"type":\s*"service_account"/, 'a Google service account key'],
+    [/AIza[0-9A-Za-z_-]{30,}/, 'a Google API key']
+  ];
   files.forEach(f => {
-    const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
-    assert.ok(!/AKfycb[\w-]{20,}/.test(src), f + ' should not contain a real deployment id');
-    assert.ok(!/docs\.google\.com\/spreadsheets\/d\/[\w-]{20,}/.test(src), f + ' should not contain a Sheet ID');
+    const full = path.join(__dirname, '..', f);
+    if (!fs.existsSync(full)) return;
+    const src = fs.readFileSync(full, 'utf8');
+    forbidden.forEach(([re, what]) => {
+      assert.ok(!re.test(src), f + ' must not contain ' + what);
+    });
   });
+});
+
+test('the live Apps Script endpoint is wired up', () => {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'js', 'config.js'), 'utf8');
+  assert.ok(!/PASTE_YOUR/.test(src), 'config.js still has placeholders — the site cannot reach the Sheet');
+  assert.ok(/script\.google\.com\/macros\/s\/[\w-]+\/exec/.test(src), 'apiUrl should be an Apps Script /exec URL');
+  assert.ok(/apiToken:\s*'[A-Za-z0-9_-]{16,}'/.test(src), 'apiToken should be set');
 });
 
 test('the page never writes 48 hours anywhere', () => {
