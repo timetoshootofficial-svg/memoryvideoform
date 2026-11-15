@@ -31,6 +31,10 @@ var TAB = {
   TESTIMONIALS: 'Testimonials'
 };
 
+/* Bump this whenever you paste a new Code.gs, then check /exec?action=diag
+   to confirm the deployment actually picked it up. */
+var CODE_VERSION = '2026-11-15-c';
+
 var CACHE_SECONDS = 60;
 var MAX_BOOKINGS_PER_PHONE_PER_DAY = 3;
 var LOCK_WAIT_MS = 10000;
@@ -66,6 +70,7 @@ function handle_(e, method) {
 
     switch (action) {
       case 'ping':            return json_({ ok: true, now: new Date().toISOString() });
+      case 'diag':            return json_(diag_());
       case 'bootstrap':       return json_(apiBootstrap_(input));
       case 'getConfig':       return json_({ ok: true, config: getConfig_() });
       case 'getAvailability': return json_({ ok: true, availability: getAvailability_(input.from, input.to) });
@@ -569,6 +574,39 @@ function logEvent_(input) {
   var sh = sheet_(TAB.FUNNEL);
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, 6).setValues(rows);
   return { ok: true, written: rows.length };
+}
+
+/* =============================== DIAG ================================ */
+
+/**
+ * Answers "is my new code actually deployed, and is the admin PIN set?"
+ * without revealing the PIN. Needs API_TOKEN like everything else.
+ *
+ * A deployment that still serves the old code will not know this action at
+ * all and will answer UNKNOWN_ACTION, which is itself the answer.
+ */
+function diag_() {
+  var props = PropertiesService.getScriptProperties();
+  var pin = props.getProperty('ADMIN_PIN');
+  var pinStr = (pin === null || pin === undefined) ? '' : String(pin);
+  var tabs = {};
+  var ss = SpreadsheetApp.getActive();
+  ['Config', 'Bookings', 'Blocked', 'Funnel', 'Testimonials'].forEach(function (name) {
+    tabs[name] = !!ss.getSheetByName(name);
+  });
+
+  return {
+    ok: true,
+    codeVersion: CODE_VERSION,
+    now: new Date().toISOString(),
+    apiTokenSet: !!props.getProperty('API_TOKEN'),
+    adminPinSet: pinStr.length > 0,
+    /* Length and content stay secret. These two only say whether something is
+       wrong with it, which is what a stuck owner needs to know. */
+    adminPinHasOuterSpace: pinStr !== pinStr.trim(),
+    adminPinLooksShort: pinStr.length > 0 && pinStr.trim().length < 4,
+    tabs: tabs
+  };
 }
 
 /* =============================== ADMIN =============================== */
