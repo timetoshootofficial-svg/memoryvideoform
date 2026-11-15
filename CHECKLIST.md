@@ -6,6 +6,8 @@ Tick these off and the page is live. Nothing here needs a developer.
 
 - [ ] **Confirm the 1 minute price.** `Config` → `price_1m`. Seeded at `4999` as a guess.
 - [ ] **Confirm the 2 minute price.** `Config` → `price_2m`. Seeded at `7999` as a guess.
+- [ ] **Redeploy Apps Script for the longer films.** 3, 4 and 5 minute films (₹9,999 / ₹13,999 / ₹16,999) need the new `Code.gs` and `Setup.gs` pasted in, then `setupSheet` run and a **New version** deployed. Until then the site offers only 30s, 1m and 2m — it does not break, it just shows fewer choices.
+- [ ] **Check `units_*` against `daily_capacity`.** A 4 or 5 minute film is seeded at 3 units. If any `units_*` is larger than `daily_capacity`, that length shows a calendar with every day full and no reason given.
 - [ ] **Confirm your delivery promise.** `Config` → `delivery_text`. Seeded as "Ready within 5 days of receiving all details". Change the number to what you can actually keep. It appears in the pricing cards, how-it-works and the FAQ.
 - [ ] **Set your time slots.** `Config` → `time_slots`, seeded `11:00 AM, 1:00 PM, 4:00 PM, 7:00 PM`. These are the times shown under the calendar once someone picks a date. Write them exactly as you want customers to read them.
 - [ ] **Confirm `daily_capacity`.** Seeded at `4`, matching the four time slots. Lower it and the day closes early even if times look free.

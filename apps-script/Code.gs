@@ -39,6 +39,10 @@ var CACHE_SECONDS = 60;
 var MAX_BOOKINGS_PER_PHONE_PER_DAY = 3;
 var LOCK_WAIT_MS = 10000;
 
+/* Every film length the site can offer, in order. A length is live only when
+   Config carries a price for it, so one is retired by clearing its price. */
+var FILM_LENGTHS = ['30s', '1m', '2m', '3m', '4m', '5m'];
+
 var DEFAULT_TIME_SLOTS = ['11:00 AM', '1:00 PM', '4:00 PM', '7:00 PM'];
 
 /* ============================ ENTRY POINTS ============================ */
@@ -160,11 +164,17 @@ function getConfig_() {
     price_30s: num_(out.price_30s, 2999),
     price_1m: num_(out.price_1m, 4999),
     price_2m: num_(out.price_2m, 7999),
+    price_3m: num_(out.price_3m, 9999),
+    price_4m: num_(out.price_4m, 13999),
+    price_5m: num_(out.price_5m, 16999),
     follower_discount: num_(out.follower_discount, 200),
     daily_capacity: num_(out.daily_capacity, 4),
     units_30s: num_(out.units_30s, 1),
     units_1m: num_(out.units_1m, 1),
     units_2m: num_(out.units_2m, 2),
+    units_3m: num_(out.units_3m, 2),
+    units_4m: num_(out.units_4m, 3),
+    units_5m: num_(out.units_5m, 3),
     min_lead_days: num_(out.min_lead_days, 3),
     booking_window_days: num_(out.booking_window_days, 60),
     slot_hold_hours: num_(out.slot_hold_hours, 24),
@@ -176,6 +186,7 @@ function getConfig_() {
     instagram_handle: String(out.instagram_handle || 'timetoshoot'),
     revisions_text: String(out.revisions_text || ''),
     time_slots: parseTimeSlots_(out.time_slots),
+    film_lengths: FILM_LENGTHS,
     today: today_()
   };
 
@@ -193,18 +204,22 @@ function parseTimeSlots_(raw) {
   return out.length ? out : DEFAULT_TIME_SLOTS.slice();
 }
 
+/** Lengths this Sheet actually prices. */
+function liveLengths_(cfg) {
+  return FILM_LENGTHS.filter(function (code) {
+    return num_(cfg['price_' + code], 0) > 0;
+  });
+}
+
 function unitsFor_(cfg, filmLength) {
-  if (filmLength === '30s') return cfg.units_30s;
-  if (filmLength === '1m') return cfg.units_1m;
-  if (filmLength === '2m') return cfg.units_2m;
-  return 0;
+  if (FILM_LENGTHS.indexOf(filmLength) === -1) return 0;
+  var n = num_(cfg['units_' + filmLength], 1);
+  return (n < 1) ? 1 : n;
 }
 
 function priceFor_(cfg, filmLength) {
-  if (filmLength === '30s') return cfg.price_30s;
-  if (filmLength === '1m') return cfg.price_1m;
-  if (filmLength === '2m') return cfg.price_2m;
-  return 0;
+  if (FILM_LENGTHS.indexOf(filmLength) === -1) return 0;
+  return num_(cfg['price_' + filmLength], 0);
 }
 
 /* ============================ AVAILABILITY ============================ */
@@ -381,7 +396,7 @@ function createBooking_(input) {
   }
 
   var filmLength = String(input.filmLength || '').trim();
-  if (['30s', '1m', '2m'].indexOf(filmLength) === -1) {
+  if (liveLengths_(cfg).indexOf(filmLength) === -1) {
     return { ok: false, code: 'BAD_LENGTH', message: 'Please choose a film length.' };
   }
 

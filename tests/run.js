@@ -655,6 +655,58 @@ test('every English string has a Tamil translation', () => {
   assert.deepStrictEqual(extra, [], 'extra Tamil keys: ' + extra.join(', '));
 });
 
+test('no film length needs more units than a day can hold', () => {
+  /* A length whose units exceed daily_capacity shows a calendar with every
+     day full and no explanation. Seeds must never ship in that state. */
+  const fallback = (() => {
+    global.window = {};
+    const file = path.join(__dirname, '..', 'js', 'config.js');
+    delete require.cache[require.resolve(file)];
+    require(file);
+    return global.window.TTS_CONFIG.fallback;
+  })();
+
+  const cap = Number(fallback.daily_capacity);
+  assert.ok(cap > 0, 'daily_capacity must be positive');
+  L.availableLengths(fallback).forEach(code => {
+    const units = L.unitsFor(fallback, code);
+    assert.ok(units <= cap,
+      code + ' needs ' + units + ' units but a day only holds ' + cap);
+  });
+});
+
+test('a length with no price is simply not offered', () => {
+  const partial = { price_30s: 2999, price_1m: 4999, units_30s: 1, units_1m: 1 };
+  assert.deepStrictEqual(L.availableLengths(partial), ['30s', '1m']);
+  assert.strictEqual(L.basePrice(partial, '5m'), 0);
+  /* and the server must refuse one that is not priced */
+  const store = {
+    config: Object.assign({}, partial, {
+      min_lead_days: 3, booking_window_days: 60, daily_capacity: 4,
+      time_slots: ['11:00 AM'], follower_discount: 200
+    }),
+    today: TODAY, now: NOW, bookings: [], blocked: {}
+  };
+  assert.strictEqual(L.checkReservation(store, {
+    phone: '9876543210', deliveryDate: '2026-11-25', filmLength: '5m', slotTime: '11:00 AM'
+  }).code, 'BAD_LENGTH');
+});
+
+test('every film length has a label and a short label, in both languages', () => {
+  /* These keys are built at runtime from the length code, so the scan in the
+     next test cannot see them. Check them directly instead. */
+  const dict = loadI18n();
+  const missing = [];
+  L.LENGTHS.forEach(code => {
+    ['len_' + code, 'len_' + code + '_short'].forEach(key => {
+      ['en', 'ta'].forEach(lang => {
+        if (!dict[lang][key]) missing.push(lang + '.' + key);
+      });
+    });
+  });
+  assert.deepStrictEqual(missing, [], 'missing length strings: ' + missing.join(', '));
+});
+
 test('every string the page asks for exists in both languages', () => {
   const dict = loadI18n();
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
@@ -663,7 +715,9 @@ test('every string the page asks for exists in both languages', () => {
   let m;
   const attr = /data-i18n(?:-ph)?="([a-z0-9_]+)"/g;
   while ((m = attr.exec(html))) used.add(m[1]);
-  const call = /\bt\(\s*'([a-z0-9_]+)'/g;
+  /* `t('len_' + code)` builds its key, so the literal is only half a name.
+     Requiring a comma or closing paren after the quote keeps those out. */
+  const call = /\bt\(\s*'([a-z0-9_]+)'\s*[,)]/g;
   while ((m = call.exec(html))) used.add(m[1]);
 
   assert.ok(used.size > 50, 'should have found the page strings, found ' + used.size);

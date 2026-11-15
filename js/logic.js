@@ -9,7 +9,17 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  var LENGTHS = ['30s', '1m', '2m'];
+  /* The lengths on offer, in the order the stepper shows them. A length is
+     only offered when Config carries a price for it, so one can be retired by
+     clearing price_<code> in the Sheet. */
+  var LENGTHS = ['30s', '1m', '2m', '3m', '4m', '5m'];
+
+  /** Which of them this config actually prices. */
+  function availableLengths(config) {
+    return LENGTHS.filter(function (code) {
+      return Number(config['price_' + code]) > 0;
+    });
+  }
 
   /* ------------------------------ dates ------------------------------ */
 
@@ -61,18 +71,20 @@
 
   /* ------------------------------ pricing ---------------------------- */
 
+  /* Both read Config by key, so adding a length is a Sheet change, not a
+     code change. An unknown length prices at zero rather than guessing. */
   function unitsFor(config, filmLength) {
-    if (filmLength === '30s') return Number(config.units_30s);
-    if (filmLength === '1m') return Number(config.units_1m);
-    if (filmLength === '2m') return Number(config.units_2m);
-    return 0;
+    if (LENGTHS.indexOf(filmLength) === -1) return 0;
+    var v = config['units_' + filmLength];
+    if (v === '' || v === null || v === undefined) return 1;
+    var n = Number(v);
+    return (isNaN(n) || n < 1) ? 1 : n;
   }
 
   function basePrice(config, filmLength) {
-    if (filmLength === '30s') return Number(config.price_30s);
-    if (filmLength === '1m') return Number(config.price_1m);
-    if (filmLength === '2m') return Number(config.price_2m);
-    return 0;
+    if (LENGTHS.indexOf(filmLength) === -1) return 0;
+    var n = Number(config['price_' + filmLength]);
+    return (isNaN(n) || n < 0) ? 0 : n;
   }
 
   /** { base, discount, total } */
@@ -249,7 +261,11 @@
     var phone = normalizePhone(req.phone);
 
     if (!phone) return { ok: false, code: 'BAD_PHONE' };
-    if (LENGTHS.indexOf(req.filmLength) === -1) return { ok: false, code: 'BAD_LENGTH' };
+    /* Mirror the server: a length without a price in Config is not on offer,
+       even though the code is in the canonical list. */
+    if (availableLengths(cfg).indexOf(req.filmLength) === -1) {
+      return { ok: false, code: 'BAD_LENGTH' };
+    }
     if (!deliveryDate) return { ok: false, code: 'BAD_DATE' };
 
     var times = cfg.time_slots || [];
@@ -303,7 +319,7 @@
   }
 
   return {
-    LENGTHS: LENGTHS,
+    LENGTHS: LENGTHS, availableLengths: availableLengths,
     normDate: normDate, addDays: addDays, daysBetween: daysBetween,
     normalizePhone: normalizePhone, isValidPhone: isValidPhone, isValidName: isValidName,
     unitsFor: unitsFor, basePrice: basePrice, calcPrice: calcPrice,
