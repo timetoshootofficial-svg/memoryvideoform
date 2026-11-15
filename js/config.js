@@ -48,7 +48,6 @@ window.TTS_CONFIG = {
     { youtube: 'oVgQxC6lf0o', label: '' }
   ],
 
-  founderPhoto: 'assets/keerthika.jpg',
 
   /* Browser-side cache for config/availability, in seconds */
   cacheSeconds: 60
