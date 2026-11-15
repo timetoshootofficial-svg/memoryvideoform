@@ -109,6 +109,7 @@ units or free time slots, closes the day.
 |---|---|
 | `time_slots` | the times offered each day, comma separated |
 | `price_<length>` | the price of that length. **Clear it and that length stops being offered** — no code change needed |
+| `list_price_<length>` | shown struck through beside the price. Only appears when it is above the price. Use a figure you have actually charged |
 | `units_<length>` | how much of a day that length costs. Keep it at or below `daily_capacity`, or nobody can book that length |
 | `min_lead_days` | how soon you will accept a date. `3` means nothing inside the next 3 days is bookable |
 | `booking_window_days` | how far ahead the calendar shows |

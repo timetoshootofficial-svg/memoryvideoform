@@ -24,6 +24,14 @@ window.TTS_CONFIG = {
     price_3m: 9999,
     price_4m: 13999,
     price_5m: 16999,
+
+    /* Shown struck through beside the price. Clear one to hide its strike. */
+    list_price_30s: 4499,
+    list_price_1m: 6499,
+    list_price_2m: 9499,
+    list_price_3m: 11999,
+    list_price_4m: 15999,
+    list_price_5m: 18999,
     follower_discount: 200,
     time_slots: ['11:00 AM', '1:00 PM', '4:00 PM', '7:00 PM'],
     daily_capacity: 4,

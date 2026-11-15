@@ -406,7 +406,18 @@ html[lang="ta"] .step h3{font-size:21px}
 .stops button[aria-pressed="true"]{color:var(--ink); font-weight:700}
 .pricebox{background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; text-align:center; margin-bottom:16px}
 .pricebox .lbl{font-size:13.5px; color:var(--muted)}
-.pricebox .amt{font-family:var(--display); font-weight:800; font-size:40px; color:var(--ink); line-height:1.1; margin:4px 0; letter-spacing:-.02em}
+.pricebox .amt{
+  font-family:var(--display); font-weight:800; font-size:40px; color:var(--ink);
+  line-height:1.1; margin:4px 0; letter-spacing:-.02em;
+  display:flex; align-items:baseline; justify-content:center; gap:9px; flex-wrap:wrap;
+}
+/* The price that is not being charged sits small and quiet beside the one
+   that is, so the two can never be mistaken for each other. */
+.was{
+  font-family:var(--body); font-weight:500; font-size:16px; color:var(--muted);
+  text-decoration:line-through; text-decoration-thickness:1.5px; letter-spacing:0;
+}
+.minisum .was{font-size:13.5px; margin-right:6px}
 .pricebox .off{font-size:13.5px; color:var(--ok); font-weight:600}
 
 /* calendar */
@@ -783,7 +794,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
             </div>
             <div class="pricebox">
               <div class="lbl" id="lenLabel"></div>
-              <div class="amt" id="lenPrice">—</div>
+              <div class="amt"><span id="lenPrice">—</span><s class="was" id="lenWas" hidden></s></div>
               <div class="off" id="lenOff"></div>
             </div>
             <label class="check" id="followWrap">
@@ -817,7 +828,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
 
             <div class="minisum" id="miniSum" hidden>
               <span id="miniSumText"></span>
-              <b id="miniSumPrice"></b>
+              <span><s class="was" id="miniSumWas" hidden></s><b id="miniSumPrice"></b></span>
             </div>
 
             <p class="err" id="e4"></p>
@@ -1336,6 +1347,9 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     var p = L.calcPrice(c, code, state.data.follower);
     $('#lenLabel').textContent = t('your_film', { length: lenLabel(code) });
     $('#lenPrice').textContent = money(p.total);
+    var was = $('#lenWas');
+    was.hidden = !(p.list > p.total);
+    was.textContent = p.list > p.total ? money(p.list) : '';
     $('#lenOff').textContent = p.discount ? t('discount_applied', { amount: p.discount }) : '';
     $('#followLabel').textContent = t('follower_check', { handle: c.instagram_handle || 'timetoshoot' });
     $('#followWrap').classList.toggle('on', state.data.follower);
@@ -1394,6 +1408,9 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
       time: d.slotTime
     });
     $('#miniSumPrice').textContent = money(p.total);
+    var mwas = $('#miniSumWas');
+    mwas.hidden = !(p.list > p.total);
+    mwas.textContent = p.list > p.total ? money(p.list) : '';
     updateReserveBtn();
   }
 

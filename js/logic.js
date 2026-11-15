@@ -81,6 +81,18 @@
     return (isNaN(n) || n < 1) ? 1 : n;
   }
 
+  /**
+   * The price shown struck through, from Config list_price_<code>.
+   * Returns 0 when it is missing, or not above what is actually charged, so
+   * a blank or a mistake simply shows no strike rather than a fake saving.
+   */
+  function listPrice(config, filmLength) {
+    if (LENGTHS.indexOf(filmLength) === -1) return 0;
+    var n = Number(config['list_price_' + filmLength]);
+    if (isNaN(n) || n <= 0) return 0;
+    return n > basePrice(config, filmLength) ? n : 0;
+  }
+
   function basePrice(config, filmLength) {
     if (LENGTHS.indexOf(filmLength) === -1) return 0;
     var n = Number(config['price_' + filmLength]);
@@ -90,11 +102,12 @@
   /** { base, discount, total } */
   function calcPrice(config, filmLength, isFollower) {
     var base = basePrice(config, filmLength);
-    if (!base || isNaN(base)) return { base: 0, discount: 0, total: 0 };
+    if (!base || isNaN(base)) return { base: 0, discount: 0, total: 0, list: 0 };
     var discount = isFollower ? Number(config.follower_discount || 0) : 0;
     if (isNaN(discount) || discount < 0) discount = 0;
     if (discount > base) discount = base;
-    return { base: base, discount: discount, total: base - discount };
+    return { base: base, discount: discount, total: base - discount,
+             list: listPrice(config, filmLength) };
   }
 
   /* ---------------------------- availability ------------------------- */
@@ -322,7 +335,7 @@
     LENGTHS: LENGTHS, availableLengths: availableLengths,
     normDate: normDate, addDays: addDays, daysBetween: daysBetween,
     normalizePhone: normalizePhone, isValidPhone: isValidPhone, isValidName: isValidName,
-    unitsFor: unitsFor, basePrice: basePrice, calcPrice: calcPrice,
+    unitsFor: unitsFor, basePrice: basePrice, listPrice: listPrice, calcPrice: calcPrice,
     capacityFor: capacityFor, holdsSlot: holdsSlot, usedUnitsForDate: usedUnitsForDate,
     slotsLeft: slotsLeft, evaluateDate: evaluateDate, buildCalendar: buildCalendar,
     takenTimesForDate: takenTimesForDate, isTimeTaken: isTimeTaken,

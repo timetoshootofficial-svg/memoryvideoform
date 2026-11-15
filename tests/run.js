@@ -46,20 +46,20 @@ const NOW = new Date('2026-11-15T10:00:00+05:30');
 group('Price calculation');
 
 test('30s base price, no discount', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '30s', false), { base: 2999, discount: 0, total: 2999 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '30s', false), { base: 2999, discount: 0, total: 2999, list: 0 });
 });
 
 test('1m with follower discount', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '1m', true), { base: 4999, discount: 200, total: 4799 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '1m', true), { base: 4999, discount: 200, total: 4799, list: 0 });
 });
 
 test('2m with follower discount', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '2m', true), { base: 7999, discount: 200, total: 7799 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '2m', true), { base: 7999, discount: 200, total: 7799, list: 0 });
 });
 
 test('discount never exceeds the price', () => {
   const cheap = Object.assign({}, CFG, { price_30s: 150 });
-  assert.deepStrictEqual(L.calcPrice(cheap, '30s', true), { base: 150, discount: 150, total: 0 });
+  assert.deepStrictEqual(L.calcPrice(cheap, '30s', true), { base: 150, discount: 150, total: 0, list: 0 });
 });
 
 test('negative or junk discount is ignored', () => {
@@ -75,7 +75,31 @@ test('prices come from config, not from code', () => {
 });
 
 test('unknown length prices at zero rather than guessing', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '5m', false), { base: 0, discount: 0, total: 0 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '5m', false), { base: 0, discount: 0, total: 0, list: 0 });
+});
+
+test('a struck price only shows when it is above what is charged', () => {
+  const withList = Object.assign({}, CFG, { list_price_1m: 6499 });
+  assert.strictEqual(L.calcPrice(withList, '1m', false).list, 6499);
+
+  /* blank, zero, equal or lower must all show nothing rather than a saving
+     that is not real */
+  [undefined, '', 0, 4999, 4000, 'abc', -100].forEach(v => {
+    const c = Object.assign({}, CFG, { list_price_1m: v });
+    assert.strictEqual(L.listPrice(c, '1m'), 0, 'list_price_1m of ' + JSON.stringify(v) + ' must not show');
+  });
+});
+
+test('the struck price is compared against the price, not the discounted total', () => {
+  /* With a follower discount the total drops; the strike must still be
+     judged against the real price, or every length would sprout a fake one. */
+  const c = Object.assign({}, CFG, { list_price_1m: 5100 });
+  const p = L.calcPrice(c, '1m', true);
+  assert.strictEqual(p.total, 4799);
+  assert.strictEqual(p.list, 5100);
+  const tooLow = Object.assign({}, CFG, { list_price_1m: 4850 });
+  assert.strictEqual(L.calcPrice(tooLow, '1m', true).list, 0,
+    '4850 is below the 4999 price, so it is not a list price');
 });
 
 /* ============================== 2. UNITS ============================ */

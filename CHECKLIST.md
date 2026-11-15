@@ -6,6 +6,7 @@ Tick these off and the page is live. Nothing here needs a developer.
 
 - [ ] **Confirm the 1 minute price.** `Config` → `price_1m`. Seeded at `4999` as a guess.
 - [ ] **Confirm the 2 minute price.** `Config` → `price_2m`. Seeded at `7999` as a guess.
+- [ ] **Decide the struck-through prices.** `Config` → `list_price_30s` and the rest. These show beside the price with a line through them. **Use a price you have actually charged, or have been charging until now.** A "was" price you never charged is misleading advertising under the Consumer Protection Act and ASCI rules, and Meta rejects ads for it. Clear a row and that strike simply disappears.
 - [ ] **Redeploy Apps Script for the longer films.** 3, 4 and 5 minute films (₹9,999 / ₹13,999 / ₹16,999) need the new `Code.gs` and `Setup.gs` pasted in, then `setupSheet` run and a **New version** deployed. Until then the site offers only 30s, 1m and 2m — it does not break, it just shows fewer choices.
 - [ ] **Check `units_*` against `daily_capacity`.** A 4 or 5 minute film is seeded at 3 units. If any `units_*` is larger than `daily_capacity`, that length shows a calendar with every day full and no reason given.
 - [ ] **Confirm your delivery promise.** `Config` → `delivery_text`. Seeded as "Ready within 5 days of receiving all details". Change the number to what you can actually keep. It appears in the pricing cards, how-it-works and the FAQ.
