@@ -776,6 +776,47 @@ test('the live Apps Script endpoint is wired up', () => {
   assert.ok(/apiToken:\s*'[A-Za-z0-9_-]{16,}'/.test(src), 'apiToken should be set');
 });
 
+['index.html', 'admin.html', 'privacy.html'].forEach(file => {
+  test('every animation ' + file + ' calls for actually exists', () => {
+    /* Elements that start at opacity 0 and are revealed by their own
+       animation vanish completely if the keyframes are renamed or removed.
+       That shipped once; this catches it. */
+    const css = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+    const defined = new Set();
+    let m;
+    const kf = /@keyframes\s+([A-Za-z0-9_-]+)/g;
+    while ((m = kf.exec(css))) defined.add(m[1]);
+
+    const used = new Set();
+    const decl = /animation(?:-name)?\s*:\s*([^;}]+)[;}]/g;
+    while ((m = decl.exec(css))) {
+      m[1].split(',').forEach(part => {
+        part.trim().split(/\s+/).forEach(tok => {
+          if (/^[A-Za-z][A-Za-z0-9_-]*$/.test(tok) &&
+              !/^(none|forwards|backwards|both|infinite|alternate|reverse|normal|linear|ease|ease-in|ease-out|ease-in-out|paused|running|step-start|step-end|initial|inherit|unset)$/.test(tok)) {
+            used.add(tok);
+          }
+        });
+      });
+    }
+
+    const missing = [...used].filter(n => !defined.has(n));
+    assert.deepStrictEqual(missing, [],
+      file + ' references @keyframes that are not defined: ' + missing.join(', '));
+  });
+});
+
+test('nothing is left permanently invisible without a way back', () => {
+  /* Anything hidden at opacity 0 must either animate itself in, or be
+     restored by the reduced-motion block. */
+  const css = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const reduced = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'));
+  assert.ok(/opacity:\s*1\s*!important/.test(reduced),
+    'the reduced-motion block must restore opacity for the elements that start hidden');
+  assert.ok(/clip-path:\s*none\s*!important/.test(reduced),
+    'the reduced-motion block must clear the clip used by the headline wipe');
+});
+
 test('the page never writes 48 hours anywhere', () => {
   ['index.html', 'js/i18n.js', 'js/config.js'].forEach(f => {
     const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
