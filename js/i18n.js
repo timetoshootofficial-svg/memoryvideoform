@@ -149,9 +149,9 @@ window.TTS_I18N = {
     err_offline: 'You look offline. Please check your connection and try again.',
 
     /* ---- whatsapp message ---- */
-    wa_message: 'Hi Timetoshoot 💛 I’m {name}. I’ve reserved a slot for {date} at {time} — a {length} film for {occasion}. Reference {id}, total ₹{amount}. Please share the further details.',
-    wa_rush: 'Hi Timetoshoot 💛 I’m {name}. I need a {length} film delivered before {date}. Is a rush option possible?',
-    wa_plain: 'Hi Timetoshoot 💛 I would like to know more about a memory film.',
+    wa_message: 'Hi Timetoshoot! I’m {name}. I’ve reserved a slot for {date} at {time} — a {length} film for {occasion}. Reference {id}, total ₹{amount}. Please share the further details.',
+    wa_rush: 'Hi Timetoshoot! I’m {name}. I need a {length} film delivered before {date}. Is a rush option possible?',
+    wa_plain: 'Hi Timetoshoot! I would like to know more about a memory film.',
 
     /* ---- testimonials ---- */
     testi_title: 'What families tell us',
@@ -314,9 +314,9 @@ window.TTS_I18N = {
     err_generic: 'ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும் அல்லது வாட்ஸ்அப்பில் செய்தி அனுப்பவும்.',
     err_offline: 'இணையம் இல்லை எனத் தெரிகிறது. இணைப்பை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
 
-    wa_message: 'வணக்கம் Timetoshoot 💛 நான் {name}. {date} அன்று {time} நேரத்திற்கு ஒரு இடத்தை பிடித்துள்ளேன் — {occasion} க்கான {length} படம். குறிப்பு {id}, மொத்தம் ₹{amount}. மேல் விவரங்களை பகிரவும்.',
-    wa_rush: 'வணக்கம் Timetoshoot 💛 நான் {name}. {date}-க்கு முன் {length} படம் தேவை. அவசர வசதி சாத்தியமா?',
-    wa_plain: 'வணக்கம் Timetoshoot 💛 நினைவு படம் பற்றி தெரிந்து கொள்ள விரும்புகிறேன்.',
+    wa_message: 'வணக்கம் Timetoshoot! நான் {name}. {date} அன்று {time} நேரத்திற்கு ஒரு இடத்தை பிடித்துள்ளேன் — {occasion} க்கான {length} படம். குறிப்பு {id}, மொத்தம் ₹{amount}. மேல் விவரங்களை பகிரவும்.',
+    wa_rush: 'வணக்கம் Timetoshoot! நான் {name}. {date}-க்கு முன் {length} படம் தேவை. அவசர வசதி சாத்தியமா?',
+    wa_plain: 'வணக்கம் Timetoshoot! நினைவு படம் பற்றி தெரிந்து கொள்ள விரும்புகிறேன்.',
 
     testi_title: 'குடும்பங்கள் சொல்வது',
 

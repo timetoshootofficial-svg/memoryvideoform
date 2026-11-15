@@ -925,7 +925,7 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
 
     var ig = 'https://instagram.com/' + (c.instagram_handle || 'timetoshoot');
     $('#igLink').href = ig;
-    $('#waLink').href = waUrl(t('wa_plain'));
+    $('#waLink').href = waPlainUrl(t('wa_plain'));
 
     var f = $('#founderPh');
     f.setAttribute('aria-label', t('hero_photo_placeholder'));
@@ -1346,9 +1346,22 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
   }
 
   /* ============================= WHATSAPP =========================== */
+
+  /* Booking messages go through the number, because only that form of the
+     link can carry a prefilled message (reference, date, time, total).
+     NOTE: wa.me mangles emoji into a replacement character, so the strings in
+     js/i18n.js deliberately contain none. Tamil and the rupee sign survive. */
   function waUrl(text) {
     var num = String(cfg().whatsapp_number || '917448326503').replace(/[^0-9]/g, '');
     return 'https://wa.me/' + num + '?text=' + encodeURIComponent(text);
+  }
+
+  /* The plain "message us" buttons use the Business short link when Config
+     has one, since there is nothing to prefill there. */
+  function waPlainUrl(fallbackText) {
+    var link = String(cfg().whatsapp_link || '').trim();
+    if (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(link)) return link;
+    return waUrl(fallbackText);
   }
 
   /* ============================== SUBMIT ============================ */

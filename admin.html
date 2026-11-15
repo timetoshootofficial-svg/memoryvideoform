@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Timetoshoot — Admin</title>
+<meta name="theme-color" content="#0A0A0A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0A0A0A; --bg-2:#111; --card:#1A1A1A; --card-2:#151515;
+  --border:#2A2A2A; --border-2:#383838;
+  --yellow:#FFC700; --text:#F5F5F5; --muted:#A0A0A0; --on-yellow:#0A0A0A;
+  --ok:#9BE28F; --warn:#FFD21F; --danger:#FF9B9B; --info:#7FE3D4;
+  --radius:14px; --display:'Anton',Impact,sans-serif;
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--yellow)}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+.display{font-family:var(--display);letter-spacing:.5px;text-transform:uppercase;font-weight:400}
+
+header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--display);font-size:19px;letter-spacing:1.4px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);box-shadow:0 0 10px var(--yellow)}
+.brand small{font-family:var(--body);font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;font-weight:600}
+.hactions{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 14px;border-radius:10px;border:1px solid var(--border-2);background:var(--card);color:var(--text);font-size:14px;font-weight:600}
+.btn:hover{border-color:var(--yellow)}
+.btn-primary{background:var(--yellow);color:var(--on-yellow);border-color:var(--yellow)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.stamp{font-size:12px;color:var(--muted)}
+
+/* ---- gate ---- */
+.gate{max-width:380px;margin:14vh auto;padding:0 16px;text-align:center}
+.gate h1{font-size:30px;margin:0 0 6px}
+.gate p{color:var(--muted);font-size:14px;margin:0 0 20px}
+.gate input{width:100%;min-height:50px;padding:12px 14px;font-size:17px;background:var(--bg-2);border:1px solid var(--border-2);border-radius:12px;text-align:center;letter-spacing:2px}
+.gate input:focus{border-color:var(--yellow);outline:none;box-shadow:0 0 0 3px rgba(255,199,0,.18)}
+.gate .btn{width:100%;margin-top:12px;min-height:50px}
+.gate .err{color:var(--danger);font-size:14px;margin-top:12px;min-height:20px}
+.gate .note{font-size:12px;color:var(--muted);margin-top:18px;line-height:1.5}
+
+main{padding:20px 0 60px}
+.sec{margin-bottom:28px}
+.sec h2{font-size:13px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin:0 0 11px;font-weight:600}
+
+/* ---- stat cards ---- */
+.grid{display:grid;gap:11px;grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat .k{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stat .v{font-family:var(--display);font-size:33px;line-height:1.15;margin-top:3px}
+.stat .s{font-size:12px;color:var(--muted);margin-top:2px}
+.stat.hi{border-color:var(--yellow)}
+.stat.hi .v{color:var(--yellow)}
+.v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.info{color:var(--info)} .v.dim{color:var(--muted)}
+
+/* ---- funnel ---- */
+.funnel{display:grid;gap:7px}
+.frow{display:grid;grid-template-columns:168px 1fr 108px;gap:12px;align-items:center;font-size:14px}
+.frow .lbl{color:var(--muted)}
+.bar{height:26px;background:var(--bg-2);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--yellow),#FFD21F);min-width:2px}
+.frow .num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.frow .num span{color:var(--muted);font-weight:400;font-size:12.5px;margin-left:6px}
+
+/* ---- table ---- */
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:11px;align-items:center}
+.tools input,.tools select{min-height:40px;padding:8px 11px;background:var(--bg-2);border:1px solid var(--border-2);border-radius:10px;font-size:14px}
+.tools input{flex:1;min-width:170px}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:980px}
+th{text-align:left;padding:11px 12px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);background:var(--card-2);position:sticky;top:0;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tr:hover td{background:rgba(255,255,255,.022)}
+.mono{font-variant-numeric:tabular-nums}
+.id{font-weight:700;color:var(--yellow);white-space:nowrap}
+.sub{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.p-Pending{background:#3A3000;color:#FFD21F}
+.p-Confirmed{background:#0F2A10;color:#9BE28F}
+.p-Paid{background:#0C2A2A;color:#7FE3D4}
+.p-Cancelled{background:#2A0F0F;color:#FF9B9B}
+.p-Expired{background:#1F1F1F;color:#A0A0A0}
+td select{min-height:34px;padding:5px 8px;background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;font-size:12.5px}
+.wa{display:inline-flex;align-items:center;gap:5px;color:var(--text);text-decoration:none;font-size:12.5px;border:1px solid var(--border-2);border-radius:8px;padding:5px 9px;white-space:nowrap}
+.wa:hover{border-color:var(--yellow)}
+.empty{padding:34px 16px;text-align:center;color:var(--muted)}
+.hold{color:var(--warn);font-size:11.5px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:40;background:var(--card);border:1px solid var(--yellow);border-radius:11px;padding:11px 18px;font-size:14px;box-shadow:0 10px 34px rgba(0,0,0,.6);display:none}
+.toast.on{display:block}
+.toast.bad{border-color:var(--danger)}
+.skel{height:86px;border-radius:var(--radius);background:linear-gradient(90deg,#141414,#1E1E1E,#141414);background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{from{background-position:200% 0}to{background-position:-200% 0}}
+.split{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.box h3{margin:0 0 10px;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px}
+.kv:last-child{border-bottom:0}
+.kv b{font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+  .frow{grid-template-columns:118px 1fr 78px;font-size:13px}
+  .stat .v{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================== GATE ============================== -->
+<div class="gate" id="gate">
+  <div class="brand" style="justify-content:center;margin-bottom:16px">
+    <span class="dot"></span><span>TIMETOSHOOT</span>
+  </div>
+  <h1 class="display">Admin</h1>
+  <p>Enter your PIN to see bookings.</p>
+  <form id="pinForm" autocomplete="off">
+    <input id="pin" type="password" inputmode="text" placeholder="PIN" aria-label="Admin PIN" autocomplete="current-password">
+    <button class="btn btn-primary" type="submit" id="pinBtn">Unlock</button>
+  </form>
+  <div class="err" id="pinErr"></div>
+  <p class="note">
+    This page shows customer phone numbers. The PIN is checked on the server —
+    nothing is sent to the browser until it matches.
+  </p>
+</div>
+
+<!-- ========================== DASHBOARD ============================= -->
+<div id="app" hidden>
+  <header>
+    <div class="wrap hrow">
+      <div class="brand"><span class="dot"></span><span>TIMETOSHOOT</span><small>Admin</small></div>
+      <div class="hactions">
+        <span class="stamp" id="stamp"></span>
+        <button class="btn" id="refresh">Refresh</button>
+        <button class="btn" id="lock">Lock</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="sec">
+      <h2>Reservations</h2>
+      <div class="grid" id="stats"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Value</h2>
+      <div class="grid" id="money"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Where people drop off</h2>
+      <div class="tools" style="margin-bottom:12px">
+        <select id="funnelRange">
+          <option value="all">All time</option>
+          <option value="last7">Last 7 days</option>
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+        </select>
+      </div>
+      <div class="funnel" id="funnel"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Breakdown</h2>
+      <div class="split" id="breakdown"></div>
+    </div>
+
+    <div class="sec">
+      <h2>All bookings</h2>
+      <div class="tools">
+        <input id="q" type="search" placeholder="Search name, phone, reference, campaign…" aria-label="Search">
+        <select id="fStatus">
+          <option value="">All statuses</option>
+          <option>Pending</option><option>Confirmed</option><option>Paid</option>
+          <option>Cancelled</option><option>Expired</option>
+        </select>
+        <select id="fWhen">
+          <option value="">Any time</option>
+          <option value="today">Booked today</option>
+          <option value="yesterday">Booked yesterday</option>
+          <option value="last7">Last 7 days</option>
+        </select>
+        <button class="btn" id="csv">Download CSV</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th>Reference</th><th>Booked</th><th>Customer</th><th>Occasion</th>
+            <th>Film</th><th>Slot</th><th>Total</th><th>Status</th><th>Source</th><th></th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty" id="empty" hidden>Nothing matches that filter.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="js/config.js"></script>
+<script>
+(function () {
+  'use strict';
+  var CFG = window.TTS_CONFIG;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var PIN_KEY = 'tts_admin_pin';
+
+  var state = { pin: '', data: null, q: '', status: '', when: '', range: 'all' };
+
+  /* ------------------------------ utils ----------------------------- */
+  function esc(v) {
+    return String(v === null || v === undefined ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function money(n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); }
+  function pct(a, b) { return (!b) ? '0%' : Math.round((a / b) * 100) + '%'; }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    var p = String(iso).slice(0, 10).split('-');
+    if (p.length !== 3) return iso;
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    try { return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); }
+    catch (e) { return iso; }
+  }
+  function fmtWhen(s) {
+    if (!s) return '—';
+    var d = String(s).slice(0, 16).replace('T', ' ');
+    var parts = d.split(' ');
+    return fmtDate(parts[0]) + (parts[1] ? '<span class="sub">' + esc(parts[1]) + '</span>' : '');
+  }
+
+  function toast(msg, bad) {
+    var el = $('#toast');
+    el.textContent = msg;
+    el.className = 'toast on' + (bad ? ' bad' : '');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.className = 'toast'; }, 3800);
+  }
+
+  /* ------------------------------- api ------------------------------ */
+  function call(action, extra) {
+    var body = Object.assign({ action: action, token: CFG.apiToken, pin: state.pin }, extra || {});
+    return fetch(CFG.apiUrl, { method: 'POST', redirect: 'follow', body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); });
+  }
+
+  /* ------------------------------- gate ----------------------------- */
+  function unlock(pin) {
+    state.pin = pin;
+    $('#pinBtn').disabled = true;
+    $('#pinBtn').textContent = 'Checking…';
+    $('#pinErr').textContent = '';
+
+    return call('adminData').then(function (j) {
+      $('#pinBtn').disabled = false;
+      $('#pinBtn').textContent = 'Unlock';
+      if (!j || !j.ok) {
+        state.pin = '';
+        try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
+        $('#pinErr').textContent = (j && j.code === 'BAD_PIN')
+          ? 'Wrong PIN.'
+          : ((j && j.message) || 'Could not reach the server.');
+        return false;
+      }
+      try { sessionStorage.setItem(PIN_KEY, pin); } catch (e) {}
+      $('#gate').hidden = true;
+      $('#app').hidden = false;
+      render(j);
+      return true;
+    }).catch(function () {
+      $('#pinBtn').disabled = false;
+      $('#pinBtn').textContent = 'Unlock';
+      $('#pinErr').textContent = 'Could not reach the server. Check your connection.';
+      return false;
+    });
+  }
+
+  function lock() {
+    state.pin = ''; state.data = null;
+    try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
+    $('#app').hidden = true;
+    $('#gate').hidden = false;
+    $('#pin').value = '';
+    $('#pin').focus();
+  }
+
+  /* ------------------------------ render ---------------------------- */
+  function render(j) {
+    state.data = j;
+    $('#stamp').textContent = 'Updated ' + String(j.now || '').slice(11, 16);
+    renderStats();
+    renderMoney();
+    renderFunnel();
+    renderBreakdown();
+    renderRows();
+  }
+
+  function card(k, v, sub, cls, hi) {
+    return '<div class="stat' + (hi ? ' hi' : '') + '">' +
+      '<div class="k">' + esc(k) + '</div>' +
+      '<div class="v ' + (cls || '') + '">' + esc(v) + '</div>' +
+      (sub ? '<div class="s">' + esc(sub) + '</div>' : '') + '</div>';
+  }
+
+  function renderStats() {
+    var s = state.data.stats;
+    $('#stats').innerHTML =
+      card('Today', s.today, 'reserved today', '', true) +
+      card('Yesterday', s.yesterday, '') +
+      card('Last 7 days', s.last7, '') +
+      card('Last 30 days', s.last30, '') +
+      card('All time', s.total, '') +
+      card('Pending', s.pending, 'waiting on you', 'warn') +
+      card('Confirmed', s.confirmed, '', 'ok') +
+      card('Paid', s.paid, '', 'info') +
+      card('Cancelled', s.cancelled, '', 'dim') +
+      card('Expired', s.expired, 'hold ran out', 'dim');
+  }
+
+  function renderMoney() {
+    var s = state.data.stats;
+    $('#money').innerHTML =
+      card('Paid', money(s.revenuePaid), 'money in', 'info', true) +
+      card('Confirmed', money(s.revenueConfirmed), 'agreed, not paid', 'ok') +
+      card('Pending', money(s.revenuePending), 'not spoken to yet', 'warn') +
+      card('To chase', money(s.revenueConfirmed + s.revenuePending), 'confirmed + pending') +
+      card('Avg paid', s.paid ? money(Math.round(s.revenuePaid / s.paid)) : '—', 'per booking');
+  }
+
+  var FUNNEL_STEPS = [
+    ['page_view', 'Opened the page'],
+    ['form_start', 'Started the form'],
+    ['step_2', 'Gave name and number'],
+    ['step_3', 'Chose an occasion'],
+    ['step_4', 'Reached the calendar'],
+    ['date_selected', 'Picked a date'],
+    ['time_selected', 'Picked a time'],
+    ['booking_created', 'Reserved a slot'],
+    ['whatsapp_redirect', 'Went to WhatsApp']
+  ];
+
+  function renderFunnel() {
+    var f = (state.data.funnel || {})[state.range] || {};
+    var top = Math.max(1, f.page_view || 0);
+    var prev = null;
+
+    $('#funnel').innerHTML = FUNNEL_STEPS.map(function (st) {
+      var n = f[st[0]] || 0;
+      var width = Math.max(0, Math.min(100, (n / top) * 100));
+      var drop = (prev !== null && prev > 0 && n < prev)
+        ? '<span>↓ ' + Math.round(((prev - n) / prev) * 100) + '%</span>' : '';
+      prev = n;
+      return '<div class="frow">' +
+        '<div class="lbl">' + esc(st[1]) + '</div>' +
+        '<div class="bar"><i style="width:' + width + '%"></i></div>' +
+        '<div class="num">' + n + drop + '</div>' +
+        '</div>';
+    }).join('') +
+    '<p style="color:var(--muted);font-size:12.5px;margin:10px 0 0">' +
+      'Visit to reservation: <b style="color:var(--yellow)">' +
+      pct(f.booking_created || 0, f.page_view || 0) + '</b>' +
+      ' · unique visitors all time: ' + ((state.data.funnel || {}).sessions || 0) +
+    '</p>';
+  }
+
+  function renderBreakdown() {
+    var s = state.data.stats;
+    function box(title, obj, fmt) {
+      var keys = Object.keys(obj || {}).sort(function (a, b) { return obj[b] - obj[a]; });
+      if (!keys.length) return '<div class="box"><h3>' + esc(title) + '</h3>' +
+        '<p style="color:var(--muted);font-size:13px;margin:0">Nothing yet.</p></div>';
+      return '<div class="box"><h3>' + esc(title) + '</h3>' +
+        keys.slice(0, 8).map(function (k) {
+          return '<div class="kv"><span>' + esc(fmt ? fmt(k) : k) + '</span><b>' + obj[k] + '</b></div>';
+        }).join('') + '</div>';
+    }
+    var lenName = { '30s': '30 seconds', '1m': '1 minute', '2m': '2 minutes' };
+    $('#breakdown').innerHTML =
+      box('By occasion', s.byOccasion) +
+      box('By film length', s.byLength, function (k) { return lenName[k] || k; }) +
+      box('By time slot', s.bySlot) +
+      box('By campaign', s.byCampaign);
+  }
+
+  function visible() {
+    var all = (state.data && state.data.bookings) || [];
+    var q = state.q.trim().toLowerCase();
+    var today = state.data.today;
+    var yest = shiftDate(today, -1);
+    var week = shiftDate(today, -6);
+
+    return all.filter(function (b) {
+      if (state.status && b.status !== state.status) return false;
+      if (state.when === 'today' && b.createdDate !== today) return false;
+      if (state.when === 'yesterday' && b.createdDate !== yest) return false;
+      if (state.when === 'last7' && !(b.createdDate >= week)) return false;
+      if (!q) return true;
+      return [b.id, b.name, b.phone, b.campaign, b.occasion, b.source, b.notes]
+        .join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function shiftDate(iso, days) {
+    var p = String(iso).split('-');
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  var LEN = { '30s': '30 sec', '1m': '1 min', '2m': '2 min' };
+
+  function renderRows() {
+    var list = visible();
+    $('#empty').hidden = list.length > 0;
+
+    $('#rows').innerHTML = list.map(function (b) {
+      var wa = 'https://wa.me/91' + b.phone;
+      return '<tr data-id="' + esc(b.id) + '">' +
+        '<td class="id">' + esc(b.id) + '</td>' +
+        '<td class="mono">' + fmtWhen(b.createdAt) + '</td>' +
+        '<td><b>' + esc(b.name || '—') + '</b>' +
+          '<span class="sub mono">' + (b.phone ? '+91 ' + esc(b.phone) : '—') + '</span></td>' +
+        '<td>' + esc(b.occasion || '—') +
+          (b.eventDate ? '<span class="sub">event ' + fmtDate(b.eventDate) + '</span>' : '') + '</td>' +
+        '<td>' + esc(LEN[b.filmLength] || b.filmLength || '—') +
+          (b.follower === 'Y' ? '<span class="sub">follower −₹200</span>' : '') + '</td>' +
+        '<td>' + fmtDate(b.deliveryDate) +
+          '<span class="sub">' + esc(b.slotTime || '—') + '</span>' +
+          (b.holdActive && b.status === 'Pending'
+            ? '<span class="sub hold">holds until ' + esc(String(b.holdUntil).slice(5, 16)) + '</span>' : '') +
+        '</td>' +
+        '<td class="mono"><b>' + money(b.total) + '</b></td>' +
+        '<td><span class="pill p-' + esc(b.status) + '">' + esc(b.status) + '</span>' +
+          '<select class="st" aria-label="Change status for ' + esc(b.id) + '">' +
+          ['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Expired'].map(function (o) {
+            return '<option' + (o === b.status ? ' selected' : '') + '>' + o + '</option>';
+          }).join('') + '</select></td>' +
+        '<td>' + esc(b.campaign === '(none)' ? '—' : b.campaign) +
+          (b.source ? '<span class="sub">' + esc(b.source) + '</span>' : '') +
+          (b.language ? '<span class="sub">' + esc(b.language.toUpperCase()) + '</span>' : '') + '</td>' +
+        '<td>' + (b.phone ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : '') + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  /* --------------------------- status change ------------------------ */
+  function changeStatus(id, status, sel) {
+    sel.disabled = true;
+    call('adminSetStatus', { bookingId: id, status: status }).then(function (j) {
+      sel.disabled = false;
+      if (!j || !j.ok) { toast((j && j.message) || 'Could not update.', true); return; }
+      toast(id + ' → ' + status);
+      var b = (state.data.bookings || []).filter(function (x) { return x.id === id; })[0];
+      if (b) b.status = status;
+      refresh(true);
+    }).catch(function () {
+      sel.disabled = false;
+      toast('Could not reach the server.', true);
+    });
+  }
+
+  /* ------------------------------- csv ------------------------------ */
+  function downloadCsv() {
+    var list = visible();
+    var cols = ['id', 'createdAt', 'name', 'phone', 'occasion', 'eventDate', 'filmLength',
+                'deliveryDate', 'slotTime', 'price', 'follower', 'total', 'status',
+                'holdUntil', 'campaign', 'source', 'adId', 'language', 'notes'];
+    var out = [cols.join(',')];
+    list.forEach(function (b) {
+      out.push(cols.map(function (c) {
+        var v = b[c] === null || b[c] === undefined ? '' : String(b[c]);
+        /* a leading = + - @ would be read as a formula by Excel */
+        if (/^[=+\-@]/.test(v)) v = "'" + v;
+        return '"' + v.replace(/"/g, '""') + '"';
+      }).join(','));
+    });
+    var blob = new Blob(['﻿' + out.join('\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'timetoshoot-bookings-' + state.data.today + '.csv';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  /* ----------------------------- refresh ---------------------------- */
+  function refresh(quiet) {
+    if (!state.pin) return;
+    if (!quiet) { $('#refresh').disabled = true; $('#refresh').textContent = 'Loading…'; }
+    call('adminData').then(function (j) {
+      $('#refresh').disabled = false; $('#refresh').textContent = 'Refresh';
+      if (!j || !j.ok) {
+        if (j && j.code === 'BAD_PIN') { lock(); return; }
+        toast((j && j.message) || 'Could not load.', true);
+        return;
+      }
+      render(j);
+    }).catch(function () {
+      $('#refresh').disabled = false; $('#refresh').textContent = 'Refresh';
+      toast('Could not reach the server.', true);
+    });
+  }
+
+  /* ------------------------------ events ---------------------------- */
+  $('#pinForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = $('#pin').value.trim();
+    if (!v) { $('#pinErr').textContent = 'Enter the PIN.'; return; }
+    unlock(v);
+  });
+  $('#refresh').addEventListener('click', function () { refresh(); });
+  $('#lock').addEventListener('click', lock);
+  $('#q').addEventListener('input', function () { state.q = this.value; renderRows(); });
+  $('#fStatus').addEventListener('change', function () { state.status = this.value; renderRows(); });
+  $('#fWhen').addEventListener('change', function () { state.when = this.value; renderRows(); });
+  $('#funnelRange').addEventListener('change', function () { state.range = this.value; renderFunnel(); });
+  $('#csv').addEventListener('click', downloadCsv);
+  $('#rows').addEventListener('change', function (e) {
+    var sel = e.target.closest('select.st');
+    if (!sel) return;
+    var tr = sel.closest('tr');
+    changeStatus(tr.getAttribute('data-id'), sel.value, sel);
+  });
+
+  /* ------------------------------- init ----------------------------- */
+  var saved = '';
+  try { saved = sessionStorage.getItem(PIN_KEY) || ''; } catch (e) {}
+  if (saved) {
+    $('#gate').hidden = true;
+    unlock(saved).then(function (ok) { if (!ok) { $('#gate').hidden = false; } });
+  } else {
+    $('#pin').focus();
+  }
+})();
+</script>
+</body>
+</html>

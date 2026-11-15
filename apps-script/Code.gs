@@ -72,6 +72,8 @@ function handle_(e, method) {
       case 'getTestimonials': return json_({ ok: true, testimonials: getTestimonials_() });
       case 'createBooking':   return json_(createBooking_(input));
       case 'logEvent':        return json_(logEvent_(input));
+      case 'adminData':       return json_(adminData_(input));
+      case 'adminSetStatus':  return json_(adminSetStatus_(input));
       default:                return json_({ ok: false, code: 'UNKNOWN_ACTION', message: action });
     }
   } catch (err) {
@@ -162,6 +164,7 @@ function getConfig_() {
     booking_window_days: num_(out.booking_window_days, 60),
     slot_hold_hours: num_(out.slot_hold_hours, 24),
     whatsapp_number: String(out.whatsapp_number || '917448326503').replace(/[^0-9]/g, ''),
+    whatsapp_link: sanitize_(out.whatsapp_link, 120),
     most_chosen_package: String(out.most_chosen_package || '1m').trim(),
     delivery_text: String(out.delivery_text || 'Ready within 5 days of receiving all details'),
     clients_count: String(out.clients_count || '200+'),
@@ -566,6 +569,188 @@ function logEvent_(input) {
   var sh = sheet_(TAB.FUNNEL);
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, 6).setValues(rows);
   return { ok: true, written: rows.length };
+}
+
+/* =============================== ADMIN =============================== */
+
+/**
+ * The owner's dashboard data. Guarded by ADMIN_PIN, a SEPARATE secret from
+ * API_TOKEN: API_TOKEN ships in the public page, ADMIN_PIN never does. Rows
+ * here carry customer phone numbers, so this must never answer without it.
+ */
+function checkAdmin_(pin) {
+  var expected = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN');
+  if (!expected) return false;                       // fail closed until set
+  var given = String(pin || '');
+  if (given.length !== String(expected).length) return false;
+  /* constant-time-ish compare so a wrong pin cannot be guessed by timing */
+  var diff = 0;
+  for (var i = 0; i < given.length; i++) {
+    diff |= given.charCodeAt(i) ^ String(expected).charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+function adminData_(input) {
+  if (!checkAdmin_(input.pin)) {
+    Utilities.sleep(700);                            // slow down guessing
+    return { ok: false, code: 'BAD_PIN', message: 'Wrong PIN.' };
+  }
+
+  var cfg = getConfig_();
+  var table = bookingsTable_();
+  var idx = table.idx;
+  var now = new Date();
+  var today = cfg.today;
+  var yesterday = addDays_(today, -1);
+  var weekAgo = addDays_(today, -6);
+  var monthAgo = addDays_(today, -29);
+
+  var bookings = [];
+  var stats = {
+    total: 0, today: 0, yesterday: 0, last7: 0, last30: 0,
+    pending: 0, confirmed: 0, paid: 0, cancelled: 0, expired: 0,
+    revenuePaid: 0, revenueConfirmed: 0, revenuePending: 0,
+    byOccasion: {}, byLength: {}, byCampaign: {}, bySlot: {}
+  };
+
+  for (var i = 0; i < table.rows.length; i++) {
+    var r = table.rows[i];
+    var id = String(cell_(r, idx, 'BookingID') || '').trim();
+    if (!id) continue;
+
+    var createdAt = cell_(r, idx, 'CreatedAt');
+    var createdDate = normDate_(createdAt);
+    var status = String(cell_(r, idx, 'Status') || '').trim();
+    var total = num_(cell_(r, idx, 'Total'), 0);
+    var occasion = String(cell_(r, idx, 'Occasion') || '').trim();
+    var filmLength = String(cell_(r, idx, 'FilmLength') || '').trim();
+    var campaign = String(cell_(r, idx, 'UTM_Campaign') || '').trim() || '(none)';
+    var slotTime = String(cell_(r, idx, 'SlotTime') || '').trim();
+
+    stats.total++;
+    if (createdDate === today) stats.today++;
+    if (createdDate === yesterday) stats.yesterday++;
+    if (createdDate >= weekAgo) stats.last7++;
+    if (createdDate >= monthAgo) stats.last30++;
+
+    if (status === 'Pending') { stats.pending++; stats.revenuePending += total; }
+    else if (status === 'Confirmed') { stats.confirmed++; stats.revenueConfirmed += total; }
+    else if (status === 'Paid') { stats.paid++; stats.revenuePaid += total; }
+    else if (status === 'Cancelled') stats.cancelled++;
+    else if (status === 'Expired') stats.expired++;
+
+    if (occasion) stats.byOccasion[occasion] = (stats.byOccasion[occasion] || 0) + 1;
+    if (filmLength) stats.byLength[filmLength] = (stats.byLength[filmLength] || 0) + 1;
+    stats.byCampaign[campaign] = (stats.byCampaign[campaign] || 0) + 1;
+    if (slotTime) stats.bySlot[slotTime] = (stats.bySlot[slotTime] || 0) + 1;
+
+    bookings.push({
+      row: i + 2,                                     // the real Sheet row number
+      id: id,
+      createdAt: createdAt instanceof Date ? formatDateTime_(createdAt) : String(createdAt || ''),
+      createdDate: createdDate,
+      name: String(cell_(r, idx, 'Name') || ''),
+      phone: String(cell_(r, idx, 'Phone') || '').replace(/[^0-9]/g, ''),
+      occasion: occasion,
+      eventDate: normDate_(cell_(r, idx, 'EventDate')),
+      filmLength: filmLength,
+      deliveryDate: normDate_(cell_(r, idx, 'DeliveryDate')),
+      slotTime: slotTime,
+      price: num_(cell_(r, idx, 'Price'), 0),
+      follower: String(cell_(r, idx, 'FollowerDiscount') || ''),
+      total: total,
+      status: status,
+      holdUntil: cell_(r, idx, 'HoldUntil') instanceof Date
+        ? formatDateTime_(cell_(r, idx, 'HoldUntil'))
+        : String(cell_(r, idx, 'HoldUntil') || ''),
+      holdActive: holdsSlot_(status, cell_(r, idx, 'HoldUntil'), now),
+      campaign: campaign,
+      source: String(cell_(r, idx, 'UTM_Source') || ''),
+      adId: String(cell_(r, idx, 'AdID') || ''),
+      language: String(cell_(r, idx, 'Language') || ''),
+      notes: String(cell_(r, idx, 'Notes') || '')
+    });
+  }
+
+  bookings.reverse();                                 // newest first
+
+  return {
+    ok: true,
+    now: formatDateTime_(now),
+    today: today,
+    stats: stats,
+    bookings: bookings.slice(0, 500),
+    funnel: funnelStats_(today, yesterday, weekAgo),
+    config: {
+      whatsapp_number: cfg.whatsapp_number,
+      time_slots: cfg.time_slots,
+      daily_capacity: cfg.daily_capacity,
+      slot_hold_hours: cfg.slot_hold_hours
+    }
+  };
+}
+
+/** Counts of each funnel event, overall and for today / yesterday. */
+function funnelStats_(today, yesterday, weekAgo) {
+  var sh = sheet_(TAB.FUNNEL);
+  var last = sh.getLastRow();
+  var out = { all: {}, today: {}, yesterday: {}, last7: {}, sessions: 0, sessionsToday: 0 };
+  if (last < 2) return out;
+
+  var values = sh.getRange(2, 1, last - 1, 6).getValues();
+  var seen = {}, seenToday = {};
+
+  for (var i = 0; i < values.length; i++) {
+    var ts = values[i][0];
+    var date = normDate_(ts);
+    var session = String(values[i][1] || '').trim();
+    var ev = String(values[i][2] || '').trim();
+    if (!ev) continue;
+
+    out.all[ev] = (out.all[ev] || 0) + 1;
+    if (date === today) out.today[ev] = (out.today[ev] || 0) + 1;
+    if (date === yesterday) out.yesterday[ev] = (out.yesterday[ev] || 0) + 1;
+    if (date >= weekAgo) out.last7[ev] = (out.last7[ev] || 0) + 1;
+
+    if (session) {
+      if (!seen[session]) { seen[session] = 1; out.sessions++; }
+      if (date === today && !seenToday[session]) { seenToday[session] = 1; out.sessionsToday++; }
+    }
+  }
+  return out;
+}
+
+/** Lets the owner change a booking's Status from the dashboard. */
+function adminSetStatus_(input) {
+  if (!checkAdmin_(input.pin)) {
+    Utilities.sleep(700);
+    return { ok: false, code: 'BAD_PIN', message: 'Wrong PIN.' };
+  }
+
+  var allowed = ['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Expired'];
+  var status = String(input.status || '').trim();
+  if (allowed.indexOf(status) === -1) return { ok: false, code: 'BAD_STATUS' };
+
+  var bookingId = sanitize_(input.bookingId, 20);
+  if (!bookingId) return { ok: false, code: 'BAD_ID' };
+
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(LOCK_WAIT_MS); }
+  catch (e) { return { ok: false, code: 'LOCK_BUSY' }; }
+
+  try {
+    var table = bookingsTable_();
+    for (var i = 0; i < table.rows.length; i++) {
+      if (String(cell_(table.rows[i], table.idx, 'BookingID') || '').trim() !== bookingId) continue;
+      table.sheet.getRange(i + 2, table.idx.Status + 1).setValue(status);
+      clearAvailabilityCache_();
+      return { ok: true, bookingId: bookingId, status: status };
+    }
+    return { ok: false, code: 'NOT_FOUND' };
+  } finally {
+    try { lock.releaseLock(); } catch (e) {}
+  }
 }
 
 /* ======================== TRIGGER: expire holds ====================== */

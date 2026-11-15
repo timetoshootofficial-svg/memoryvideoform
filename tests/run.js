@@ -673,20 +673,56 @@ test('every string the page asks for exists in both languages', () => {
   assert.deepStrictEqual(missingTa, [], 'Tamil keys the page uses but i18n lacks');
 });
 
-test('every element id the page script touches exists in the markup', () => {
-  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-  const markup = html.slice(0, html.indexOf('<script src="js/config.js">'));
-  const ids = new Set();
-  let m;
-  const idAttr = /\sid="([A-Za-z0-9_-]+)"/g;
-  while ((m = idAttr.exec(markup))) ids.add(m[1]);
+['index.html', 'admin.html'].forEach(file => {
+  test('every #id the ' + file + ' script touches exists in its markup', () => {
+    const html = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+    const markup = html.slice(0, html.indexOf('<script src="js/config.js">'));
+    const ids = new Set();
+    let m;
+    const idAttr = /\sid="([A-Za-z0-9_-]+)"/g;
+    while ((m = idAttr.exec(markup))) ids.add(m[1]);
 
-  const used = new Set();
-  const sel = /\\$\('#([A-Za-z0-9_-]+)'/g;
-  while ((m = sel.exec(html))) used.add(m[1]);
+    const used = new Set();
+    const sel = /\\$\('#([A-Za-z0-9_-]+)'/g;
+    while ((m = sel.exec(html))) used.add(m[1]);
 
-  const missing = [...used].filter(id => !ids.has(id));
-  assert.deepStrictEqual(missing, [], 'script selects #ids that are not in the markup');
+    const missing = [...used].filter(id => !ids.has(id));
+    assert.deepStrictEqual(missing, [], file + ' selects #ids that are not in its markup');
+  });
+});
+
+test('the admin page is kept out of search engines', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
+  assert.ok(/name="robots"\s+content="noindex/.test(html), 'admin.html needs a noindex robots meta');
+  const robots = fs.readFileSync(path.join(__dirname, '..', 'robots.txt'), 'utf8');
+  assert.ok(/Disallow:\s*\/admin/.test(robots), 'robots.txt should disallow /admin');
+});
+
+test('the admin PIN is never shipped to the browser', () => {
+  /* The PIN lives only in Apps Script Script Properties. Anything that looks
+     like it being hard-coded here would expose every customer phone number. */
+  ['admin.html', 'js/config.js'].forEach(f => {
+    const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+    assert.ok(!/ADMIN_PIN\s*[:=]\s*['"][^'"]+['"]/.test(src), f + ' must not hard-code a PIN');
+    assert.ok(!/adminPin\s*[:=]\s*['"][^'"]{3,}['"]/.test(src), f + ' must not hard-code a PIN');
+  });
+  const gs = fs.readFileSync(path.join(__dirname, '..', 'apps-script', 'Code.gs'), 'utf8');
+  assert.ok(/getProperty\('ADMIN_PIN'\)/.test(gs), 'the server must read the PIN from Script Properties');
+  assert.ok(/checkAdmin_\(input\.pin\)/.test(gs), 'admin endpoints must verify the PIN');
+});
+
+test('WhatsApp messages carry no emoji, because wa.me mangles them', () => {
+  /* Verified against the live wa.me redirect: every emoji came back as U+FFFD,
+     while Tamil text and the rupee sign survived. */
+  const dict = loadI18n();
+  ['wa_message', 'wa_rush', 'wa_plain'].forEach(key => {
+    ['en', 'ta'].forEach(lang => {
+      const v = dict[lang][key] || '';
+      assert.ok(!/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u.test(v),
+        lang + '.' + key + ' should contain no emoji');
+      assert.ok(!v.includes('\uFFFD'), lang + '.' + key + ' contains a replacement character');
+    });
+  });
 });
 
 test('index.html loads the three script files that exist on disk', () => {
@@ -702,8 +738,8 @@ test('no real secret is committed', () => {
      no server to hide them in, they ship in every visitor's page source, and
      Apps Script re-validates everything they can reach. What must never land
      in this repo is anything that grants account access. */
-  const files = ['index.html', 'js/config.js', 'js/logic.js', 'js/i18n.js',
-                 'README.md', 'CHECKLIST.md', '.env.example'];
+  const files = ['index.html', 'admin.html', 'js/config.js', 'js/logic.js', 'js/i18n.js',
+                 'README.md', 'CHECKLIST.md', '.env.example', 'vercel.json'];
   const forbidden = [
     [/gh[pousr]_[A-Za-z0-9]{20,}/, 'a GitHub token'],
     [/docs\.google\.com\/spreadsheets\/d\/[\w-]{20,}/, 'a Google Sheet ID'],

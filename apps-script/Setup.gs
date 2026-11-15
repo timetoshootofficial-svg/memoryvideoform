@@ -35,6 +35,27 @@ function generateApiToken() {
   return token;
 }
 
+/**
+ * Sets the PIN that unlocks /admin. Run once, then change the value below and
+ * run it again whenever you want a new PIN.
+ *
+ * This is NOT the same as API_TOKEN. API_TOKEN ships inside the public page;
+ * this PIN never does, and the admin dashboard shows customer phone numbers,
+ * so keep it to yourself and make it long.
+ */
+function setAdminPin() {
+  var pin = 'CHANGE-ME-to-something-long';     // <-- edit this line, then Run
+  if (pin.indexOf('CHANGE-ME') === 0) {
+    throw new Error('Open Setup.gs, replace the pin on this line with your own, then run setAdminPin again.');
+  }
+  if (String(pin).length < 8) {
+    throw new Error('Use at least 8 characters. A 4-digit pin is guessable.');
+  }
+  PropertiesService.getScriptProperties().setProperty('ADMIN_PIN', String(pin));
+  Logger.log('ADMIN_PIN set. Open https://timetoshoot.in/admin and enter it.');
+  return 'ok';
+}
+
 function getOrCreate_(ss, name) {
   return ss.getSheetByName(name) || ss.insertSheet(name);
 }
@@ -83,7 +104,9 @@ function setupConfig_(ss) {
     ['min_lead_days', 3, 'Earliest date = today + this many days'],
     ['booking_window_days', 60, 'How far ahead the calendar shows'],
     ['slot_hold_hours', 24, 'How long a reserved slot is held before it frees itself'],
-    ['whatsapp_number', '917448326503', 'With country code, digits only'],
+    ['whatsapp_number', '917448326503', 'With country code, digits only. Used for the booking message, which carries the date, time and reference.'],
+    ['whatsapp_link', 'https://wa.me/message/PB6XEXRKZL7BH1',
+      'Your WhatsApp Business short link. Used for the plain "message us" buttons. It cannot carry a prefilled message, so booking confirmations use whatsapp_number instead.'],
     ['most_chosen_package', '1m', 'One of: 30s | 1m | 2m — gets the "Most chosen" badge'],
     ['delivery_text', 'Ready within 5 days of receiving all details', 'Shown in FAQ and pricing'],
     ['clients_count', '200+', 'Hero badge number'],

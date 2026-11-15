@@ -16,6 +16,7 @@ window.TTS_CONFIG = {
   /* Fallbacks used only when the Sheet cannot be reached */
   fallback: {
     whatsapp_number: '917448326503',
+    whatsapp_link: 'https://wa.me/message/PB6XEXRKZL7BH1',
     instagram_handle: 'timetoshoot',
     price_30s: 2999,
     price_1m: 4999,

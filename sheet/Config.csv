@@ -11,7 +11,8 @@ units_2m,2,Capacity units a 2m film uses (double weight)
 min_lead_days,3,Earliest date = today + this many days
 booking_window_days,60,How far ahead the calendar shows
 slot_hold_hours,24,How long a reserved slot is held before it frees itself
-whatsapp_number,917448326503,With country code digits only
+whatsapp_number,917448326503,With country code digits only. Used for the booking message which carries date time and reference
+whatsapp_link,https://wa.me/message/PB6XEXRKZL7BH1,Your WhatsApp Business short link for plain message-us buttons. Cannot carry a prefilled message
 most_chosen_package,1m,One of: 30s / 1m / 2m — gets the "Most chosen" badge
 delivery_text,Ready within 5 days of receiving all details,Shown in FAQ pricing cards and how-it-works
 clients_count,200+,Hero badge number
