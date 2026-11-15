@@ -417,12 +417,14 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
 
   /* ------------------------------ hero ------------------------------ */
   .hero{padding:86px 0 58px; text-align:center}
-  .hero .wrap > *{margin-left:auto; margin-right:auto}
+  /* Centre each block explicitly. A blanket `.hero .wrap > *` rule loses to
+     any base rule that uses the margin shorthand, which silently left-aligns
+     whatever it touched. */
   .kicker{margin-bottom:22px}
-  h1{font-size:68px; max-width:16ch}
-  .hero p.sub{font-size:19px; max-width:52ch; margin-bottom:30px}
-  .badges{justify-content:center; margin:26px 0 0}
-  .hero > .wrap > .btn{max-width:360px}
+  h1{font-size:68px; max-width:16ch; margin-left:auto; margin-right:auto}
+  .hero p.sub{font-size:19px; max-width:52ch; margin:0 auto 30px}
+  .badges{justify-content:center; margin:26px auto 0}
+  .hero > .wrap > .btn{max-width:360px; margin-left:auto; margin-right:auto}
   .hero-proof{margin-bottom:26px}
 
   /* --------------------------- section heads ------------------------ */
