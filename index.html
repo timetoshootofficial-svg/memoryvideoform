@@ -63,7 +63,13 @@ a{color:var(--ink); text-decoration:none}
 :focus-visible{outline:3px solid var(--yellow-line); outline-offset:2px; border-radius:6px}
 
 .grain{display:none}
-@media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+  /* With the travel switched off the track would sit still and clipped, so
+     hand it back to the reader as a row they can swipe. */
+  .reels,.shots{width:auto; overflow-x:auto; padding-bottom:8px}
+  .marquee::before,.marquee::after{display:none}
+}
 
 .wrap{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 20px}
 .display{font-family:var(--display); font-weight:400; letter-spacing:.2px; line-height:1.04; color:var(--ink)}
@@ -133,9 +139,32 @@ section{padding:52px 0; scroll-margin-top:68px}
 .alt-bg{background:var(--bg-2); border-top:1px solid var(--border); border-bottom:1px solid var(--border)}
 
 /* samples */
-.reels{display:grid; grid-auto-flow:column; grid-auto-columns:86%; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:10px; margin:0 -20px; padding-left:20px; padding-right:20px; scrollbar-width:none}
-.reels::-webkit-scrollbar{display:none}
-.reel{scroll-snap-align:center; position:relative; border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); background:var(--bg-3); aspect-ratio:16/9; box-shadow:var(--shadow)}
+/* ----------------------------- marquee -----------------------------
+   One track holding the items twice. The animation travels exactly half the
+   track, so the second copy lands where the first began and the loop has no
+   seam. Items carry margin-right rather than a flex gap, because a gap would
+   make that halfway point land slightly off. */
+.marquee{position:relative; overflow:hidden; margin:0 -20px; padding:4px 0}
+.marquee::before,.marquee::after{
+  content:''; position:absolute; top:0; bottom:0; width:13%; min-width:48px;
+  z-index:2; pointer-events:none;
+}
+.marquee::before{left:0; background:linear-gradient(90deg,var(--bg) 12%,rgba(255,255,255,0))}
+.marquee::after{right:0; background:linear-gradient(270deg,var(--bg) 12%,rgba(255,255,255,0))}
+.marquee.on-alt::before{background:linear-gradient(90deg,var(--bg-2) 12%,rgba(250,250,247,0))}
+.marquee.on-alt::after{background:linear-gradient(270deg,var(--bg-2) 12%,rgba(250,250,247,0))}
+
+.reels{display:flex; width:max-content; padding-left:20px; animation:slide-left 48s linear infinite}
+/* Stop while someone is reaching for a card, or has opened one. */
+.marquee:hover .reels,.marquee:focus-within .reels,.reels.paused{animation-play-state:paused}
+@keyframes slide-left{from{transform:translate3d(0,0,0)} to{transform:translate3d(-50%,0,0)}}
+
+.reel{
+  flex:0 0 auto; width:min(78vw,340px); margin-right:14px;
+  position:relative; border-radius:var(--radius); overflow:hidden;
+  border:1px solid var(--border); background:var(--bg-3); aspect-ratio:16/9;
+  box-shadow:var(--shadow);
+}
 .reel iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 .reel .ph{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:13px; text-align:center; padding:16px}
 .reel .cap{position:absolute; left:0; right:0; bottom:0; padding:26px 12px 11px; font-size:12.5px; font-weight:600; color:#fff; background:linear-gradient(transparent,rgba(0,0,0,.72)); pointer-events:none}
@@ -328,8 +357,10 @@ html[lang="ta"] .day .s{font-size:8px}
 .result p{color:var(--muted); font-size:15.5px; margin:0 0 20px}
 
 /* review screenshots */
-.shots{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin:0 0 22px}
+.shots{display:flex; width:max-content; padding-left:20px; animation:slide-left 56s linear infinite}
+.marquee:hover .shots,.marquee:focus-within .shots,.shots.paused{animation-play-state:paused}
 .shot{
+  flex:0 0 auto; width:min(44vw,220px); margin-right:12px;
   position:relative; border:1px solid var(--border); border-radius:var(--radius);
   overflow:hidden; background:var(--bg-2); aspect-ratio:4/5; padding:0; display:block;
   box-shadow:var(--shadow); cursor:zoom-in;
@@ -404,8 +435,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
   /* two across is the natural fit at this width */
   .cards{grid-template-columns:repeat(2,1fr); align-items:start}
   .tcards{grid-template-columns:repeat(2,1fr)}
-  .shots{grid-template-columns:repeat(3,1fr)}
-  .reels{grid-auto-columns:46%}
+
 }
 
 @media (min-width:1024px){
@@ -432,12 +462,9 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
   .sec-s{text-align:center; max-width:60ch; margin-left:auto; margin-right:auto; margin-bottom:44px; font-size:17px}
 
   /* ------------------------------ work ------------------------------ */
-  /* A carousel on a wide screen hides most of the work. Show it all. */
-  .reels{
-    display:grid; grid-auto-flow:row; grid-template-columns:repeat(2,1fr);
-    gap:20px; overflow:visible; margin:0; padding:0;
-  }
-  .reel{box-shadow:0 2px 4px rgba(16,17,20,.04), 0 18px 40px -28px rgba(16,17,20,.35)}
+  .marquee{margin:0 calc((100vw - var(--maxw)) / -2 - 20px)}
+  .reel{width:400px; margin-right:18px; box-shadow:0 2px 4px rgba(16,17,20,.04), 0 18px 40px -28px rgba(16,17,20,.35)}
+  .shot{width:260px; margin-right:16px}
 
   /* ---------------------------- process ----------------------------- */
   .process{grid-template-columns:repeat(2,1fr); gap:28px 40px}
@@ -464,8 +491,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
 
   /* -------------------------- testimonials -------------------------- */
   .tcards{grid-template-columns:repeat(3,1fr); gap:20px}
-  /* At 2 columns a 4:5 screenshot becomes 700px tall on a wide screen. */
-  .shots{grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px}
+
 
   /* ------------------------------ faq ------------------------------- */
   #faq .faq{max-width:820px; margin:0 auto}
@@ -485,7 +511,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
 @media (min-width:1280px){
   :root{--maxw:1180px}
   h1{font-size:76px}
-  .reels{grid-template-columns:repeat(4,1fr); gap:18px}
+
 }
 </style>
 </head>
@@ -529,7 +555,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
       <h2 class="sec-h display" data-i18n="samples_title"></h2>
       <p class="sec-s" data-i18n="samples_sub"></p>
     </div>
-    <div class="wrap"><div class="reels" id="reels"></div></div>
+    <div class="wrap"><div class="marquee on-alt" id="reelsMarquee"><div class="reels" id="reels"></div></div></div>
   </section>
 
   <!-- =========================== PROCESS =========================== -->
@@ -723,7 +749,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     <div class="wrap">
       <h2 class="sec-h display" data-i18n="testi_title"></h2>
       <p class="sec-s" id="testiSub" hidden data-i18n="testi_sub"></p>
-      <div class="shots" id="shots" hidden></div>
+      <div class="marquee" id="shotsMarquee" hidden><div class="shots" id="shots"></div></div>
       <div class="tcards" id="tcards"></div>
     </div>
   </section>
@@ -1119,10 +1145,13 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     if (host._built) { updateSampleCaptions(items); return; }
     host._built = true;
 
-    host.innerHTML = items.map(function (x, i) {
+    /* Two copies, so the loop can hand off without a visible jump. */
+    host.innerHTML = items.concat(items).map(function (x, i) {
       var id = String(x.youtube).trim();
-      return '<div class="reel" data-i="' + i + '">' +
+      var clone = i >= items.length;
+      return '<div class="reel" data-i="' + i + '"' + (clone ? ' aria-hidden="true"' : '') + '>' +
         '<button type="button" class="yt" data-yt="' + esc(id) + '" ' +
+          (clone ? 'tabindex="-1" ' : '') +
           'aria-label="' + esc(t('samples_play')) + '">' +
           '<img loading="lazy" decoding="async" alt="" ' +
             'src="https://i.ytimg.com/vi/' + esc(id) + '/maxresdefault.jpg" ' +
@@ -1135,6 +1164,9 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
         (x.label ? '<div class="cap">' + esc(x.label) + '</div>' : '') +
         '</div>';
     }).join('');
+
+    /* Keep the pace even however many films there are. */
+    host.style.animationDuration = Math.max(28, items.length * 11) + 's';
 
     /* maxresdefault does not exist for every upload; fall back quietly. */
     $$('#reels img[data-fallback]').forEach(function (img) {
@@ -1170,6 +1202,8 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     box.innerHTML = '';
     box.appendChild(frame);
+    /* Nobody wants to watch a film that is sliding off the screen. */
+    $('#reels').classList.add('paused');
     track('sample_play', 0);
   }
 
@@ -1409,26 +1443,29 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
   function renderShots() {
     var host = $('#shots');
     var shots = (CFG.reviewImages || []).filter(function (x) { return x && String(x).trim(); });
-    if (!shots.length) { host.hidden = true; host.innerHTML = ''; return false; }
+    if (!shots.length) { $('#shotsMarquee').hidden = true; host.innerHTML = ''; return false; }
 
     if (!host._built) {
       host._built = true;
-      host.innerHTML = shots.map(function (src, i) {
+      host.innerHTML = shots.concat(shots).map(function (src, i) {
+        var clone = i >= shots.length;
         return '<button type="button" class="shot" data-src="' + esc(src) + '" ' +
+          (clone ? 'tabindex="-1" aria-hidden="true" ' : '') +
           'aria-label="' + esc(t('testi_open')) + '">' +
           '<img loading="lazy" decoding="async" alt="" src="' + esc(src) + '">' +
           '</button>';
       }).join('');
+      host.style.animationDuration = Math.max(30, shots.length * 9) + 's';
       /* A file that never arrived should not leave a grey hole in the grid. */
       $$('#shots img').forEach(function (img) {
         img.addEventListener('error', function () {
           var b = img.closest('.shot');
           if (b) b.remove();
-          if (!$('#shots .shot')) { host.hidden = true; }
+          if (!$('#shots .shot')) { $('#shotsMarquee').hidden = true; }
         });
       });
     }
-    host.hidden = false;
+    $('#shotsMarquee').hidden = false;
     return true;
   }
 
@@ -1687,10 +1724,15 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
       var b = e.target.closest('.shot');
       if (!b) return;
       $('#lightboxImg').src = b.getAttribute('data-src');
+      $('#shots').classList.add('paused');
       lb.classList.add('on');
       $('#lightboxClose').focus();
     });
-    function closeLightbox() { lb.classList.remove('on'); $('#lightboxImg').src = ''; }
+    function closeLightbox() {
+      lb.classList.remove('on');
+      $('#lightboxImg').src = '';
+      $('#shots').classList.remove('paused');
+    }
     $('#lightboxClose').addEventListener('click', closeLightbox);
     lb.addEventListener('click', function (e) { if (e.target === lb) closeLightbox(); });
     document.addEventListener('keydown', function (e) {
