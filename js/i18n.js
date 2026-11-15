@@ -40,20 +40,6 @@ window.TTS_I18N = {
     how_4_d: '{delivery}',
 
     /* ---- pricing ---- */
-    pricing_title: 'Pricing',
-    pricing_sub: 'One film, one price.',
-    most_chosen: 'Most chosen',
-    pkg_30s_name: '30 second film',
-    pkg_30s_for: 'A quick surprise.',
-    pkg_1m_name: '1 minute film',
-    pkg_1m_for: 'Room for a real story.',
-    pkg_2m_name: '2 minute film',
-    pkg_2m_for: 'The fullest story.',
-    pkg_feature_music: 'Music and captions',
-    pkg_feature_vertical: 'Full HD, ready to share',
-    pkg_feature_delivery: '{delivery}',
-    follower_note: 'Follow @{handle} and save ₹{amount}',
-    from_price: '₹{amount}',
 
     /* ---- form shell ---- */
     form_title: 'Book your film',
@@ -219,20 +205,6 @@ window.TTS_I18N = {
     how_4_t: 'வாட்ஸ்அப்பில் வந்து சேரும்',
     how_4_d: '{delivery}',
 
-    pricing_title: 'விலை',
-    pricing_sub: 'ஒரு படம், ஒரு விலை.',
-    most_chosen: 'அதிகம் தேர்வு',
-    pkg_30s_name: '30 வினாடி படம்',
-    pkg_30s_for: 'ஒரு சிறிய ஆச்சரியத்திற்கு.',
-    pkg_1m_name: '1 நிமிட படம்',
-    pkg_1m_for: 'ஒரு கதைக்கு இடம் உண்டு.',
-    pkg_2m_name: '2 நிமிட படம்',
-    pkg_2m_for: 'முழுமையான கதை.',
-    pkg_feature_music: 'இசை மற்றும் வசனங்கள்',
-    pkg_feature_vertical: 'முழு HD, பகிர தயார்',
-    pkg_feature_delivery: '{delivery}',
-    follower_note: '@{handle} பின்தொடர்ந்து ₹{amount} மிச்சப்படுத்துங்கள்',
-    from_price: '₹{amount}',
 
     form_title: 'உங்கள் படத்தை புக் செய்யுங்கள்',
     form_sub: 'ஒரு நிமிடம். உறுதி செய்யும் முன்பே விலையும் காலி தேதிகளும் தெரியும்.',

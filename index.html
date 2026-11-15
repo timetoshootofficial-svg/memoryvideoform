@@ -71,6 +71,7 @@ a{color:var(--ink); text-decoration:none}
     opacity:1 !important; transform:none !important; clip-path:none !important;
   }
   [data-goto-book]::after{display:none}
+  .occ button svg{animation:none !important; transform:none !important}
   h1 .alt::after{transform:scaleX(1) !important; opacity:1 !important}
   /* With the travel switched off the track would sit still and clipped, so
      hand it back to the reader as a row they can swipe. */
@@ -303,21 +304,6 @@ section{padding:52px 0; scroll-margin-top:68px}
 }
 .process li.you .who{background:var(--yellow-soft); color:var(--ink)}
 
-/* pricing */
-.cards{display:grid; gap:14px}
-.pcard{position:relative; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow)}
-.pcard.feat{border-color:var(--yellow); box-shadow:0 0 0 1px var(--yellow), var(--shadow)}
-.pcard .tag{position:absolute; top:-11px; right:18px; background:var(--yellow); color:var(--on-yellow); font-size:11px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; padding:4px 11px; border-radius:999px}
-.pcard .top{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:8px}
-.pcard h3{margin:0; font-size:19px; font-weight:600; color:var(--ink); letter-spacing:0}
-html[lang="ta"] .pcard h3{font-size:17px}
-.pcard .price{font-family:var(--display); font-weight:800; font-size:30px; color:var(--ink); letter-spacing:-.02em; white-space:nowrap}
-.pcard .for{margin:0 0 14px; font-size:15px; color:var(--muted)}
-.pcard ul{margin:0; padding:0; list-style:none; display:grid; gap:7px}
-.pcard li{font-size:14px; color:var(--ink-2); display:flex; gap:9px; align-items:flex-start}
-.pcard li svg{flex:0 0 auto; margin-top:4px}
-.follow-note{margin:18px 0 0; font-size:14px; color:var(--ink-2); text-align:center}
-
 /* ============================== FORM =============================== */
 #book{scroll-margin-top:68px}
 .formcard{background:var(--card); border:1px solid var(--border); border-radius:20px; padding:22px; position:relative; overflow:hidden; box-shadow:var(--shadow)}
@@ -332,6 +318,9 @@ html[lang="ta"] .step h3{font-size:21px}
 .step .hint{margin:0 0 20px; font-size:15px; color:var(--muted)}
 .field{margin-bottom:16px}
 .field label{display:block; font-size:14px; font-weight:600; margin-bottom:7px; color:var(--ink)}
+.field input[type="date"]{cursor:pointer}
+.field input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer; opacity:.55}
+.field input[type="date"]:hover{border-color:var(--yellow-line)}
 .field input[type="text"],.field input[type="tel"],.field input[type="date"]{
   width:100%; min-height:var(--tap); padding:13px 15px; font-size:16px;
   background:var(--bg); color:var(--ink);
@@ -353,13 +342,45 @@ html[lang="ta"] .step h3{font-size:21px}
 /* occasion cards */
 .occ{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px}
 .occ button{
+  position:relative; overflow:hidden;
   display:flex; flex-direction:column; align-items:flex-start; gap:9px; text-align:left;
   background:var(--bg); border:1px solid var(--border-2); border-radius:var(--radius-sm);
   padding:15px 14px; min-height:88px; font-size:14.5px; font-weight:500; line-height:1.3; color:var(--ink);
+  box-shadow:0 1px 2px rgba(16,17,20,.04);
+  transition:transform .15s ease, border-color .15s ease, box-shadow .2s ease, background .15s ease;
 }
-.occ button[aria-pressed="true"]{border-color:var(--yellow); background:var(--yellow-soft); box-shadow:0 0 0 1px var(--yellow)}
-.occ button svg{color:var(--ink-2)}
-.occ button[aria-pressed="true"] svg{color:var(--ink)}
+.occ button:hover{transform:translateY(-2px); border-color:var(--yellow-line); box-shadow:0 6px 16px -8px rgba(16,17,20,.28)}
+.occ button:active{transform:translateY(0) scale(.985)}
+
+/* The icons keep a slow float going, one after another, so the row reads as
+   something to touch rather than a list to read. */
+.occ button svg{color:var(--ink-2); animation:occ-float 3.2s ease-in-out infinite; transition:color .15s ease}
+.occ button:nth-child(2) svg{animation-delay:.26s}
+.occ button:nth-child(3) svg{animation-delay:.52s}
+.occ button:nth-child(4) svg{animation-delay:.78s}
+.occ button:nth-child(5) svg{animation-delay:1.04s}
+@keyframes occ-float{
+  0%,100%{transform:translateY(0)}
+  50%    {transform:translateY(-4px)}
+}
+
+/* A tap lands with a ring that spreads from the card. */
+.occ button::after{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:radial-gradient(circle at 50% 50%, rgba(255,199,0,.5), rgba(255,199,0,0) 62%);
+  opacity:0; transform:scale(.4);
+}
+.occ button.tapped::after{animation:occ-tap .5s ease-out}
+@keyframes occ-tap{
+  0%  {opacity:.85; transform:scale(.4)}
+  100%{opacity:0; transform:scale(1.5)}
+}
+
+.occ button[aria-pressed="true"]{
+  border-color:var(--yellow); background:var(--yellow-soft);
+  box-shadow:0 0 0 1px var(--yellow), 0 6px 16px -10px rgba(255,199,0,.9);
+}
+.occ button[aria-pressed="true"] svg{color:var(--ink); animation:none; transform:none}
 .gentle{background:var(--bg-2); border:1px solid var(--border); border-left:3px solid var(--yellow); border-radius:var(--radius-sm); padding:13px 14px; font-size:14px; color:var(--ink-2); margin-bottom:18px}
 
 /* length stepper */
@@ -571,13 +592,6 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
   .process .n{width:48px; height:48px; font-size:18px}
   .process b{font-size:18px; margin-top:11px}
 
-  /* ---------------------------- pricing ----------------------------- */
-  .cards{grid-template-columns:repeat(3,1fr); gap:20px}
-  .pcard{padding:26px}
-  .pcard .top{flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:12px}
-  .pcard .price{font-size:36px}
-  .follow-note{margin-top:26px; font-size:15px}
-
   /* ------------------------------ form ------------------------------ */
   /* Forms read badly when they stretch; keep this column narrow. */
   #book .wrap{max-width:660px}
@@ -695,16 +709,6 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
           </div>
         </li>
       </ol>
-    </div>
-  </section>
-
-  <!-- =========================== PRICING ========================== -->
-  <section id="pricing">
-    <div class="wrap">
-      <h2 class="sec-h display" data-i18n="pricing_title"></h2>
-      <p class="sec-s" data-i18n="pricing_sub"></p>
-      <div class="cards" id="priceCards"></div>
-      <p class="follow-note" id="followNote"></p>
     </div>
   </section>
 
@@ -1188,7 +1192,6 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     $('#igLink').href = ig;
     $('#waLink').href = waPlainUrl(t('wa_plain'));
 
-    renderPricing();
     renderSamples();
     renderOccasions();
     renderLenStops();
@@ -1197,31 +1200,6 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     renderStep4Copy();
     renderTimes();
     renderMiniSum();
-  }
-
-  function renderPricing() {
-    var c = cfg();
-    var items = [
-      { code: '30s', name: 'pkg_30s_name', forK: 'pkg_30s_for', price: c.price_30s },
-      { code: '1m', name: 'pkg_1m_name', forK: 'pkg_1m_for', price: c.price_1m },
-      { code: '2m', name: 'pkg_2m_name', forK: 'pkg_2m_for', price: c.price_2m }
-    ];
-    var tick = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
-    $('#priceCards').innerHTML = items.map(function (it) {
-      var feat = String(c.most_chosen_package) === it.code;
-      return '<article class="pcard' + (feat ? ' feat' : '') + '">' +
-        (feat ? '<span class="tag">' + t('most_chosen') + '</span>' : '') +
-        '<div class="top"><h3>' + t(it.name) + '</h3><div class="price">' + money(it.price) + '</div></div>' +
-        '<p class="for">' + t(it.forK) + '</p>' +
-        '<ul>' +
-          '<li>' + tick + '<span>' + t('pkg_feature_music') + '</span></li>' +
-          '<li>' + tick + '<span>' + t('pkg_feature_vertical') + '</span></li>' +
-          '<li>' + tick + '<span>' + t('pkg_feature_delivery', { delivery: c.delivery_text }) + '</span></li>' +
-        '</ul></article>';
-    }).join('');
-    $('#followNote').textContent = t('follower_note', {
-      handle: c.instagram_handle || 'timetoshoot', amount: c.follower_discount
-    });
   }
 
   function renderSamples() {
@@ -1880,11 +1858,28 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
       state.data.occasion = b.getAttribute('data-occ');
       $$('#occGrid button').forEach(function (x) {
         x.setAttribute('aria-pressed', String(x === b));
+        x.classList.remove('tapped');
       });
+      /* restart the ripple even when the same card is tapped again */
+      void b.offsetWidth;
+      b.classList.add('tapped');
       renderEventField();
       showErr('e2', '');
     });
-    $('#f_event').addEventListener('change', function () {
+    /* A native date input only opens its calendar from the small icon, which
+       people do not find. Open it from anywhere in the field. */
+    var eventField = $('#f_event');
+    function openDatePicker() {
+      if (typeof eventField.showPicker !== 'function') return;   // older browsers keep the icon
+      try { eventField.showPicker(); } catch (e) { /* needs a user gesture; ignore */ }
+    }
+    eventField.addEventListener('click', openDatePicker);
+    eventField.addEventListener('focus', openDatePicker);
+    eventField.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDatePicker(); }
+    });
+
+    eventField.addEventListener('change', function () {
       state.data.eventDate = L.normDate(this.value);
       state.data.deliveryDate = '';
       state.data.slotTime = '';
