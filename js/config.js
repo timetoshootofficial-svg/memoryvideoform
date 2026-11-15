@@ -49,6 +49,17 @@ window.TTS_CONFIG = {
   ],
 
 
+  /* Screenshots of real WhatsApp feedback, shown under Testimonials.
+     Crop each one to 4:5 portrait — 1080 x 1350 px is ideal. Keep each file
+     under 250 KB. Add or remove lines freely; the section hides itself when
+     the list is empty.
+     Blur out phone numbers and profile photos before you add them. */
+  reviewImages: [
+    // 'assets/review-1.jpg',
+    // 'assets/review-2.jpg',
+    // 'assets/review-3.jpg'
+  ],
+
   /* Browser-side cache for config/availability, in seconds */
   cacheSeconds: 60
 };

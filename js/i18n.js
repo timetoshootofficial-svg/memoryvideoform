@@ -158,6 +158,8 @@ window.TTS_I18N = {
 
     /* ---- testimonials ---- */
     testi_title: 'What families tell us',
+    testi_sub: 'Straight from our WhatsApp, unedited.',
+    testi_open: 'Open this review',
 
     /* ---- faq ---- */
     faq_title: 'Questions, answered honestly',
@@ -180,6 +182,7 @@ window.TTS_I18N = {
     footer_instagram: 'Instagram',
     footer_whatsapp: 'WhatsApp',
     footer_privacy: 'Your name and number are used only to contact you about your booking. We do not sell or share your details.',
+    footer_privacy_link: 'Read our Privacy Policy',
     footer_rights: '© {year} Timetoshoot. All rights reserved.'
   },
 
@@ -325,6 +328,8 @@ window.TTS_I18N = {
     wa_plain: 'வணக்கம் Timetoshoot! நினைவு படம் பற்றி தெரிந்து கொள்ள விரும்புகிறேன்.',
 
     testi_title: 'குடும்பங்கள் சொல்வது',
+    testi_sub: 'எங்கள் வாட்ஸ்அப்பில் இருந்து அப்படியே.',
+    testi_open: 'இந்த கருத்தை திறக்க',
 
     faq_title: 'கேள்விகளுக்கு நேர்மையான பதில்கள்',
     faq_1_q: 'நான் என்ன அனுப்ப வேண்டும்?',
@@ -345,6 +350,7 @@ window.TTS_I18N = {
     footer_instagram: 'இன்ஸ்டாகிராம்',
     footer_whatsapp: 'வாட்ஸ்அப்',
     footer_privacy: 'உங்கள் பெயரும் எண்ணும் உங்கள் புக்கிங் தொடர்பாக மட்டுமே பயன்படுத்தப்படும். உங்கள் விவரங்களை விற்கவோ பங்கிடவோ மாட்டோம்.',
+    footer_privacy_link: 'தனியுரிமைக் கொள்கையைப் படிக்க',
     footer_rights: '© {year} Timetoshoot. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.'
   }
 };

@@ -13,7 +13,7 @@ Tick these off and the page is live. Nothing here needs a developer.
 - [ ] **Write your revision policy.** `Config` → `revisions_text`. Left blank on purpose — I will not invent a policy. While it is blank the FAQ says you will confirm the number of revision rounds on WhatsApp, which is honest but weaker.
 - [ ] **Check the hero number.** `Config` → `clients_count`, seeded `200+`. Your brief said 200+ clients in one place and a "50+ clients" badge in another. I used 200+. Change it if 50+ is the number you can stand behind.
 - [ ] **Check `whatsapp_number`.** Seeded `917448326503`.
-- [ ] **Keerthika's photo** → `assets/keerthika.jpg`, square, about 400×400. Until then the hero shows a camera placeholder.
+- [ ] **Review screenshots** → crop your WhatsApp feedback to **1080 × 1350 (4:5)**, save as `assets/review-1.jpg` and so on, then list them in `js/config.js` under `reviewImages`. Blur phone numbers and profile pictures first.
 - [ ] **Meta Pixel ID** → `js/config.js` → `pixelId`. Leave it empty and no pixel code loads at all.
 - [ ] **Apps Script URL and token** → `js/config.js` → `apiUrl` and `apiToken`. See `apps-script/DEPLOY.md`.
 
