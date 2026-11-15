@@ -24,7 +24,8 @@ window.TTS_I18N = {
 
     /* ---- samples ---- */
     samples_title: 'Films we made',
-    samples_sub: 'Tap for sound.',
+    samples_sub: 'Tap to play.',
+    samples_play: 'Play this film',
     samples_placeholder: 'Add your sample film here',
 
     /* ---- how it works ---- */
@@ -199,7 +200,8 @@ window.TTS_I18N = {
     hero_photo_placeholder: 'கீர்த்திகாவின் புகைப்படம் இங்கே',
 
     samples_title: 'நாங்கள் உருவாக்கிய படங்கள்',
-    samples_sub: 'ஒலிக்கு தட்டுங்கள்.',
+    samples_sub: 'பார்க்க தட்டுங்கள்.',
+    samples_play: 'இந்த படத்தை பார்க்க',
     samples_placeholder: 'உங்கள் மாதிரி படத்தை இங்கே சேர்க்கவும்',
 
     how_title: 'எப்படி வேலை செய்கிறது',

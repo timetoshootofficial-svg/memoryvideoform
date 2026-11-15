@@ -3,10 +3,24 @@
 | File | What | Notes |
 |---|---|---|
 | `keerthika.jpg` | Keerthika's photo for the hero | square, about 400×400, under 150 KB |
-| `sample-1.mp4` | first sample film | **16:9 landscape**, under 4 MB, H.264 |
-| `sample-1.jpg` | poster frame for it | a still from the film, under 120 KB |
-| `sample-2.mp4` / `sample-2.jpg` | second sample | |
-| `sample-3.mp4` / `sample-3.jpg` | third sample | |
+| `og.jpg` | link preview card | 1200×630, already made |
+
+**Sample films live on YouTube now**, not in this folder. Put the video id in
+`js/config.js` under `samples`:
+
+```js
+samples: [
+  { youtube: '__pRxYUfCZU', label: 'Anniversary film' },
+  ...
+]
+```
+
+The id is the part after `youtu.be/` in the share link. Only the thumbnail
+loads with the page; YouTube's player is fetched when a visitor taps, so the
+page stays fast on mobile data. `label` is the caption under the film — leave
+it `''` for none.
+
+The videos must be Public or Unlisted. Private ones will not play.
 
 Names and labels are set in `js/config.js` under `samples` and `founderPhoto`.
 

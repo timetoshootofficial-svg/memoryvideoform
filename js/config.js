@@ -36,12 +36,16 @@ window.TTS_CONFIG = {
     revisions_text: ''
   },
 
-  /* Sample films, 16:9 landscape. Put your own videos in assets/ and point here.
-     poster = a still image shown before the video loads (keeps the page fast). */
+  /* Sample films, played from YouTube.
+     Only the thumbnail loads with the page; the player arrives when someone
+     taps, so the page stays fast on mobile data.
+     youtube = the id from the share link, e.g. https://youtu.be/ABC123 -> 'ABC123'
+     label   = what the viewer sees under the film. Leave '' for no caption. */
   samples: [
-    { src: 'assets/sample-1.mp4', poster: 'assets/sample-1.jpg', label: 'Anniversary film' },
-    { src: 'assets/sample-2.mp4', poster: 'assets/sample-2.jpg', label: 'Birthday film' },
-    { src: 'assets/sample-3.mp4', poster: 'assets/sample-3.jpg', label: 'Tribute film' }
+    { youtube: '__pRxYUfCZU', label: '' },
+    { youtube: 'i0Nn-RWWIl0', label: '' },
+    { youtube: 'slmASGpL0Kk', label: '' },
+    { youtube: 'oVgQxC6lf0o', label: '' }
   ],
 
   founderPhoto: 'assets/keerthika.jpg',

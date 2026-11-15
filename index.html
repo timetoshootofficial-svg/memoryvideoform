@@ -177,10 +177,23 @@ section{padding:34px 0; scroll-margin-top:64px}
 .reels{display:grid; grid-auto-flow:column; grid-auto-columns:88%; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:8px; margin:0 -16px; padding-left:16px; padding-right:16px; scrollbar-width:none}
 .reels::-webkit-scrollbar{display:none}
 .reel{scroll-snap-align:center; position:relative; border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); background:var(--card-2); aspect-ratio:16/9}
-.reel video{width:100%; height:100%; object-fit:cover}
+.reel iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 .reel .ph{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:13px; text-align:center; padding:16px}
-.reel .cap{position:absolute; left:0; right:0; bottom:0; padding:22px 10px 9px; font-size:12.5px; font-weight:600; background:linear-gradient(transparent,rgba(0,0,0,.85))}
-.reel .snd{position:absolute; top:9px; right:9px; width:34px; height:34px; border-radius:50%; background:rgba(10,10,10,.72); border:1px solid var(--border-2); display:flex; align-items:center; justify-content:center}
+.reel .cap{position:absolute; left:0; right:0; bottom:0; padding:22px 10px 9px; font-size:12.5px; font-weight:600; background:linear-gradient(transparent,rgba(0,0,0,.85)); pointer-events:none}
+/* Tap-to-play cover: only the thumbnail loads with the page, never YouTube's
+   player scripts, so the page stays light on mobile data. */
+.yt{position:absolute; inset:0; width:100%; height:100%; padding:0; border:0; background:var(--card-2); cursor:pointer; display:block}
+.yt img{width:100%; height:100%; object-fit:cover; display:block}
+.yt .play{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2;
+  width:62px; height:62px; border-radius:50%;
+  background:var(--yellow); display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 30px -6px rgba(0,0,0,.8); transition:transform .15s ease;
+}
+.yt:hover .play{transform:translate(-50%,-50%) scale(1.07)}
+.yt:active .play{transform:translate(-50%,-50%) scale(.95)}
+.yt .play svg{margin-left:4px}
+.yt::after{content:''; position:absolute; inset:0; background:linear-gradient(transparent 55%,rgba(0,0,0,.45))}
 
 /* how it works */
 .steps{list-style:none; margin:0; padding:0; display:grid; gap:12px; counter-reset:s}
@@ -975,55 +988,75 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
 
   function renderSamples() {
     var host = $('#reels');
-    if (host._done) return;
-    host._done = true;
-    host.innerHTML = (CFG.samples || []).map(function (s, i) {
+    var items = (CFG.samples || []).filter(function (x) { return x && x.youtube; });
+
+    if (!items.length) {
+      /* No films configured yet: show placeholder cards rather than an empty
+         strip, so the section still reads as intentional. */
+      host.innerHTML = (CFG.samples || []).map(function () {
+        return '<div class="reel"><div class="ph">' +
+          '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="1.6">' +
+          '<path d="M3 9l18-4M3 9l2 11h14l2-11H3z"/></svg>' +
+          '<span>' + esc(t('samples_placeholder')) + '</span></div></div>';
+      }).join('');
+      return;
+    }
+
+    if (host._built) { updateSampleCaptions(items); return; }
+    host._built = true;
+
+    host.innerHTML = items.map(function (x, i) {
+      var id = String(x.youtube).trim();
       return '<div class="reel" data-i="' + i + '">' +
-        '<div class="ph"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="1.6">' +
-        '<path d="M3 9l18-4M3 9l2 11h14l2-11H3z"/></svg><span>' + t('samples_placeholder') + '</span></div>' +
-        '<div class="cap">' + (s.label || '') + '</div></div>';
+        '<button type="button" class="yt" data-yt="' + esc(id) + '" ' +
+          'aria-label="' + esc(t('samples_play')) + '">' +
+          '<img loading="lazy" decoding="async" alt="" ' +
+            'src="https://i.ytimg.com/vi/' + esc(id) + '/maxresdefault.jpg" ' +
+            'data-fallback="https://i.ytimg.com/vi/' + esc(id) + '/hqdefault.jpg">' +
+          '<span class="play">' +
+            '<svg width="24" height="24" viewBox="0 0 24 24" fill="#0A0A0A" aria-hidden="true">' +
+            '<path d="M8 5v14l11-7z"/></svg>' +
+          '</span>' +
+        '</button>' +
+        (x.label ? '<div class="cap">' + esc(x.label) + '</div>' : '') +
+        '</div>';
     }).join('');
 
-    /* Attach videos only when they actually exist, so a missing file never breaks the page. */
-    (CFG.samples || []).forEach(function (s, i) {
-      if (!s.src) return;
-      var box = host.querySelector('[data-i="' + i + '"]');
-      var v = document.createElement('video');
-      v.muted = true; v.loop = true; v.playsInline = true;
-      v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
-      v.preload = 'none';
-      if (s.poster) v.poster = s.poster;
-      v.src = s.src;
-      v.addEventListener('loadeddata', function () {
-        var ph = box.querySelector('.ph');
-        if (ph) ph.remove();
-        box.insertBefore(v, box.firstChild);
-        var snd = document.createElement('button');
-        snd.type = 'button';
-        snd.className = 'snd';
-        snd.setAttribute('aria-label', 'Sound on or off');
-        snd.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="2"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M17 9a4 4 0 010 6"/></svg>';
-        snd.addEventListener('click', function () {
-          v.muted = !v.muted;
-          if (!v.muted) v.play();
-          snd.style.borderColor = v.muted ? '' : '#FFC700';
-        });
-        box.appendChild(snd);
-        observeVideo(v);
+    /* maxresdefault does not exist for every upload; fall back quietly. */
+    $$('#reels img[data-fallback]').forEach(function (img) {
+      img.addEventListener('error', function () {
+        var fb = img.getAttribute('data-fallback');
+        if (fb && img.src !== fb) { img.removeAttribute('data-fallback'); img.src = fb; }
       });
-      v.addEventListener('error', function () { /* keep the placeholder */ });
-      v.load();
     });
   }
 
-  function observeVideo(v) {
-    if (!('IntersectionObserver' in window)) return;
-    new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { v.play().catch(function () {}); }
-        else { v.pause(); }
-      });
-    }, { threshold: 0.55 }).observe(v);
+  /* Language can change after the cards are built. */
+  function updateSampleCaptions(items) {
+    $$('#reels .reel').forEach(function (box, i) {
+      var cap = box.querySelector('.cap');
+      var label = items[i] && items[i].label;
+      if (label && cap) cap.textContent = label;
+      var btn = box.querySelector('.yt');
+      if (btn) btn.setAttribute('aria-label', t('samples_play'));
+    });
+  }
+
+  /** Swap the thumbnail for the real player, once, on tap. */
+  function playSample(btn) {
+    var id = btn.getAttribute('data-yt');
+    if (!id) return;
+    var box = btn.parentNode;
+    var frame = document.createElement('iframe');
+    frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) +
+                '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+    frame.title = 'Timetoshoot sample film';
+    frame.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';
+    frame.setAttribute('allowfullscreen', '');
+    frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    box.innerHTML = '';
+    box.appendChild(frame);
+    track('sample_play', 0);
   }
 
   function renderOccasions() {
@@ -1501,6 +1534,12 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
         goStep(state.step, true);
         track('lang_' + state.lang, state.step);
       });
+    });
+
+    /* sample films: fetch the player only when someone asks for it */
+    $('#reels').addEventListener('click', function (e) {
+      var btn = e.target.closest('.yt');
+      if (btn) playSample(btn);
     });
 
     /* primary CTAs */
