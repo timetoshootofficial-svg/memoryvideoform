@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+*.log
+
+# Your live keys never belong in git.
+# js/config.js ships with placeholders on purpose — if you ever paste the real
+# apiUrl and apiToken into it, uncomment the next line before committing.
+# js/config.js

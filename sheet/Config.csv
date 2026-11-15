@@ -1,0 +1,19 @@
+Key,Value,Notes
+price_30s,2999,30 second film price in rupees
+price_1m,4999,1 minute film price — CONFIRM THIS
+price_2m,7999,2 minute film price — CONFIRM THIS
+follower_discount,200,Flat rupees off when the customer follows @timetoshoot
+"time_slots","11:00 AM, 1:00 PM, 4:00 PM, 7:00 PM",The time slots offered on each day separated by commas
+daily_capacity,4,How many slots you will take per day. Keep it at or below the number of time_slots
+units_30s,1,Capacity units a 30s film uses
+units_1m,1,Capacity units a 1m film uses
+units_2m,2,Capacity units a 2m film uses (double weight)
+min_lead_days,3,Earliest date = today + this many days
+booking_window_days,60,How far ahead the calendar shows
+slot_hold_hours,24,How long a reserved slot is held before it frees itself
+whatsapp_number,917448326503,With country code digits only
+most_chosen_package,1m,One of: 30s / 1m / 2m — gets the "Most chosen" badge
+delivery_text,Ready within 5 days of receiving all details,Shown in FAQ pricing cards and how-it-works
+clients_count,200+,Hero badge number
+instagram_handle,timetoshoot,Without the @
+revisions_text,,FILL ME: your revision policy shown in the FAQ
