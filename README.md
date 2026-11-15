@@ -82,7 +82,8 @@ safer.
 
 ### Change a price
 
-`Config` tab → edit `price_30s`, `price_1m` or `price_2m` → done. The site
+`Config` tab → edit `price_30s`, `price_1m`, `price_2m`, `price_3m`, `price_4m`
+or `price_5m` → done. The site
 refreshes within 60 seconds. Pricing cards, the step 3 stepper, the summary and
 the WhatsApp message all read the same value, so they can never disagree.
 
@@ -107,6 +108,9 @@ units or free time slots, closes the day.
 | Key | What it does |
 |---|---|
 | `time_slots` | the times offered each day, comma separated |
+| `price_<length>` | the price of that length. **Clear it and that length stops being offered** — no code change needed |
+| `list_price_<length>` | shown struck through beside the price. Only appears when it is above the price. Use a figure you have actually charged |
+| `units_<length>` | how much of a day that length costs. Keep it at or below `daily_capacity`, or nobody can book that length |
 | `min_lead_days` | how soon you will accept a date. `3` means nothing inside the next 3 days is bookable |
 | `booking_window_days` | how far ahead the calendar shows |
 | `slot_hold_hours` | how long a `Pending` booking keeps its slot before the trigger frees it |

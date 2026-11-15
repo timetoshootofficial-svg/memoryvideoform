@@ -46,20 +46,20 @@ const NOW = new Date('2026-11-15T10:00:00+05:30');
 group('Price calculation');
 
 test('30s base price, no discount', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '30s', false), { base: 2999, discount: 0, total: 2999 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '30s', false), { base: 2999, discount: 0, total: 2999, list: 0 });
 });
 
 test('1m with follower discount', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '1m', true), { base: 4999, discount: 200, total: 4799 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '1m', true), { base: 4999, discount: 200, total: 4799, list: 0 });
 });
 
 test('2m with follower discount', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '2m', true), { base: 7999, discount: 200, total: 7799 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '2m', true), { base: 7999, discount: 200, total: 7799, list: 0 });
 });
 
 test('discount never exceeds the price', () => {
   const cheap = Object.assign({}, CFG, { price_30s: 150 });
-  assert.deepStrictEqual(L.calcPrice(cheap, '30s', true), { base: 150, discount: 150, total: 0 });
+  assert.deepStrictEqual(L.calcPrice(cheap, '30s', true), { base: 150, discount: 150, total: 0, list: 0 });
 });
 
 test('negative or junk discount is ignored', () => {
@@ -75,7 +75,31 @@ test('prices come from config, not from code', () => {
 });
 
 test('unknown length prices at zero rather than guessing', () => {
-  assert.deepStrictEqual(L.calcPrice(CFG, '5m', false), { base: 0, discount: 0, total: 0 });
+  assert.deepStrictEqual(L.calcPrice(CFG, '5m', false), { base: 0, discount: 0, total: 0, list: 0 });
+});
+
+test('a struck price only shows when it is above what is charged', () => {
+  const withList = Object.assign({}, CFG, { list_price_1m: 6499 });
+  assert.strictEqual(L.calcPrice(withList, '1m', false).list, 6499);
+
+  /* blank, zero, equal or lower must all show nothing rather than a saving
+     that is not real */
+  [undefined, '', 0, 4999, 4000, 'abc', -100].forEach(v => {
+    const c = Object.assign({}, CFG, { list_price_1m: v });
+    assert.strictEqual(L.listPrice(c, '1m'), 0, 'list_price_1m of ' + JSON.stringify(v) + ' must not show');
+  });
+});
+
+test('the struck price is compared against the price, not the discounted total', () => {
+  /* With a follower discount the total drops; the strike must still be
+     judged against the real price, or every length would sprout a fake one. */
+  const c = Object.assign({}, CFG, { list_price_1m: 5100 });
+  const p = L.calcPrice(c, '1m', true);
+  assert.strictEqual(p.total, 4799);
+  assert.strictEqual(p.list, 5100);
+  const tooLow = Object.assign({}, CFG, { list_price_1m: 4850 });
+  assert.strictEqual(L.calcPrice(tooLow, '1m', true).list, 0,
+    '4850 is below the 4999 price, so it is not a list price');
 });
 
 /* ============================== 2. UNITS ============================ */
@@ -655,6 +679,58 @@ test('every English string has a Tamil translation', () => {
   assert.deepStrictEqual(extra, [], 'extra Tamil keys: ' + extra.join(', '));
 });
 
+test('no film length needs more units than a day can hold', () => {
+  /* A length whose units exceed daily_capacity shows a calendar with every
+     day full and no explanation. Seeds must never ship in that state. */
+  const fallback = (() => {
+    global.window = {};
+    const file = path.join(__dirname, '..', 'js', 'config.js');
+    delete require.cache[require.resolve(file)];
+    require(file);
+    return global.window.TTS_CONFIG.fallback;
+  })();
+
+  const cap = Number(fallback.daily_capacity);
+  assert.ok(cap > 0, 'daily_capacity must be positive');
+  L.availableLengths(fallback).forEach(code => {
+    const units = L.unitsFor(fallback, code);
+    assert.ok(units <= cap,
+      code + ' needs ' + units + ' units but a day only holds ' + cap);
+  });
+});
+
+test('a length with no price is simply not offered', () => {
+  const partial = { price_30s: 2999, price_1m: 4999, units_30s: 1, units_1m: 1 };
+  assert.deepStrictEqual(L.availableLengths(partial), ['30s', '1m']);
+  assert.strictEqual(L.basePrice(partial, '5m'), 0);
+  /* and the server must refuse one that is not priced */
+  const store = {
+    config: Object.assign({}, partial, {
+      min_lead_days: 3, booking_window_days: 60, daily_capacity: 4,
+      time_slots: ['11:00 AM'], follower_discount: 200
+    }),
+    today: TODAY, now: NOW, bookings: [], blocked: {}
+  };
+  assert.strictEqual(L.checkReservation(store, {
+    phone: '9876543210', deliveryDate: '2026-11-25', filmLength: '5m', slotTime: '11:00 AM'
+  }).code, 'BAD_LENGTH');
+});
+
+test('every film length has a label and a short label, in both languages', () => {
+  /* These keys are built at runtime from the length code, so the scan in the
+     next test cannot see them. Check them directly instead. */
+  const dict = loadI18n();
+  const missing = [];
+  L.LENGTHS.forEach(code => {
+    ['len_' + code, 'len_' + code + '_short'].forEach(key => {
+      ['en', 'ta'].forEach(lang => {
+        if (!dict[lang][key]) missing.push(lang + '.' + key);
+      });
+    });
+  });
+  assert.deepStrictEqual(missing, [], 'missing length strings: ' + missing.join(', '));
+});
+
 test('every string the page asks for exists in both languages', () => {
   const dict = loadI18n();
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
@@ -663,7 +739,9 @@ test('every string the page asks for exists in both languages', () => {
   let m;
   const attr = /data-i18n(?:-ph)?="([a-z0-9_]+)"/g;
   while ((m = attr.exec(html))) used.add(m[1]);
-  const call = /\bt\(\s*'([a-z0-9_]+)'/g;
+  /* `t('len_' + code)` builds its key, so the literal is only half a name.
+     Requiring a comma or closing paren after the quote keeps those out. */
+  const call = /\bt\(\s*'([a-z0-9_]+)'\s*[,)]/g;
   while ((m = call.exec(html))) used.add(m[1]);
 
   assert.ok(used.size > 50, 'should have found the page strings, found ' + used.size);
@@ -774,6 +852,47 @@ test('the live Apps Script endpoint is wired up', () => {
   assert.ok(!/PASTE_YOUR/.test(src), 'config.js still has placeholders — the site cannot reach the Sheet');
   assert.ok(/script\.google\.com\/macros\/s\/[\w-]+\/exec/.test(src), 'apiUrl should be an Apps Script /exec URL');
   assert.ok(/apiToken:\s*'[A-Za-z0-9_-]{16,}'/.test(src), 'apiToken should be set');
+});
+
+['index.html', 'admin.html', 'privacy.html'].forEach(file => {
+  test('every animation ' + file + ' calls for actually exists', () => {
+    /* Elements that start at opacity 0 and are revealed by their own
+       animation vanish completely if the keyframes are renamed or removed.
+       That shipped once; this catches it. */
+    const css = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+    const defined = new Set();
+    let m;
+    const kf = /@keyframes\s+([A-Za-z0-9_-]+)/g;
+    while ((m = kf.exec(css))) defined.add(m[1]);
+
+    const used = new Set();
+    const decl = /animation(?:-name)?\s*:\s*([^;}]+)[;}]/g;
+    while ((m = decl.exec(css))) {
+      m[1].split(',').forEach(part => {
+        part.trim().split(/\s+/).forEach(tok => {
+          if (/^[A-Za-z][A-Za-z0-9_-]*$/.test(tok) &&
+              !/^(none|forwards|backwards|both|infinite|alternate|reverse|normal|linear|ease|ease-in|ease-out|ease-in-out|paused|running|step-start|step-end|initial|inherit|unset)$/.test(tok)) {
+            used.add(tok);
+          }
+        });
+      });
+    }
+
+    const missing = [...used].filter(n => !defined.has(n));
+    assert.deepStrictEqual(missing, [],
+      file + ' references @keyframes that are not defined: ' + missing.join(', '));
+  });
+});
+
+test('nothing is left permanently invisible without a way back', () => {
+  /* Anything hidden at opacity 0 must either animate itself in, or be
+     restored by the reduced-motion block. */
+  const css = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const reduced = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'));
+  assert.ok(/opacity:\s*1\s*!important/.test(reduced),
+    'the reduced-motion block must restore opacity for the elements that start hidden');
+  assert.ok(/clip-path:\s*none\s*!important/.test(reduced),
+    'the reduced-motion block must clear the clip used by the headline wipe');
 });
 
 test('the page never writes 48 hours anywhere', () => {

@@ -2,12 +2,24 @@ Key,Value,Notes
 price_30s,2999,30 second film price in rupees
 price_1m,4999,1 minute film price — CONFIRM THIS
 price_2m,7999,2 minute film price — CONFIRM THIS
+price_3m,9999,3 minute film price
+price_4m,13999,4 minute film price
+price_5m,16999,5 minute film price
+list_price_30s,4499,Shown struck through beside the 30s price. Use a price you have actually charged or leave blank
+list_price_1m,6499,Shown struck through beside the 1m price. Use a price you have actually charged or leave blank
+list_price_2m,9499,Shown struck through beside the 2m price. Use a price you have actually charged or leave blank
+list_price_3m,11999,Shown struck through beside the 3m price. Use a price you have actually charged or leave blank
+list_price_4m,15999,Shown struck through beside the 4m price. Use a price you have actually charged or leave blank
+list_price_5m,18999,Shown struck through beside the 5m price. Use a price you have actually charged or leave blank
 follower_discount,200,Flat rupees off when the customer follows @timetoshoot
 "time_slots","11:00 AM, 1:00 PM, 4:00 PM, 7:00 PM",The time slots offered on each day separated by commas
 daily_capacity,4,How many slots you will take per day. Keep it at or below the number of time_slots
 units_30s,1,Capacity units a 30s film uses
 units_1m,1,Capacity units a 1m film uses
 units_2m,2,Capacity units a 2m film uses (double weight)
+units_3m,2,Capacity units a 3m film uses
+units_4m,3,Capacity units a 4m film uses
+units_5m,3,Capacity units a 5m film uses. Keep every units_* at or below daily_capacity
 min_lead_days,3,Earliest date = today + this many days
 booking_window_days,60,How far ahead the calendar shows
 slot_hold_hours,24,How long a reserved slot is held before it frees itself

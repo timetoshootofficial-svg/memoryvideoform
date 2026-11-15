@@ -6,6 +6,9 @@ Tick these off and the page is live. Nothing here needs a developer.
 
 - [ ] **Confirm the 1 minute price.** `Config` → `price_1m`. Seeded at `4999` as a guess.
 - [ ] **Confirm the 2 minute price.** `Config` → `price_2m`. Seeded at `7999` as a guess.
+- [ ] **Decide the struck-through prices.** `Config` → `list_price_30s` and the rest. These show beside the price with a line through them. **Use a price you have actually charged, or have been charging until now.** A "was" price you never charged is misleading advertising under the Consumer Protection Act and ASCI rules, and Meta rejects ads for it. Clear a row and that strike simply disappears.
+- [ ] **Redeploy Apps Script for the longer films.** 3, 4 and 5 minute films (₹9,999 / ₹13,999 / ₹16,999) need the new `Code.gs` and `Setup.gs` pasted in, then `setupSheet` run and a **New version** deployed. Until then the site offers only 30s, 1m and 2m — it does not break, it just shows fewer choices.
+- [ ] **Check `units_*` against `daily_capacity`.** A 4 or 5 minute film is seeded at 3 units. If any `units_*` is larger than `daily_capacity`, that length shows a calendar with every day full and no reason given.
 - [ ] **Confirm your delivery promise.** `Config` → `delivery_text`. Seeded as "Ready within 5 days of receiving all details". Change the number to what you can actually keep. It appears in the pricing cards, how-it-works and the FAQ.
 - [ ] **Set your time slots.** `Config` → `time_slots`, seeded `11:00 AM, 1:00 PM, 4:00 PM, 7:00 PM`. These are the times shown under the calendar once someone picks a date. Write them exactly as you want customers to read them.
 - [ ] **Confirm `daily_capacity`.** Seeded at `4`, matching the four time slots. Lower it and the day closes early even if times look free.
@@ -13,7 +16,7 @@ Tick these off and the page is live. Nothing here needs a developer.
 - [ ] **Write your revision policy.** `Config` → `revisions_text`. Left blank on purpose — I will not invent a policy. While it is blank the FAQ says you will confirm the number of revision rounds on WhatsApp, which is honest but weaker.
 - [ ] **Check the hero number.** `Config` → `clients_count`, seeded `200+`. Your brief said 200+ clients in one place and a "50+ clients" badge in another. I used 200+. Change it if 50+ is the number you can stand behind.
 - [ ] **Check `whatsapp_number`.** Seeded `917448326503`.
-- [ ] **Keerthika's photo** → `assets/keerthika.jpg`, square, about 400×400. Until then the hero shows a camera placeholder.
+- [ ] **Review screenshots** → crop your WhatsApp feedback to **1080 × 1350 (4:5)**, save as `assets/review-1.jpg` and so on, then list them in `js/config.js` under `reviewImages`. Blur phone numbers and profile pictures first.
 - [ ] **Meta Pixel ID** → `js/config.js` → `pixelId`. Leave it empty and no pixel code loads at all.
 - [ ] **Apps Script URL and token** → `js/config.js` → `apiUrl` and `apiToken`. See `apps-script/DEPLOY.md`.
 

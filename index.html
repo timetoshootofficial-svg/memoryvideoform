@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Timetoshoot — Cinematic memory films</title>
 <meta name="description" content="Memories fade. We give them life again. Timetoshoot turns your photos and videos into short cinematic films. Made in Tamil Nadu.">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="canonical" href="https://timetoshoot.in/">
 <meta property="og:site_name" content="Timetoshoot">
 <meta property="og:title" content="Timetoshoot — Memories fade. We give them life again.">
@@ -24,379 +24,622 @@
 <meta name="twitter:image" content="https://timetoshoot.in/assets/og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============================== TOKENS ============================== */
+/* ============================== TOKENS ==============================
+   Light, minimal, yellow accent. Text sits on white; yellow is reserved for
+   action and emphasis, never for body text, where it fails contrast. */
 :root{
-  color-scheme: dark;
-  --bg:#0A0A0A; --bg-2:#111111; --card:#1A1A1A; --card-2:#151515;
-  --border:#2A2A2A; --border-2:#383838;
-  --yellow:#FFC700; --yellow-bright:#FFD21F; --yellow-dim:#6b5400;
-  --text:#F5F5F5; --muted:#A0A0A0; --on-yellow:#0A0A0A;
-  --ok:#9BE28F; --danger:#FF9B9B;
-  --radius:14px; --radius-sm:10px;
-  --display:'Anton',Impact,sans-serif;
+  color-scheme: light;
+  --bg:#FFFFFF; --bg-2:#FAFAF7; --bg-3:#F4F4F0;
+  --card:#FFFFFF; --card-2:#FAFAF7;
+  --border:#E8E8E2; --border-2:#D8D8D0;
+  --ink:#101114; --ink-2:#3C4047; --muted:#6C7178;
+  --yellow:#FFC700; --yellow-soft:#FFF4CC; --yellow-line:#F0C200;
+  --on-yellow:#101114;
+  --ok:#1F7A4C; --danger:#C0362C;
+  --radius:16px; --radius-sm:12px;
+  --display:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   --tamil:'Noto Sans Tamil',sans-serif;
   --tap:48px;
-  --maxw:560px;
+  --maxw:600px;
+  --shadow:0 1px 2px rgba(16,17,20,.04), 0 8px 24px -16px rgba(16,17,20,.18);
 }
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
 body{
-  background:var(--bg); color:var(--text);
-  font-family:var(--body); font-size:16px; line-height:1.55;
+  background:var(--bg); color:var(--ink-2);
+  font-family:var(--body); font-size:16.5px; line-height:1.62;
   overflow-x:hidden; min-width:320px;
   -webkit-font-smoothing:antialiased;
 }
-html[lang="ta"] body{font-family:var(--tamil)}
+html[lang="ta"] body{font-family:var(--tamil); line-height:1.75}
 html[lang="ta"] .display{font-family:var(--tamil); font-weight:700; letter-spacing:0}
 img,video{max-width:100%; display:block}
 button{font:inherit; color:inherit; cursor:pointer}
-a{color:var(--yellow); text-decoration:none}
-:focus-visible{outline:3px solid var(--yellow-bright); outline-offset:2px; border-radius:4px}
+a{color:var(--ink); text-decoration:none}
+:focus-visible{outline:3px solid var(--yellow-line); outline-offset:2px; border-radius:6px}
 
-/* film grain */
-.grain{
-  position:fixed; inset:0; z-index:9; pointer-events:none; opacity:.055;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode:overlay;
-}
+.grain{display:none}
 @media (prefers-reduced-motion: reduce){
-  .grain{display:none}
   *{animation:none !important; transition:none !important}
+  /* These start invisible and are revealed by their animation, so with
+     animation switched off they must be shown outright. */
+  h1 > span,.kicker,.hero p.sub,.hero-proof,.hero .badges,.hero > .wrap > .btn{
+    opacity:1 !important; transform:none !important; clip-path:none !important;
+  }
+  [data-goto-book]::after{display:none}
+  .occ button svg{animation:none !important; transform:none !important}
+  h1 .alt::after{transform:scaleX(1) !important; opacity:1 !important}
+  /* With the travel switched off the track would sit still and clipped, so
+     hand it back to the reader as a row they can swipe. */
+  .reels,.shots{width:auto; overflow-x:auto; padding-bottom:8px}
+  .marquee::before,.marquee::after{display:none}
 }
 
-.wrap{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 16px}
-.display{font-family:var(--display); font-weight:400; letter-spacing:.5px; line-height:.98; text-transform:uppercase}
+.wrap{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 20px}
+.display{
+  font-family:var(--display); font-weight:800; letter-spacing:-.035em;
+  line-height:1.06; color:var(--ink);
+}
 .sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
 .muted{color:var(--muted)}
-.yellow{color:var(--yellow)}
+.yellow{color:var(--ink)}
 
 /* ============================== HEADER ============================== */
 header{
   position:sticky; top:0; z-index:20;
-  background:rgba(10,10,10,.92); backdrop-filter:blur(8px);
+  background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
 }
-.hrow{display:flex; align-items:center; justify-content:space-between; height:56px}
-.brand{display:flex; align-items:center; gap:8px; font-family:var(--display); font-size:19px; letter-spacing:1.5px; color:var(--text)}
-.brand .dot{width:9px; height:9px; border-radius:50%; background:var(--yellow); box-shadow:0 0 10px var(--yellow)}
-.langtog{display:flex; border:1px solid var(--border-2); border-radius:999px; overflow:hidden}
-.langtog button{
-  background:transparent; border:0; color:var(--muted);
-  padding:7px 12px; font-size:13px; font-weight:600; min-height:36px;
-}
+.hrow{display:flex; align-items:center; justify-content:space-between; height:60px}
+.brand{display:flex; align-items:center; gap:9px; font-family:var(--body); font-weight:700; font-size:17px; letter-spacing:1.9px; color:var(--ink)}
+.brand .dot{width:8px; height:8px; border-radius:50%; background:var(--yellow)}
+.langtog{display:flex; border:1px solid var(--border-2); border-radius:999px; overflow:hidden; background:var(--bg)}
+.langtog button{background:transparent; border:0; color:var(--muted); padding:7px 13px; font-size:13px; font-weight:600; min-height:36px}
 .langtog button[aria-pressed="true"]{background:var(--yellow); color:var(--on-yellow)}
 
 /* =============================== HERO =============================== */
-.hero{padding:26px 0 8px; position:relative}
+.hero{padding:44px 0 30px}
 .kicker{
-  display:inline-block; font-size:11.5px; letter-spacing:1.6px; text-transform:uppercase;
-  color:var(--yellow); border:1px solid var(--yellow-dim); border-radius:999px;
-  padding:5px 11px; margin-bottom:16px; background:rgba(255,199,0,.06)
+  display:block; font-size:12px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:18px; font-weight:600;
 }
-h1{margin:0 0 14px; font-size:clamp(38px,12.5vw,58px)}
-h1 .alt{color:var(--yellow); display:block}
-.hero p.sub{margin:0 0 18px; color:var(--muted); font-size:16.5px}
-.badges{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 20px; padding:0; list-style:none}
-.badges li{
-  display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text);
-  background:var(--card); border:1px solid var(--border); border-radius:999px; padding:7px 12px
+html[lang="ta"] .kicker{letter-spacing:.5px; text-transform:none; font-size:13px}
+h1{margin:0 0 18px; font-size:clamp(39px,10.8vw,54px)}
+
+/* ------------------------- headline motion -------------------------
+   Each line wipes upward into view behind its own edge, the mark draws
+   itself under the second line, and then it keeps moving: a slow swell with
+   a light sweeping across it. The words hold still. The headline says the
+   photos are still breathing, so the mark is the thing that breathes.
+   Everything here starts hidden, so the reduced-motion block below has to
+   put it all back. */
+h1 > span{
+  display:inline-block; opacity:0;
+  transform:translateY(.42em);
+  clip-path:inset(0 -6% 102% -6%);
+  animation:wipe-up .95s cubic-bezier(.16,.84,.3,1) forwards;
 }
+h1 > span:first-child{animation-delay:.08s}
+h1 .alt{position:relative; z-index:0; animation-delay:.3s}
+@keyframes wipe-up{
+  to{opacity:1; transform:translateY(0); clip-path:inset(-30% -6% -30% -6%)}
+}
+
+h1 .alt::after{
+  content:''; position:absolute; left:-2px; right:-2px; bottom:.04em; height:.26em;
+  z-index:-1; border-radius:3px;
+  background:linear-gradient(100deg,
+    var(--yellow) 0%, var(--yellow) 38%,
+    #FFEFAF 50%,
+    var(--yellow) 62%, var(--yellow) 100%);
+  background-size:320% 100%;
+  background-position:140% 0;
+  transform:scaleX(0); transform-origin:left center;
+  animation:draw .7s cubic-bezier(.16,.84,.3,1) .85s forwards,
+            swell 3.4s ease-in-out 1.6s infinite,
+            sweep 3.4s ease-in-out 1.6s infinite;
+}
+@keyframes draw{to{transform:scaleX(1)}}
+@keyframes swell{
+  0%,100%{transform:scaleX(1) scaleY(1)}
+  48%    {transform:scaleX(1) scaleY(1.42)}
+}
+@keyframes sweep{
+  0%     {background-position:140% 0}
+  55%,100%{background-position:-60% 0}
+}
+
+/* the lines around the headline follow it in */
+@keyframes rise{to{opacity:1; transform:translateY(0)}}
+.kicker,.hero p.sub,.hero-proof,.hero .badges,.hero > .wrap > .btn{
+  opacity:0; transform:translateY(14px);
+  animation:rise .66s cubic-bezier(.16,.84,.3,1) forwards;
+}
+/* listing both keeps the entrance; a bare `animation` here would drop it */
+.hero > .wrap > .btn{
+  animation:rise .66s cubic-bezier(.16,.84,.3,1) forwards,
+            cta-glow 3.6s ease-in-out 1.5s infinite;
+}
+.sticky .btn-primary{animation:cta-glow 3.6s ease-in-out 1.5s infinite}
+
+.kicker{animation-delay:0s}
+.hero p.sub{animation-delay:.34s}
+.hero-proof{animation-delay:.44s}
+.hero .badges{animation-delay:.52s}
+.hero > .wrap > .btn{animation-delay:.6s}
+.hero p.sub{margin:0 0 26px; color:var(--muted); font-size:17px; max-width:36ch}
+.badges{display:flex; flex-wrap:wrap; gap:8px 18px; margin:22px 0 0; padding:0; list-style:none}
+.badges li{display:flex; align-items:center; gap:7px; font-size:13.5px; color:var(--ink-2); font-weight:500}
 .badges svg{flex:0 0 auto}
-.founder{
-  display:flex; gap:13px; align-items:center; margin:0 0 22px;
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:12px
-}
-.founder .ph{
-  width:62px; height:62px; flex:0 0 62px; border-radius:50%; overflow:hidden;
-  background:var(--bg-2); border:2px solid var(--yellow);
-  display:flex; align-items:center; justify-content:center; text-align:center;
-  font-size:8.5px; color:var(--muted); padding:4px; line-height:1.2
-}
-.founder .ph img{width:100%; height:100%; object-fit:cover}
-.founder b{display:block; font-size:14.5px}
-.founder span{font-size:13px; color:var(--muted)}
 .hero-proof{
   display:inline-flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600;
-  color:var(--on-yellow); background:var(--yellow); border-radius:999px; padding:6px 13px; margin-bottom:16px
+  color:var(--ink); background:var(--yellow-soft); border:1px solid var(--yellow);
+  border-radius:999px; padding:6px 14px; margin-bottom:20px;
 }
 
 /* ============================== BUTTONS ============================= */
 .btn{
   display:flex; align-items:center; justify-content:center; gap:9px;
-  width:100%; min-height:var(--tap); padding:13px 18px;
-  border-radius:var(--radius); border:1px solid transparent;
-  font-weight:700; font-size:16px; text-align:center; transition:transform .12s ease, filter .15s ease;
+  width:100%; min-height:var(--tap); padding:14px 20px;
+  border-radius:var(--radius-sm); border:1px solid transparent;
+  font-weight:600; font-size:16px; text-align:center;
+  transition:transform .12s ease, box-shadow .15s ease, background .15s ease;
 }
-.btn:active{transform:scale(.985)}
-.btn-primary{background:var(--yellow); color:var(--on-yellow); box-shadow:0 0 0 1px rgba(255,210,31,.5), 0 10px 34px -10px rgba(255,199,0,.65)}
-.btn-primary:hover{filter:brightness(1.06)}
-.btn-primary[disabled]{opacity:.5; box-shadow:none; cursor:not-allowed}
-.btn-ghost{background:transparent; border-color:var(--border-2); color:var(--text)}
-.btn-wa{background:#1A1A1A; border-color:var(--border-2); color:var(--text)}
-/* time slot picker */
-.timeh{margin:18px 0 9px; font-size:14px; font-weight:600}
-.times{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
-.tchip{
-  min-height:50px; border-radius:10px; border:1px solid var(--border-2);
-  background:var(--bg-2); color:var(--text); font-weight:600; font-size:15px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+.btn:active{transform:scale(.99)}
+.btn-primary{background:var(--yellow); color:var(--on-yellow); box-shadow:0 2px 0 var(--yellow-line)}
+.btn-primary:hover{background:#FFD21F}
+.btn-primary[disabled]{opacity:.45; box-shadow:none; cursor:not-allowed}
+.btn-ghost{background:var(--bg); border-color:var(--border-2); color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink-2)}
+.btn-wa{background:var(--bg); border-color:var(--border-2); color:var(--ink)}
+.btn-wa:hover{border-color:var(--ink-2)}
+.btn-sm{min-height:42px; font-size:14.5px; padding:9px 16px; width:auto}
+
+/* --------------------------- the main CTA ---------------------------
+   This is the one button the whole page is pointing at, so it keeps a
+   light moving across it. The sweep lives on a pseudo-element: the hero
+   copy of this button already runs its own entrance animation, and putting
+   a second animation on the element itself would cancel that and leave the
+   button invisible. */
+[data-goto-book]{position:relative; overflow:hidden; isolation:isolate}
+[data-goto-book] > *{position:relative; z-index:1}
+[data-goto-book]::after{
+  content:''; position:absolute; top:-30%; bottom:-30%; left:-60%; width:58%;
+  background:linear-gradient(100deg,
+    rgba(255,255,255,0) 0%, rgba(255,255,255,.95) 50%, rgba(255,255,255,0) 100%);
+  transform:skewX(-18deg); pointer-events:none; z-index:0;
+  animation:cta-sweep 3.6s cubic-bezier(.35,0,.25,1) 1.5s infinite;
 }
-.tchip .s{font-size:10px; font-weight:600; color:var(--muted)}
-.tchip[aria-pressed="true"]{background:var(--yellow); border-color:var(--yellow); color:var(--on-yellow); box-shadow:0 0 18px -5px rgba(255,199,0,.75)}
-.tchip[aria-pressed="true"] .s{color:var(--on-yellow)}
-.tchip[disabled]{opacity:.45; cursor:not-allowed; text-decoration:line-through}
-.tchip[disabled] .s{text-decoration:none}
-/* the one-line summary that replaces the old summary step */
-.minisum{
-  display:flex; justify-content:space-between; align-items:center; gap:12px;
-  background:rgba(255,199,0,.09); border:1px solid var(--yellow-dim);
-  border-radius:var(--radius-sm); padding:12px 13px; margin:16px 0 4px; font-size:14px;
+@keyframes cta-sweep{
+  0%      {left:-65%}
+  52%,100%{left:140%}
 }
-.minisum span{color:var(--text)}
-.minisum b{color:var(--yellow); font-size:18px; font-weight:700; white-space:nowrap}
-.btn-sm{min-height:42px; font-size:14.5px; padding:9px 14px; width:auto}
+
+/* A ring breathing outward, so the button is noticed even before the light
+   crosses it. box-shadow only, so it never fights the hero entrance, which
+   animates opacity and transform. */
+@keyframes cta-glow{
+  0%,100%{box-shadow:0 2px 0 var(--yellow-line)}
+  50%    {box-shadow:0 2px 0 var(--yellow-line), 0 0 0 8px rgba(255,199,0,.26)}
+}
+.btn-primary{transition:transform .16s ease, box-shadow .2s ease, background .15s ease}
+[data-goto-book]:hover{transform:translateY(-2px); box-shadow:0 4px 0 var(--yellow-line), 0 12px 26px -14px rgba(255,199,0,.9)}
+[data-goto-book]:active{transform:translateY(0)}
 
 /* ============================= SECTIONS ============================= */
-section{padding:34px 0; scroll-margin-top:64px}
-.sec-h{margin:0 0 6px; font-size:clamp(26px,8vw,36px)}
-.sec-s{margin:0 0 20px; color:var(--muted); font-size:15px}
-.strip{
-  height:26px; margin:6px 0;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 10px, var(--bg) 10px 18px) 0 0/100% 7px no-repeat,
-    repeating-linear-gradient(90deg, transparent 0 10px, var(--bg) 10px 18px) 0 100%/100% 7px no-repeat,
-    linear-gradient(var(--card),var(--card));
-  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-}
+section{padding:52px 0; scroll-margin-top:68px}
+.sec-h{margin:0 0 8px; font-size:clamp(28px,7.6vw,36px)}
+.sec-s{margin:0 0 28px; color:var(--muted); font-size:16px}
+.strip{height:1px; background:var(--border); margin:0}
+.alt-bg{background:var(--bg-2); border-top:1px solid var(--border); border-bottom:1px solid var(--border)}
 
 /* samples */
-.reels{display:grid; grid-auto-flow:column; grid-auto-columns:88%; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:8px; margin:0 -16px; padding-left:16px; padding-right:16px; scrollbar-width:none}
-.reels::-webkit-scrollbar{display:none}
-.reel{scroll-snap-align:center; position:relative; border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); background:var(--card-2); aspect-ratio:16/9}
+/* ----------------------------- marquee -----------------------------
+   One track holding the items twice. The animation travels exactly half the
+   track, so the second copy lands where the first began and the loop has no
+   seam. Items carry margin-right rather than a flex gap, because a gap would
+   make that halfway point land slightly off. */
+.marquee{position:relative; overflow:hidden; margin:0 -20px; padding:4px 0}
+.marquee::before,.marquee::after{
+  content:''; position:absolute; top:0; bottom:0; width:13%; min-width:48px;
+  z-index:2; pointer-events:none;
+}
+.marquee::before{left:0; background:linear-gradient(90deg,var(--bg) 12%,rgba(255,255,255,0))}
+.marquee::after{right:0; background:linear-gradient(270deg,var(--bg) 12%,rgba(255,255,255,0))}
+.marquee.on-alt::before{background:linear-gradient(90deg,var(--bg-2) 12%,rgba(250,250,247,0))}
+.marquee.on-alt::after{background:linear-gradient(270deg,var(--bg-2) 12%,rgba(250,250,247,0))}
+
+.reels{display:flex; width:max-content; padding-left:20px; animation:slide-left 48s linear infinite}
+/* Stop while someone is reaching for a card, or has opened one. */
+.marquee:hover .reels,.marquee:focus-within .reels,.reels.paused{animation-play-state:paused}
+@keyframes slide-left{from{transform:translate3d(0,0,0)} to{transform:translate3d(-50%,0,0)}}
+
+.reel{
+  flex:0 0 auto; width:min(78vw,340px); margin-right:14px;
+  position:relative; border-radius:var(--radius); overflow:hidden;
+  border:1px solid var(--border); background:var(--bg-3); aspect-ratio:16/9;
+  box-shadow:var(--shadow);
+}
 .reel iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 .reel .ph{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:13px; text-align:center; padding:16px}
-.reel .cap{position:absolute; left:0; right:0; bottom:0; padding:22px 10px 9px; font-size:12.5px; font-weight:600; background:linear-gradient(transparent,rgba(0,0,0,.85)); pointer-events:none}
-/* Tap-to-play cover: only the thumbnail loads with the page, never YouTube's
-   player scripts, so the page stays light on mobile data. */
-.yt{position:absolute; inset:0; width:100%; height:100%; padding:0; border:0; background:var(--card-2); cursor:pointer; display:block}
+.reel .cap{position:absolute; left:0; right:0; bottom:0; padding:26px 12px 11px; font-size:12.5px; font-weight:600; color:#fff; background:linear-gradient(transparent,rgba(0,0,0,.72)); pointer-events:none}
+.yt{position:absolute; inset:0; width:100%; height:100%; padding:0; border:0; background:var(--bg-3); cursor:pointer; display:block}
 .yt img{width:100%; height:100%; object-fit:cover; display:block}
 .yt .play{
   position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2;
-  width:62px; height:62px; border-radius:50%;
-  background:var(--yellow); display:flex; align-items:center; justify-content:center;
-  box-shadow:0 8px 30px -6px rgba(0,0,0,.8); transition:transform .15s ease;
+  width:58px; height:58px; border-radius:50%; background:var(--yellow);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 20px rgba(16,17,20,.3); transition:transform .15s ease;
 }
 .yt:hover .play{transform:translate(-50%,-50%) scale(1.07)}
 .yt:active .play{transform:translate(-50%,-50%) scale(.95)}
-.yt .play svg{margin-left:4px}
-.yt::after{content:''; position:absolute; inset:0; background:linear-gradient(transparent 55%,rgba(0,0,0,.45))}
+.yt .play svg{margin-left:3px}
 
-/* how it works */
-.steps{list-style:none; margin:0; padding:0; display:grid; gap:12px; counter-reset:s}
-.steps li{display:flex; gap:13px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px}
-.steps .n{
-  flex:0 0 32px; width:32px; height:32px; border-radius:50%;
-  background:var(--yellow); color:var(--on-yellow); font-family:var(--display); font-size:17px;
-  display:flex; align-items:center; justify-content:center
+/* ---------------------------- process ----------------------------- */
+.process{list-style:none; margin:0; padding:0; display:grid; gap:0; counter-reset:p; position:relative}
+.process li{display:grid; grid-template-columns:44px 1fr; gap:16px; padding:0 0 26px; position:relative}
+.process li:last-child{padding-bottom:0}
+.process li::before{
+  content:''; position:absolute; left:21px; top:40px; bottom:-4px; width:1px;
+  background:var(--border-2);
 }
-.steps b{display:block; font-size:15.5px; margin-bottom:2px}
-.steps p{margin:0; font-size:14px; color:var(--muted)}
-
-/* pricing */
-.cards{display:grid; gap:12px}
-.pcard{position:relative; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px}
-.pcard.feat{border-color:var(--yellow); box-shadow:0 0 0 1px var(--yellow), 0 14px 40px -22px rgba(255,199,0,.6)}
-.pcard .tag{position:absolute; top:-10px; right:14px; background:var(--yellow); color:var(--on-yellow); font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; padding:4px 10px; border-radius:999px}
-.pcard .top{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:6px}
-.pcard h3{margin:0; font-size:19px; font-family:var(--display); letter-spacing:.6px}
-html[lang="ta"] .pcard h3{font-family:var(--tamil); font-size:17px}
-.pcard .price{font-family:var(--display); font-size:28px; color:var(--yellow); letter-spacing:.5px; white-space:nowrap}
-.pcard .for{margin:0 0 10px; font-size:14px; color:var(--muted)}
-.pcard ul{margin:0; padding:0; list-style:none; display:grid; gap:5px}
-.pcard li{font-size:13.5px; color:var(--text); display:flex; gap:7px; align-items:flex-start}
-.pcard li svg{flex:0 0 auto; margin-top:3px}
-.follow-note{margin:14px 0 0; font-size:13.5px; color:var(--yellow); text-align:center}
+.process li:last-child::before{display:none}
+.process .n{
+  width:44px; height:44px; border-radius:12px; background:var(--bg);
+  border:1px solid var(--border-2); color:var(--ink);
+  font-family:var(--display); font-weight:800; font-size:16px; letter-spacing:-.02em;
+  display:flex; align-items:center; justify-content:center; position:relative; z-index:1;
+}
+.process li.key .n{background:var(--yellow); border-color:var(--yellow); box-shadow:0 2px 0 var(--yellow-line)}
+.process b{display:block; font-size:17px; color:var(--ink); margin:9px 0 4px; font-weight:600}
+.process p{margin:0; font-size:15px; color:var(--muted)}
+.process .who{
+  display:inline-block; margin-top:8px; font-size:11.5px; font-weight:700;
+  letter-spacing:.9px; text-transform:uppercase; padding:3px 9px; border-radius:999px;
+  background:var(--bg-3); color:var(--muted);
+}
+.process li.you .who{background:var(--yellow-soft); color:var(--ink)}
 
 /* ============================== FORM =============================== */
-#book{scroll-margin-top:62px}
-.formcard{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:16px; position:relative; overflow:hidden}
-.prog{height:5px; background:var(--bg-2); border-radius:999px; overflow:hidden; margin:0 0 6px}
-.prog i{display:block; height:100%; width:20%; background:linear-gradient(90deg,var(--yellow),var(--yellow-bright)); border-radius:999px; transition:width .3s ease}
-.prog-lbl{font-size:11.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin:0 0 14px}
+#book{scroll-margin-top:68px}
+.formcard{background:var(--card); border:1px solid var(--border); border-radius:20px; padding:22px; position:relative; overflow:hidden; box-shadow:var(--shadow)}
+.prog{height:4px; background:var(--bg-3); border-radius:999px; overflow:hidden; margin:0 0 8px}
+.prog i{display:block; height:100%; width:25%; background:var(--yellow); border-radius:999px; transition:width .3s ease}
+.prog-lbl{font-size:11.5px; letter-spacing:1.3px; text-transform:uppercase; color:var(--muted); margin:0 0 18px; font-weight:600}
 .step{display:none; animation:fade .25s ease}
 .step.on{display:block}
-@keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
-.step h3{margin:0 0 4px; font-size:22px; font-family:var(--display); letter-spacing:.4px}
-html[lang="ta"] .step h3{font-family:var(--tamil); font-size:20px}
-.step .hint{margin:0 0 16px; font-size:14px; color:var(--muted)}
-.field{margin-bottom:14px}
-.field label{display:block; font-size:13.5px; font-weight:600; margin-bottom:6px}
+@keyframes fade{from{opacity:0; transform:translateY(5px)} to{opacity:1; transform:none}}
+.step h3{margin:0 0 6px; font-size:23px; font-weight:600; color:var(--ink); letter-spacing:0}
+html[lang="ta"] .step h3{font-size:21px}
+.step .hint{margin:0 0 20px; font-size:15px; color:var(--muted)}
+.field{margin-bottom:16px}
+.field label{display:block; font-size:14px; font-weight:600; margin-bottom:7px; color:var(--ink)}
+.field input[type="date"]{cursor:pointer}
+.field input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer; opacity:.55}
+.field input[type="date"]:hover{border-color:var(--yellow-line)}
 .field input[type="text"],.field input[type="tel"],.field input[type="date"]{
-  width:100%; min-height:var(--tap); padding:12px 14px; font-size:16px;
-  background:var(--bg-2); color:var(--text);
+  width:100%; min-height:var(--tap); padding:13px 15px; font-size:16px;
+  background:var(--bg); color:var(--ink);
   border:1px solid var(--border-2); border-radius:var(--radius-sm);
 }
-.field input:focus{border-color:var(--yellow); outline:none; box-shadow:0 0 0 3px rgba(255,199,0,.18)}
-.field .sub{font-size:12.5px; color:var(--muted); margin-top:5px}
-.phonewrap{display:flex; align-items:stretch; gap:0}
-.phonewrap .cc{display:flex; align-items:center; padding:0 11px; background:var(--bg-2); border:1px solid var(--border-2); border-right:0; border-radius:var(--radius-sm) 0 0 var(--radius-sm); color:var(--muted); font-size:15px}
+.field input::placeholder{color:#A8ADB4}
+.field input:focus{border-color:var(--yellow-line); outline:none; box-shadow:0 0 0 3px var(--yellow-soft)}
+.field .sub{font-size:13px; color:var(--muted); margin-top:6px}
+.phonewrap{display:flex; align-items:stretch}
+.phonewrap .cc{display:flex; align-items:center; padding:0 13px; background:var(--bg-2); border:1px solid var(--border-2); border-right:0; border-radius:var(--radius-sm) 0 0 var(--radius-sm); color:var(--muted); font-size:15px}
 .phonewrap input{border-radius:0 var(--radius-sm) var(--radius-sm) 0 !important}
-.check{display:flex; gap:10px; align-items:flex-start; padding:11px 12px; background:var(--bg-2); border:1px solid var(--border-2); border-radius:var(--radius-sm); font-size:14px; cursor:pointer; min-height:var(--tap)}
-.check input{width:22px; height:22px; flex:0 0 22px; accent-color:var(--yellow); margin:1px 0 0}
-.check.on{border-color:var(--yellow); background:rgba(255,199,0,.07)}
-.err{color:var(--danger); font-size:13.5px; margin:8px 0 0; display:none}
+.check{display:flex; gap:11px; align-items:flex-start; padding:13px 14px; background:var(--bg); border:1px solid var(--border-2); border-radius:var(--radius-sm); font-size:14.5px; cursor:pointer; min-height:var(--tap); color:var(--ink-2)}
+.check input{width:21px; height:21px; flex:0 0 21px; accent-color:var(--yellow-line); margin:1px 0 0}
+.check.on{border-color:var(--yellow); background:var(--yellow-soft)}
+.err{color:var(--danger); font-size:14px; margin:10px 0 0; display:none}
 .err.on{display:block}
 .hp{position:absolute; left:-9999px; width:1px; height:1px; opacity:0}
 
 /* occasion cards */
-.occ{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px}
+.occ{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px}
 .occ button{
-  display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left;
-  background:var(--bg-2); border:1px solid var(--border-2); border-radius:var(--radius-sm);
-  padding:13px 12px; min-height:84px; font-size:14px; font-weight:600; line-height:1.25;
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column; align-items:flex-start; gap:9px; text-align:left;
+  background:var(--bg); border:1px solid var(--border-2); border-radius:var(--radius-sm);
+  padding:15px 14px; min-height:88px; font-size:14.5px; font-weight:500; line-height:1.3; color:var(--ink);
+  box-shadow:0 1px 2px rgba(16,17,20,.04);
+  transition:transform .15s ease, border-color .15s ease, box-shadow .2s ease, background .15s ease;
 }
-.occ button[aria-pressed="true"]{border-color:var(--yellow); background:rgba(255,199,0,.1); box-shadow:0 0 0 1px var(--yellow)}
-.occ button svg{color:var(--yellow)}
-.gentle{background:rgba(255,199,0,.07); border:1px solid var(--yellow-dim); border-radius:var(--radius-sm); padding:11px 12px; font-size:13.5px; color:var(--text); margin-bottom:14px}
+.occ button:hover{transform:translateY(-2px); border-color:var(--yellow-line); box-shadow:0 6px 16px -8px rgba(16,17,20,.28)}
+.occ button:active{transform:translateY(0) scale(.985)}
+
+/* The icons keep a slow float going, one after another, so the row reads as
+   something to touch rather than a list to read. */
+.occ button svg{color:var(--ink-2); animation:occ-float 3.2s ease-in-out infinite; transition:color .15s ease}
+.occ button:nth-child(2) svg{animation-delay:.26s}
+.occ button:nth-child(3) svg{animation-delay:.52s}
+.occ button:nth-child(4) svg{animation-delay:.78s}
+.occ button:nth-child(5) svg{animation-delay:1.04s}
+@keyframes occ-float{
+  0%,100%{transform:translateY(0)}
+  50%    {transform:translateY(-4px)}
+}
+
+/* A tap lands with a ring that spreads from the card. */
+.occ button::after{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:radial-gradient(circle at 50% 50%, rgba(255,199,0,.5), rgba(255,199,0,0) 62%);
+  opacity:0; transform:scale(.4);
+}
+.occ button.tapped::after{animation:occ-tap .5s ease-out}
+@keyframes occ-tap{
+  0%  {opacity:.85; transform:scale(.4)}
+  100%{opacity:0; transform:scale(1.5)}
+}
+
+.occ button[aria-pressed="true"]{
+  border-color:var(--yellow); background:var(--yellow-soft);
+  box-shadow:0 0 0 1px var(--yellow), 0 6px 16px -10px rgba(255,199,0,.9);
+}
+.occ button[aria-pressed="true"] svg{color:var(--ink); animation:none; transform:none}
+.gentle{background:var(--bg-2); border:1px solid var(--border); border-left:3px solid var(--yellow); border-radius:var(--radius-sm); padding:13px 14px; font-size:14px; color:var(--ink-2); margin-bottom:18px}
 
 /* length stepper */
-.stepper{margin:4px 0 18px}
+.stepper{margin:6px 0 22px}
 .track{position:relative; height:46px; display:flex; align-items:center}
-.track input[type="range"]{
-  -webkit-appearance:none; appearance:none; width:100%; height:46px; background:transparent; margin:0;
-}
-.track::before{
-  content:''; position:absolute; left:6px; right:6px; top:21px; height:5px;
-  background:var(--border-2); border-radius:999px
-}
-.track i.fill{position:absolute; left:6px; top:21px; height:5px; background:var(--yellow); border-radius:999px; transition:width .18s ease}
+.track input[type="range"]{-webkit-appearance:none; appearance:none; width:100%; height:46px; background:transparent; margin:0}
+.track::before{content:''; position:absolute; left:6px; right:6px; top:21px; height:4px; background:var(--border-2); border-radius:999px}
+.track i.fill{position:absolute; left:6px; top:21px; height:4px; background:var(--yellow-line); border-radius:999px; transition:width .18s ease}
 .track input[type="range"]::-webkit-slider-thumb{
-  -webkit-appearance:none; width:30px; height:30px; border-radius:50%;
-  background:var(--yellow); border:4px solid var(--bg); box-shadow:0 0 0 1px var(--yellow), 0 0 18px rgba(255,199,0,.6); cursor:grab;
+  -webkit-appearance:none; width:28px; height:28px; border-radius:50%;
+  background:var(--yellow); border:3px solid #fff; box-shadow:0 0 0 1px var(--yellow-line), 0 2px 8px rgba(16,17,20,.2); cursor:grab;
 }
 .track input[type="range"]::-moz-range-thumb{
-  width:30px; height:30px; border:4px solid var(--bg); border-radius:50%;
-  background:var(--yellow); box-shadow:0 0 0 1px var(--yellow); cursor:grab;
+  width:28px; height:28px; border:3px solid #fff; border-radius:50%;
+  background:var(--yellow); box-shadow:0 0 0 1px var(--yellow-line); cursor:grab;
 }
 .stops{display:flex; justify-content:space-between; margin-top:2px}
-.stops button{background:none; border:0; padding:6px 2px; font-size:13px; font-weight:600; color:var(--muted); min-height:38px; flex:1}
+.stops{gap:2px}
+.stops button{background:none; border:0; padding:6px 1px; font-size:12px; font-weight:500; color:var(--muted); min-height:38px; flex:1; white-space:nowrap}
+@media (min-width:480px){ .stops button{font-size:13px} }
 .stops button:first-child{text-align:left}
 .stops button:last-child{text-align:right}
-.stops button[aria-pressed="true"]{color:var(--yellow)}
-.pricebox{background:var(--bg-2); border:1px solid var(--border-2); border-radius:var(--radius-sm); padding:14px; text-align:center; margin-bottom:14px}
-.pricebox .lbl{font-size:13px; color:var(--muted)}
-.pricebox .amt{font-family:var(--display); font-size:38px; color:var(--yellow); line-height:1.1; margin:2px 0}
-.pricebox .off{font-size:13px; color:var(--ok)}
-.pricebox .note{font-size:13px; color:var(--muted); margin-top:4px}
+.stops button[aria-pressed="true"]{color:var(--ink); font-weight:700}
+.pricebox{background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; text-align:center; margin-bottom:16px}
+.pricebox .lbl{font-size:13.5px; color:var(--muted)}
+.pricebox .amt{
+  font-family:var(--display); font-weight:800; font-size:40px; color:var(--ink);
+  line-height:1.1; margin:4px 0; letter-spacing:-.02em;
+  display:flex; align-items:baseline; justify-content:center; gap:9px; flex-wrap:wrap;
+}
+/* The price that is not being charged sits small and quiet beside the one
+   that is, so the two can never be mistaken for each other. */
+.was{
+  font-family:var(--body); font-weight:500; font-size:16px; color:var(--muted);
+  text-decoration:line-through; text-decoration-thickness:1.5px; letter-spacing:0;
+}
+.minisum .was{font-size:13.5px; margin-right:6px}
+.pricebox .off{font-size:13.5px; color:var(--ok); font-weight:600}
 
 /* calendar */
-.legend{display:flex; flex-wrap:wrap; gap:12px; margin:0 0 14px; font-size:12px; color:var(--muted)}
+.legend{display:flex; flex-wrap:wrap; gap:14px; margin:0 0 16px; font-size:12.5px; color:var(--muted)}
 .legend span{display:flex; align-items:center; gap:6px}
 .sw{width:14px; height:14px; border-radius:4px; display:inline-block}
-.sw.av{border:1.5px solid var(--yellow)}
-.sw.bs{border:1.5px solid var(--yellow); background:rgba(255,199,0,.25)}
-.sw.sel{background:var(--yellow)}
-.sw.fl{background:#232323; border:1px solid var(--border-2)}
-.month{margin-bottom:16px}
-.month h4{margin:0 0 8px; font-size:13px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); font-weight:600}
-.dow{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:5px}
+.sw.av{border:1.5px solid var(--border-2)}
+.sw.bs{border:1.5px solid var(--yellow-line); background:var(--yellow-soft)}
+.sw.sel{background:var(--yellow); border:1.5px solid var(--yellow-line)}
+.sw.fl{background:var(--bg-3); border:1px solid var(--border-2)}
+.month{margin-bottom:20px}
+.month h4{margin:0 0 10px; font-size:13px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); font-weight:600}
+.dow{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px}
 .dow span{text-align:center; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px}
 .days{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
 .day{
   min-height:48px; min-width:0; border-radius:10px; border:1px solid var(--border);
-  background:var(--bg-2); color:var(--text);
+  background:var(--bg); color:var(--ink);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
   font-size:15px; font-weight:600; padding:2px;
 }
-.day .s{font-size:9px; font-weight:600; color:var(--muted); line-height:1;
-  max-width:100%; overflow:hidden; text-overflow:clip; white-space:nowrap}
+.day .s{font-size:9px; font-weight:600; color:var(--muted); line-height:1; max-width:100%; overflow:hidden; white-space:nowrap}
 html[lang="ta"] .day .s{font-size:8px}
 .day.pad{visibility:hidden}
-.day.avail{border-color:var(--yellow); color:var(--yellow)}
-.day.avail .s{color:var(--yellow)}
-.day.best{background:rgba(255,199,0,.14)}
-.day.best::after{content:''; position:absolute}
-.day.sel{background:var(--yellow); border-color:var(--yellow); color:var(--on-yellow); box-shadow:0 0 20px -4px rgba(255,199,0,.7)}
+.day.avail{border-color:var(--border-2); color:var(--ink)}
+.day.avail .s{color:var(--muted)}
+.day.best{background:var(--yellow-soft); border-color:var(--yellow-line)}
+.day.sel{background:var(--yellow); border-color:var(--yellow-line); color:var(--on-yellow); box-shadow:0 2px 0 var(--yellow-line)}
 .day.sel .s{color:var(--on-yellow)}
-.day.full{background:#1C1C1C; border-color:var(--border); color:#9A9A9A; text-decoration:line-through; cursor:not-allowed}
-.day.full .s{color:#9A9A9A; text-decoration:none}
-.day.dis{background:transparent; border-color:#1E1E1E; color:#6F6F6F; cursor:not-allowed}
+.day.full{background:var(--bg-3); border-color:var(--border); color:#9AA0A6; text-decoration:line-through; cursor:not-allowed}
+.day.full .s{color:#9AA0A6; text-decoration:none}
+.day.dis{background:transparent; border-color:#F0F0EC; color:#C2C6CB; cursor:not-allowed}
 .skel{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
-.skel i{min-height:48px; border-radius:10px; background:linear-gradient(90deg,#161616,#1F1F1F,#161616); background-size:200% 100%; animation:sh 1.2s linear infinite}
+.skel i{min-height:48px; border-radius:10px; background:linear-gradient(90deg,#F4F4F0,#FAFAF7,#F4F4F0); background-size:200% 100%; animation:sh 1.2s linear infinite}
 @keyframes sh{from{background-position:200% 0} to{background-position:-200% 0}}
-.nofit{background:var(--card-2); border:1px solid var(--yellow-dim); border-radius:var(--radius-sm); padding:14px; margin-bottom:12px}
-.nofit b{display:block; margin-bottom:5px; color:var(--yellow)}
-.nofit p{margin:0 0 12px; font-size:14px; color:var(--muted)}
+.nofit{background:var(--bg-2); border:1px solid var(--border); border-left:3px solid var(--yellow); border-radius:var(--radius-sm); padding:16px; margin-bottom:14px}
+.nofit b{display:block; margin-bottom:6px; color:var(--ink)}
+.nofit p{margin:0 0 14px; font-size:14.5px; color:var(--muted)}
 
-/* summary */
-.sum{border:1px solid var(--border-2); border-radius:var(--radius-sm); overflow:hidden; margin-bottom:14px}
-.sum div{display:flex; justify-content:space-between; gap:12px; padding:11px 13px; font-size:14.5px; border-bottom:1px solid var(--border)}
-.sum div:last-child{border-bottom:0}
-.sum div span:first-child{color:var(--muted)}
-.sum div span:last-child{text-align:right; font-weight:600}
-.sum .tot{background:rgba(255,199,0,.1)}
-.sum .tot span{color:var(--yellow) !important; font-weight:700; font-size:17px}
-.hold{display:flex; gap:9px; align-items:flex-start; font-size:13px; color:var(--muted); margin:0 0 14px}
-.navrow{display:flex; gap:10px; margin-top:4px}
+/* time slots */
+.timeh{margin:22px 0 10px; font-size:14.5px; font-weight:600; color:var(--ink)}
+.times{display:grid; grid-template-columns:repeat(2,1fr); gap:9px}
+.tchip{
+  min-height:50px; border-radius:var(--radius-sm); border:1px solid var(--border-2);
+  background:var(--bg); color:var(--ink); font-weight:600; font-size:15px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+}
+.tchip .s{font-size:10px; font-weight:600; color:var(--muted)}
+.tchip[aria-pressed="true"]{background:var(--yellow); border-color:var(--yellow-line); color:var(--on-yellow); box-shadow:0 2px 0 var(--yellow-line)}
+.tchip[aria-pressed="true"] .s{color:var(--on-yellow)}
+.tchip[disabled]{opacity:.5; cursor:not-allowed; text-decoration:line-through; background:var(--bg-3)}
+.tchip[disabled] .s{text-decoration:none}
+.minisum{
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  background:var(--yellow-soft); border:1px solid var(--yellow);
+  border-radius:var(--radius-sm); padding:14px; margin:18px 0 6px; font-size:14.5px; color:var(--ink);
+}
+.minisum b{color:var(--ink); font-size:19px; font-weight:700; white-space:nowrap}
+
+.hold{display:flex; gap:9px; align-items:flex-start; font-size:13.5px; color:var(--muted); margin:0 0 16px}
+.navrow{display:flex; gap:10px; margin-top:6px}
 .navrow .btn-ghost{flex:0 0 32%}
 
 /* result */
-.result{text-align:center; padding:8px 0}
-.result .tick{width:62px; height:62px; margin:0 auto 14px; border-radius:50%; background:var(--yellow); display:flex; align-items:center; justify-content:center}
-.result h3{font-size:24px; margin:0 0 8px}
-.result p{color:var(--muted); font-size:15px; margin:0 0 18px}
+.result{text-align:center; padding:10px 0}
+.result .tick{width:62px; height:62px; margin:0 auto 18px; border-radius:50%; background:var(--yellow); display:flex; align-items:center; justify-content:center}
+.result h3{font-size:25px; margin:0 0 10px; color:var(--ink)}
+.result p{color:var(--muted); font-size:15.5px; margin:0 0 20px}
+
+/* review screenshots */
+.shots{display:flex; width:max-content; padding-left:20px; animation:slide-left 56s linear infinite}
+.marquee:hover .shots,.marquee:focus-within .shots,.shots.paused{animation-play-state:paused}
+.shot{
+  flex:0 0 auto; width:min(62vw,236px); margin-right:12px;
+  position:relative; border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; background:var(--bg-2); aspect-ratio:4/5; padding:0; display:block;
+  box-shadow:var(--shadow); cursor:zoom-in;
+}
+.shot img{width:100%; height:100%; object-fit:cover; display:block}
+.lightbox{
+  position:fixed; inset:0; z-index:40; background:rgba(16,17,20,.88);
+  display:none; align-items:center; justify-content:center; padding:20px;
+  backdrop-filter:blur(2px);
+}
+.lightbox.on{display:flex}
+.lightbox img{max-width:100%; max-height:88vh; border-radius:12px; object-fit:contain}
+.lightbox .x{
+  position:absolute; top:16px; right:16px; width:44px; height:44px; border-radius:50%;
+  background:#fff; border:0; font-size:22px; line-height:1; color:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+}
 
 /* testimonials */
-.tcards{display:grid; gap:12px}
-.tcard{background:var(--card); border:1px solid var(--border); border-left:3px solid var(--yellow); border-radius:var(--radius); padding:14px}
-.tcard p{margin:0 0 9px; font-size:15px; line-height:1.55}
-.tcard .who{font-size:13px; color:var(--muted)}
-.tcard .who b{color:var(--yellow); font-weight:600}
+.tcards{display:grid; gap:14px}
+.tcard{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow)}
+.tcard p{margin:0 0 12px; font-size:16px; line-height:1.6; color:var(--ink-2)}
+.tcard .who{font-size:13.5px; color:var(--muted)}
+.tcard .who b{color:var(--ink); font-weight:600}
 
 /* faq */
-.faq{display:grid; gap:9px}
-details{background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden}
-details[open]{border-color:var(--border-2)}
-summary{padding:14px; font-size:15px; font-weight:600; cursor:pointer; list-style:none; display:flex; justify-content:space-between; gap:12px; align-items:center; min-height:var(--tap)}
+.faq{display:grid; gap:0; border-top:1px solid var(--border)}
+details{border-bottom:1px solid var(--border); background:transparent}
+summary{padding:18px 2px; font-size:16px; font-weight:600; color:var(--ink); cursor:pointer; list-style:none; display:flex; justify-content:space-between; gap:14px; align-items:center; min-height:var(--tap)}
 summary::-webkit-details-marker{display:none}
-summary::after{content:'+'; color:var(--yellow); font-size:22px; line-height:1; flex:0 0 auto}
+summary::after{content:'+'; color:var(--muted); font-size:22px; line-height:1; flex:0 0 auto; font-weight:400}
 details[open] summary::after{content:'\2212'}
-details p{margin:0; padding:0 14px 14px; font-size:14.5px; color:var(--muted)}
+details p{margin:0; padding:0 2px 20px; font-size:15.5px; color:var(--muted)}
 
 /* footer */
-footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px}
-.flinks{display:flex; gap:10px; margin:14px 0}
-.flinks a{flex:1; display:flex; align-items:center; justify-content:center; gap:7px; min-height:46px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:14px; font-weight:600}
-.fnote{font-size:12.5px; color:var(--muted); margin:12px 0 6px}
+footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px; background:var(--bg-2)}
+.flinks{display:flex; gap:10px; margin:18px 0}
+.flinks a{flex:1; display:flex; align-items:center; justify-content:center; gap:8px; min-height:48px; background:var(--bg); border:1px solid var(--border-2); border-radius:var(--radius-sm); color:var(--ink); font-size:14.5px; font-weight:600}
+.flinks a:hover{border-color:var(--ink-2)}
+.fnote{font-size:13px; color:var(--muted); margin:14px 0 6px}
 
 /* sticky cta */
 .sticky{
   position:fixed; left:0; right:0; bottom:0; z-index:25;
-  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
-  background:linear-gradient(transparent,rgba(10,10,10,.96) 32%);
+  padding:12px 20px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,rgba(255,255,255,.97) 30%);
   transition:transform .28s ease;
 }
 .sticky .wrap{padding:0}
 .sticky.hide{transform:translateY(130%)}
 .toast{
-  position:fixed; left:16px; right:16px; bottom:84px; z-index:30;
-  background:var(--card); border:1px solid var(--danger); color:var(--text);
-  border-radius:var(--radius-sm); padding:12px 14px; font-size:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.6); display:none
+  position:fixed; left:20px; right:20px; bottom:88px; z-index:30;
+  background:var(--ink); border:1px solid var(--ink); color:#fff;
+  border-radius:var(--radius-sm); padding:13px 16px; font-size:14.5px;
+  box-shadow:0 12px 32px rgba(16,17,20,.28); display:none;
 }
 .toast.on{display:block}
-@media (min-width:600px){
-  :root{--maxw:600px}
-  .occ{grid-template-columns:1fr 1fr}
+
+
+
+/* ========================= TABLET AND DESKTOP =========================
+   The page is written mobile-first. These rules only widen it; nothing
+   above here changes, so the phone layout is untouched. */
+
+@media (min-width:768px){
+  :root{--maxw:720px}
+  .hero{padding:72px 0 48px}
+  section{padding:72px 0}
+  h1{font-size:52px}
+  .sec-h{font-size:37px}
+
+  /* two across is the natural fit at this width */
+  .cards{grid-template-columns:repeat(2,1fr); align-items:start}
+  .tcards{grid-template-columns:repeat(2,1fr)}
+
+}
+
+@media (min-width:1024px){
+  :root{--maxw:1120px}
+  body{font-size:17px}
+
+  .hrow{height:72px}
+  .brand{font-size:21px}
+
+  /* ------------------------------ hero ------------------------------ */
+  .hero{padding:86px 0 58px; text-align:center}
+  /* Centre each block explicitly. A blanket `.hero .wrap > *` rule loses to
+     any base rule that uses the margin shorthand, which silently left-aligns
+     whatever it touched. */
+  .kicker{margin-bottom:22px}
+  h1{font-size:64px; max-width:15ch; margin-left:auto; margin-right:auto}
+  .hero p.sub{font-size:19px; max-width:52ch; margin:0 auto 30px}
+  .badges{justify-content:center; margin:26px auto 0}
+  .hero > .wrap > .btn{max-width:360px; margin-left:auto; margin-right:auto}
+  .hero-proof{margin-bottom:26px}
+
+  /* --------------------------- section heads ------------------------ */
+  .sec-h{font-size:43px; text-align:center}
+  .sec-s{text-align:center; max-width:60ch; margin-left:auto; margin-right:auto; margin-bottom:44px; font-size:17px}
+
+  /* ------------------------------ work ------------------------------ */
+  .marquee{margin:0 calc((100vw - var(--maxw)) / -2 - 20px)}
+  .reel{width:400px; margin-right:18px; box-shadow:0 2px 4px rgba(16,17,20,.04), 0 18px 40px -28px rgba(16,17,20,.35)}
+  .shot{width:260px; margin-right:16px}
+
+  /* ---------------------------- process ----------------------------- */
+  .process{grid-template-columns:repeat(2,1fr); gap:28px 40px}
+  .process li{padding-bottom:0}
+  .process li::before{display:none}
+  .process .n{width:48px; height:48px; font-size:18px}
+  .process b{font-size:18px; margin-top:11px}
+
+  /* ------------------------------ form ------------------------------ */
+  /* Forms read badly when they stretch; keep this column narrow. */
+  #book .wrap{max-width:660px}
+  .formcard{padding:32px}
+  .occ{grid-template-columns:repeat(3,1fr)}
+  .times{grid-template-columns:repeat(4,1fr)}
+  .day{min-height:56px; font-size:16px}
+  .skel i{min-height:56px}
+
+  /* -------------------------- testimonials -------------------------- */
+  .tcards{grid-template-columns:repeat(3,1fr); gap:20px}
+
+
+  /* ------------------------------ faq ------------------------------- */
+  #faq .faq{max-width:820px; margin:0 auto}
+  summary{font-size:17px; padding:22px 4px}
+  details p{padding:0 4px 24px; font-size:16px}
+
+  /* ----------------------------- footer ----------------------------- */
+  footer{padding:56px 0 48px}
+  .fcols{display:grid; grid-template-columns:1.4fr 1fr; gap:40px; align-items:start}
+  .flinks{max-width:420px}
+
+  /* The sticky bar exists for thumbs. On a desktop the page CTA is always
+     a short scroll away, so it only covers content. */
+  .sticky{display:none}
+}
+
+@media (min-width:1280px){
+  :root{--maxw:1180px}
+  h1{font-size:70px}
+
 }
 </style>
 </head>
 <body>
-<div class="grain" aria-hidden="true"></div>
 
 <header>
   <div class="wrap hrow">
@@ -416,17 +659,8 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
       <h1 class="display"><span data-i18n="hero_h1_1"></span> <span class="alt" data-i18n="hero_h1_2"></span></h1>
       <p class="sub" data-i18n="hero_sub"></p>
       <div class="hero-proof">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.8-5 4.7 1.3 6.8L12 17.3 5.9 20.6 7.2 13.8 2.2 9.1l6.9-.8z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.8-5 4.7 1.3 6.8L12 17.3 5.9 20.6 7.2 13.8 2.2 9.1l6.9-.8z"/></svg>
         <span data-i18n="hero_badge" id="proofBadge"></span>
-      </div>
-      <div class="founder">
-        <div class="ph" id="founderPh" role="img">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="1.6" aria-hidden="true"><path d="M3 8h3l2-2h8l2 2h3v11H3z"/><circle cx="12" cy="13" r="3.4"/></svg>
-        </div>
-        <div>
-          <b data-i18n="hero_founder"></b>
-          <span data-i18n="hero_founder_note"></span>
-        </div>
       </div>
       <ul class="badges">
         <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="3" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="hero_point_1"></span></li>
@@ -445,30 +679,48 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
       <h2 class="sec-h display" data-i18n="samples_title"></h2>
       <p class="sec-s" data-i18n="samples_sub"></p>
     </div>
-    <div class="wrap"><div class="reels" id="reels"></div></div>
+    <div class="wrap"><div class="marquee on-alt" id="reelsMarquee"><div class="reels" id="reels"></div></div></div>
   </section>
 
-  <!-- ============================= HOW ============================ -->
-  <section id="how">
+  <!-- =========================== PROCESS =========================== -->
+  <section id="how" class="alt-bg">
     <div class="wrap">
       <h2 class="sec-h display" data-i18n="how_title"></h2>
-      <ol class="steps">
-        <li><span class="n">1</span><div><b data-i18n="how_1_t"></b><p data-i18n="how_1_d"></p></div></li>
-        <li><span class="n">2</span><div><b data-i18n="how_2_t"></b><p data-i18n="how_2_d"></p></div></li>
-        <li><span class="n">3</span><div><b data-i18n="how_3_t"></b><p data-i18n="how_3_d" id="how3d"></p></div></li>
+      <p class="sec-s" data-i18n="how_sub"></p>
+      <ol class="process">
+        <li class="you">
+          <span class="n">01</span>
+          <div>
+            <b data-i18n="how_1_t"></b>
+            <p data-i18n="how_1_d"></p>
+            <span class="who" data-i18n="who_you"></span>
+          </div>
+        </li>
+        <li>
+          <span class="n">02</span>
+          <div>
+            <b data-i18n="how_2_t"></b>
+            <p data-i18n="how_2_d"></p>
+            <span class="who" data-i18n="who_us"></span>
+          </div>
+        </li>
+        <li class="key">
+          <span class="n">03</span>
+          <div>
+            <b data-i18n="how_3_t"></b>
+            <p data-i18n="how_3_d"></p>
+            <span class="who" data-i18n="who_us"></span>
+          </div>
+        </li>
+        <li>
+          <span class="n">04</span>
+          <div>
+            <b data-i18n="how_4_t"></b>
+            <p data-i18n="how_4_d" id="how4d"></p>
+            <span class="who" data-i18n="who_us"></span>
+          </div>
+        </li>
       </ol>
-    </div>
-  </section>
-
-  <div class="strip" aria-hidden="true"></div>
-
-  <!-- =========================== PRICING ========================== -->
-  <section id="pricing">
-    <div class="wrap">
-      <h2 class="sec-h display" data-i18n="pricing_title"></h2>
-      <p class="sec-s" data-i18n="pricing_sub"></p>
-      <div class="cards" id="priceCards"></div>
-      <p class="follow-note" id="followNote"></p>
     </div>
   </section>
 
@@ -542,9 +794,8 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
             </div>
             <div class="pricebox">
               <div class="lbl" id="lenLabel"></div>
-              <div class="amt" id="lenPrice">—</div>
+              <div class="amt"><span id="lenPrice">—</span><s class="was" id="lenWas" hidden></s></div>
               <div class="off" id="lenOff"></div>
-              <div class="note" id="lenNote"></div>
             </div>
             <label class="check" id="followWrap">
               <input type="checkbox" id="f_follower">
@@ -577,7 +828,7 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
 
             <div class="minisum" id="miniSum" hidden>
               <span id="miniSumText"></span>
-              <b id="miniSumPrice"></b>
+              <span><s class="was" id="miniSumWas" hidden></s><b id="miniSumPrice"></b></span>
             </div>
 
             <p class="err" id="e4"></p>
@@ -610,11 +861,16 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
   <section id="testimonials" hidden>
     <div class="wrap">
       <h2 class="sec-h display" data-i18n="testi_title"></h2>
+      <p class="sec-s" id="testiSub" hidden data-i18n="testi_sub"></p>
+      <div class="marquee" id="shotsMarquee" hidden><div class="shots" id="shots"></div></div>
       <div class="tcards" id="tcards"></div>
     </div>
   </section>
 
-  <div class="strip" aria-hidden="true"></div>
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Review">
+    <button type="button" class="x" id="lightboxClose" aria-label="Close">&times;</button>
+    <img id="lightboxImg" alt="">
+  </div>
 
   <!-- ============================= FAQ ============================ -->
   <section id="faq">
@@ -629,6 +885,8 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
   <div class="wrap">
     <div class="brand" style="margin-bottom:8px"><span class="dot"></span><span>TIMETOSHOOT</span></div>
     <p class="muted" style="margin:0;font-size:14px" data-i18n="footer_tagline"></p>
+    <div class="fcols">
+    <div>
     <div class="flinks">
       <a id="igLink" href="#" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#FFC700"/></svg>
@@ -639,8 +897,13 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
         <span data-i18n="footer_whatsapp"></span>
       </a>
     </div>
-    <p class="fnote" data-i18n="footer_privacy"></p>
-    <p class="fnote" id="rights"></p>
+    </div>
+    <div>
+      <p class="fnote" data-i18n="footer_privacy"></p>
+      <p class="fnote"><a id="privacyLink" href="/privacy" data-i18n="footer_privacy_link" style="text-decoration:underline"></a></p>
+      <p class="fnote" id="rights"></p>
+    </div>
+    </div>
   </div>
 </footer>
 
@@ -678,7 +941,7 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     },
     booking: null
   };
-  var LEN_ORDER = ['30s', '1m', '2m'];
+  var LEN_ORDER = L.LENGTHS.slice();   // narrowed to what Config prices
   var TOTAL_STEPS = 4;
   var RESULT_STEP = 5;
 
@@ -715,7 +978,7 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     document.documentElement.lang = state.lang;
     $$('[data-i18n]').forEach(function (el) {
       var k = el.getAttribute('data-i18n');
-      if (el.id === 'proofBadge' || el.id === 'holdBadge' || el.id === 'how3d') return;
+      if (el.id === 'proofBadge' || el.id === 'holdBadge' || el.id === 'how4d') return;
       el.textContent = t(k);
     });
     $$('[data-i18n-ph]').forEach(function (el) {
@@ -742,15 +1005,11 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     } catch (e) { return iso; }
   }
 
-  function lenLabel(code) {
-    return t(code === '30s' ? 'len_30s' : code === '1m' ? 'len_1m' : 'len_2m');
-  }
+  function lenLabel(code) { return t('len_' + code); }
 
   /* Short form, used inside the WhatsApp message: "2 min film" reads better
      than "2 minutes film". */
-  function lenShort(code) {
-    return t(code === '30s' ? 'len_30s_short' : code === '1m' ? 'len_1m_short' : 'len_2m_short');
-  }
+  function lenShort(code) { return t('len_' + code + '_short'); }
 
   function todayStr() {
     if (state.config && state.config.today) return state.config.today;
@@ -917,8 +1176,31 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
       });
   }
 
+  /**
+   * The Sheet is the source of truth, but an older deployment simply does not
+   * know about keys added since. For DISPLAY-ONLY values we fall back to
+   * js/config.js when the server did not mention the key at all, so a new
+   * one works before the script is redeployed.
+   *
+   * A key the server DID send wins, including when it sends 0, so clearing a
+   * row in the Sheet still hides that value.
+   *
+   * Only display values belong here. Anything the server validates a booking
+   * against — prices, units, lead time — must never be filled in locally, or
+   * the page would offer something the server then refuses.
+   */
+  function fillDisplayGaps(serverConfig) {
+    var cfgOut = Object.assign({}, serverConfig);
+    var fb = CFG.fallback || {};
+    (L.LENGTHS || []).forEach(function (code) {
+      var key = 'list_price_' + code;
+      if (!(key in cfgOut) && fb[key] !== undefined) cfgOut[key] = fb[key];
+    });
+    return cfgOut;
+  }
+
   function adoptBootstrap(j) {
-    state.config = j.config;
+    state.config = fillDisplayGaps(j.config);
     state.availability = j.availability || [];
     state.testimonials = j.testimonials || [];
     state.loading = false;
@@ -933,57 +1215,22 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     var c = cfg();
     $('#proofBadge').textContent = t('hero_badge', { count: c.clients_count || '200+' });
     $('#holdBadge').textContent = t('hero_point_3', { hours: c.slot_hold_hours });
-    $('#how3d').textContent = t('how_3_d', { delivery: c.delivery_text });
+    $('#how4d').textContent = t('how_4_d', { delivery: c.delivery_text });
     $('#progLbl').textContent = t('step_of', { n: Math.min(state.step, TOTAL_STEPS), total: TOTAL_STEPS });
 
     var ig = 'https://instagram.com/' + (c.instagram_handle || 'timetoshoot');
     $('#igLink').href = ig;
     $('#waLink').href = waPlainUrl(t('wa_plain'));
 
-    var f = $('#founderPh');
-    f.setAttribute('aria-label', t('hero_photo_placeholder'));
-    if (CFG.founderPhoto && !f._tried) {
-      f._tried = true;
-      var img = new Image();
-      img.onload = function () { f.innerHTML = ''; f.appendChild(img); };
-      img.alt = 'Keerthika, founder of Timetoshoot';
-      img.src = CFG.founderPhoto;
-    }
-
-    renderPricing();
     renderSamples();
     renderOccasions();
+    syncLengths();
     renderLenStops();
     renderLength();
     renderFaq();
     renderStep4Copy();
     renderTimes();
     renderMiniSum();
-  }
-
-  function renderPricing() {
-    var c = cfg();
-    var items = [
-      { code: '30s', name: 'pkg_30s_name', forK: 'pkg_30s_for', price: c.price_30s },
-      { code: '1m', name: 'pkg_1m_name', forK: 'pkg_1m_for', price: c.price_1m },
-      { code: '2m', name: 'pkg_2m_name', forK: 'pkg_2m_for', price: c.price_2m }
-    ];
-    var tick = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
-    $('#priceCards').innerHTML = items.map(function (it) {
-      var feat = String(c.most_chosen_package) === it.code;
-      return '<article class="pcard' + (feat ? ' feat' : '') + '">' +
-        (feat ? '<span class="tag">' + t('most_chosen') + '</span>' : '') +
-        '<div class="top"><h3>' + t(it.name) + '</h3><div class="price">' + money(it.price) + '</div></div>' +
-        '<p class="for">' + t(it.forK) + '</p>' +
-        '<ul>' +
-          '<li>' + tick + '<span>' + t('pkg_feature_music') + '</span></li>' +
-          '<li>' + tick + '<span>' + t('pkg_feature_vertical') + '</span></li>' +
-          '<li>' + tick + '<span>' + t('pkg_feature_delivery', { delivery: c.delivery_text }) + '</span></li>' +
-        '</ul></article>';
-    }).join('');
-    $('#followNote').textContent = t('follower_note', {
-      handle: c.instagram_handle || 'timetoshoot', amount: c.follower_discount
-    });
   }
 
   function renderSamples() {
@@ -1005,10 +1252,13 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     if (host._built) { updateSampleCaptions(items); return; }
     host._built = true;
 
-    host.innerHTML = items.map(function (x, i) {
+    /* Two copies, so the loop can hand off without a visible jump. */
+    host.innerHTML = items.concat(items).map(function (x, i) {
       var id = String(x.youtube).trim();
-      return '<div class="reel" data-i="' + i + '">' +
+      var clone = i >= items.length;
+      return '<div class="reel" data-i="' + i + '"' + (clone ? ' aria-hidden="true"' : '') + '>' +
         '<button type="button" class="yt" data-yt="' + esc(id) + '" ' +
+          (clone ? 'tabindex="-1" ' : '') +
           'aria-label="' + esc(t('samples_play')) + '">' +
           '<img loading="lazy" decoding="async" alt="" ' +
             'src="https://i.ytimg.com/vi/' + esc(id) + '/maxresdefault.jpg" ' +
@@ -1021,6 +1271,9 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
         (x.label ? '<div class="cap">' + esc(x.label) + '</div>' : '') +
         '</div>';
     }).join('');
+
+    /* Keep the pace even however many films there are. */
+    host.style.animationDuration = Math.max(28, items.length * 11) + 's';
 
     /* maxresdefault does not exist for every upload; fall back quietly. */
     $$('#reels img[data-fallback]').forEach(function (img) {
@@ -1056,6 +1309,8 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     box.innerHTML = '';
     box.appendChild(frame);
+    /* Nobody wants to watch a film that is sliding off the screen. */
+    $('#reels').classList.add('paused');
     track('sample_play', 0);
   }
 
@@ -1079,10 +1334,25 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     inp.max = L.addDays(todayStr(), 400);
   }
 
+  /* Only offer the lengths this Sheet prices, and keep the chosen one valid. */
+  function syncLengths() {
+    var list = L.availableLengths(cfg());
+    LEN_ORDER = list.length ? list : L.LENGTHS.slice();
+    if (LEN_ORDER.indexOf(state.data.filmLength) === -1) {
+      state.data.filmLength = LEN_ORDER[Math.min(1, LEN_ORDER.length - 1)];
+    }
+    var slider = $('#f_len');
+    slider.max = String(LEN_ORDER.length - 1);
+  }
+
   function renderLenStops() {
     $('#lenStops').innerHTML = LEN_ORDER.map(function (code, i) {
+      /* Short labels on the scale: six full ones ("30 seconds" ... "5
+         minutes") do not fit across a 360px phone and the last is clipped.
+         The full name still shows in the price box below. */
       return '<button type="button" data-len="' + code + '" aria-pressed="' +
-        (state.data.filmLength === code) + '">' + lenLabel(code) + '</button>';
+        (state.data.filmLength === code) + '" aria-label="' + esc(lenLabel(code)) + '">' +
+        lenShort(code) + '</button>';
     }).join('');
   }
 
@@ -1091,7 +1361,8 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     var code = state.data.filmLength;
     var idx = LEN_ORDER.indexOf(code);
     $('#f_len').value = String(idx);
-    $('#trackFill').style.width = 'calc(' + (idx / 2 * 100) + '% - ' + (idx / 2 * 12) + 'px)';
+    var span = Math.max(1, LEN_ORDER.length - 1);
+    $('#trackFill').style.width = 'calc(' + (idx / span * 100) + '% - ' + (idx / span * 12) + 'px)';
     $$('#lenStops button').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-len') === code));
     });
@@ -1099,8 +1370,10 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     var p = L.calcPrice(c, code, state.data.follower);
     $('#lenLabel').textContent = t('your_film', { length: lenLabel(code) });
     $('#lenPrice').textContent = money(p.total);
+    var was = $('#lenWas');
+    was.hidden = !(p.list > p.total);
+    was.textContent = p.list > p.total ? money(p.list) : '';
     $('#lenOff').textContent = p.discount ? t('discount_applied', { amount: p.discount }) : '';
-    $('#lenNote').textContent = t(code === '30s' ? 'len_30s_note' : code === '1m' ? 'len_1m_note' : 'len_2m_note');
     $('#followLabel').textContent = t('follower_check', { handle: c.instagram_handle || 'timetoshoot' });
     $('#followWrap').classList.toggle('on', state.data.follower);
     $('#f_follower').checked = state.data.follower;
@@ -1158,6 +1431,9 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
       time: d.slotTime
     });
     $('#miniSumPrice').textContent = money(p.total);
+    var mwas = $('#miniSumWas');
+    mwas.hidden = !(p.list > p.total);
+    mwas.textContent = p.list > p.total ? money(p.list) : '';
     updateReserveBtn();
   }
 
@@ -1290,10 +1566,44 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
     return found ? t(found.k) : '—';
   }
 
+  /* Screenshots of real feedback. Nothing is invented here: the section only
+     appears when the owner has actually added files. */
+  function renderShots() {
+    var host = $('#shots');
+    var shots = (CFG.reviewImages || []).filter(function (x) { return x && String(x).trim(); });
+    if (!shots.length) { $('#shotsMarquee').hidden = true; host.innerHTML = ''; return false; }
+
+    if (!host._built) {
+      host._built = true;
+      host.innerHTML = shots.concat(shots).map(function (src, i) {
+        var clone = i >= shots.length;
+        return '<button type="button" class="shot" data-src="' + esc(src) + '" ' +
+          (clone ? 'tabindex="-1" aria-hidden="true" ' : '') +
+          'aria-label="' + esc(t('testi_open')) + '">' +
+          '<img loading="lazy" decoding="async" alt="" src="' + esc(src) + '">' +
+          '</button>';
+      }).join('');
+      host.style.animationDuration = Math.max(30, shots.length * 9) + 's';
+      /* A file that never arrived should not leave a grey hole in the grid. */
+      $$('#shots img').forEach(function (img) {
+        img.addEventListener('error', function () {
+          var b = img.closest('.shot');
+          if (b) b.remove();
+          if (!$('#shots .shot')) { $('#shotsMarquee').hidden = true; }
+        });
+      });
+    }
+    $('#shotsMarquee').hidden = false;
+    return true;
+  }
+
   function renderTestimonials() {
     var sec = $('#testimonials');
-    if (!state.testimonials.length) { sec.hidden = true; return; }
+    var hasShots = renderShots();
+    if (!state.testimonials.length && !hasShots) { sec.hidden = true; return; }
     sec.hidden = false;
+    $('#testiSub').hidden = !hasShots;
+    if (!state.testimonials.length) { $('#tcards').innerHTML = ''; return; }
     $('#tcards').innerHTML = state.testimonials.map(function (x) {
       var who = [x.name, x.occasion].filter(Boolean);
       return '<figure class="tcard" style="margin:0">' +
@@ -1536,6 +1846,27 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
       });
     });
 
+    /* review screenshots open full size */
+    var lb = $('#lightbox');
+    $('#shots').addEventListener('click', function (e) {
+      var b = e.target.closest('.shot');
+      if (!b) return;
+      $('#lightboxImg').src = b.getAttribute('data-src');
+      $('#shots').classList.add('paused');
+      lb.classList.add('on');
+      $('#lightboxClose').focus();
+    });
+    function closeLightbox() {
+      lb.classList.remove('on');
+      $('#lightboxImg').src = '';
+      $('#shots').classList.remove('paused');
+    }
+    $('#lightboxClose').addEventListener('click', closeLightbox);
+    lb.addEventListener('click', function (e) { if (e.target === lb) closeLightbox(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && lb.classList.contains('on')) closeLightbox();
+    });
+
     /* sample films: fetch the player only when someone asks for it */
     $('#reels').addEventListener('click', function (e) {
       var btn = e.target.closest('.yt');
@@ -1579,11 +1910,28 @@ footer{border-top:1px solid var(--border); padding:28px 0 118px; margin-top:10px
       state.data.occasion = b.getAttribute('data-occ');
       $$('#occGrid button').forEach(function (x) {
         x.setAttribute('aria-pressed', String(x === b));
+        x.classList.remove('tapped');
       });
+      /* restart the ripple even when the same card is tapped again */
+      void b.offsetWidth;
+      b.classList.add('tapped');
       renderEventField();
       showErr('e2', '');
     });
-    $('#f_event').addEventListener('change', function () {
+    /* A native date input only opens its calendar from the small icon, which
+       people do not find. Open it from anywhere in the field. */
+    var eventField = $('#f_event');
+    function openDatePicker() {
+      if (typeof eventField.showPicker !== 'function') return;   // older browsers keep the icon
+      try { eventField.showPicker(); } catch (e) { /* needs a user gesture; ignore */ }
+    }
+    eventField.addEventListener('click', openDatePicker);
+    eventField.addEventListener('focus', openDatePicker);
+    eventField.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDatePicker(); }
+    });
+
+    eventField.addEventListener('change', function () {
       state.data.eventDate = L.normDate(this.value);
       state.data.deliveryDate = '';
       state.data.slotTime = '';

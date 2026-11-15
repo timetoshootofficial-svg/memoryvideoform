@@ -21,12 +21,26 @@ window.TTS_CONFIG = {
     price_30s: 2999,
     price_1m: 4999,
     price_2m: 7999,
+    price_3m: 9999,
+    price_4m: 13999,
+    price_5m: 16999,
+
+    /* Shown struck through beside the price. Clear one to hide its strike. */
+    list_price_30s: 4499,
+    list_price_1m: 6499,
+    list_price_2m: 9499,
+    list_price_3m: 11999,
+    list_price_4m: 15999,
+    list_price_5m: 18999,
     follower_discount: 200,
     time_slots: ['11:00 AM', '1:00 PM', '4:00 PM', '7:00 PM'],
     daily_capacity: 4,
     units_30s: 1,
     units_1m: 1,
     units_2m: 2,
+    units_3m: 2,
+    units_4m: 3,
+    units_5m: 3,
     min_lead_days: 3,
     booking_window_days: 60,
     slot_hold_hours: 24,
@@ -48,7 +62,19 @@ window.TTS_CONFIG = {
     { youtube: 'oVgQxC6lf0o', label: '' }
   ],
 
-  founderPhoto: 'assets/keerthika.jpg',
+
+  /* Screenshots of real WhatsApp feedback, shown under Testimonials.
+     Crop each one to 4:5 portrait — 1080 x 1350 px is ideal. Keep each file
+     under 250 KB. Add or remove lines freely; the section hides itself when
+     the list is empty.
+     Blur out phone numbers and profile photos before you add them. */
+  reviewImages: [
+    'assets/review-1.jpg',
+    'assets/review-2.jpg',
+    'assets/review-3.jpg',
+    'assets/review-4.jpg',
+    'assets/review-5.jpg'
+  ],
 
   /* Browser-side cache for config/availability, in seconds */
   cacheSeconds: 60
