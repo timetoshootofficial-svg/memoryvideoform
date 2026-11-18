@@ -14,6 +14,12 @@
 export function normaliseSupabaseUrl(raw: string | undefined): string {
   let u = String(raw ?? '').trim().replace(/\s+/g, '');
   if (!u) return '';
+
+  /* A bare project reference. The dashboard shows it on its own in several
+     places, so it is an easy thing to copy in place of the URL, and on its
+     own it resolves to nothing at all. */
+  if (/^[a-z0-9]{16,32}$/i.test(u)) return `https://${u.toLowerCase()}.supabase.co`;
+
   if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
   u = u.replace(/\/+$/, '');
   u = u.replace(/\/rest(\/v1)?$/i, '');

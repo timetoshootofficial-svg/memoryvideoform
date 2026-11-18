@@ -358,6 +358,11 @@ test('a pasted Supabase URL is accepted in the shapes a dashboard gives it', asy
     'https://db.abc.supabase.co',
   ]) assert.equal(n(given), want, `"${given.trim()}" should normalise to ${want}`);
 
+  /* A bare project reference, which the dashboard shows on its own in
+     several places and which resolves to nothing by itself. */
+  assert.equal(n('ksvctdgpwyrtbsucespc'), 'https://ksvctdgpwyrtbsucespc.supabase.co');
+  assert.equal(n('  KSVCTDGPWYRTBSUCESPC  '), 'https://ksvctdgpwyrtbsucespc.supabase.co');
+
   assert.equal(n('http://abc.supabase.co'), 'http://abc.supabase.co', 'an explicit scheme is kept');
   assert.equal(n(''), '', 'an empty value stays empty');
   assert.equal(n(undefined), '', 'a missing value stays empty');
