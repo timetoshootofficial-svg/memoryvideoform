@@ -79,3 +79,9 @@ test('a database failure never shows its own words to the visitor', () => {
     'the PostgREST message must stay in the log, not travel to the browser');
   assert.ok(/console\.error/.test(notOk), 'it should still be logged server-side');
 });
+
+test('the WhatsApp button is the loudest thing on the thank-you screen', () => {
+  const screen = form.slice(form.indexOf('step === RESULT_STEP'));
+  assert.ok(/className="btn btn-primary" href=\{waHref\}/.test(screen),
+    'it must use the primary style, not the quiet btn-wa outline');
+});

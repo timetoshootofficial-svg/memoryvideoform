@@ -3,6 +3,8 @@
 -- first real booking is TTS-0001.
 --
 -- Run this ONCE, before the site goes live on Supabase.
+-- It covers every row made while testing, including the leads from the
+-- no-calendar flow (TTS-0007 onwards).
 
 delete from public.bookings where name like 'ZZ %';
 delete from public.funnel_events where session_id = 'probe';
