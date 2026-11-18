@@ -39,7 +39,7 @@ export const SITE = {
     most_chosen_package: '1m',
     delivery_text: 'Ready within 5 days of receiving all details',
     delivery_days: 5,
-    clients_count: '200+',
+    clients_count: '500+',
     revisions_text: '',
   },
 } as const;

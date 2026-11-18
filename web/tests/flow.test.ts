@@ -153,13 +153,19 @@ test('the form records the step it is entering, which the SQL must agree with', 
     'entering step 3 is what "saw the price" means');
 });
 
-test('the hero shows only numbers the project actually has', () => {
+test('the hero shows only a number the project actually has', () => {
   const stats = readFileSync(new URL('../components/Stats.tsx', import.meta.url), 'utf8');
-  for (const invented of ['rating', 'stars', '4.9', '98%', 'reviews'])
+  for (const invented of ['rating', 'stars', '4.9', '98%', 'reviews', 'awards'])
     assert.ok(!new RegExp(invented, 'i').test(stats), `Stats invents a ${invented}`);
-  assert.ok(/if \(digits > 0\)/.test(stats), 'the families figure must be skipped when there is none');
-  assert.ok(/if \(fromPrice > 0\)/.test(stats), 'the price must be skipped when nothing is priced');
-  assert.ok(/cells\.length < 2/.test(stats), 'one lonely number is not a stats strip');
+  assert.ok(/if \(digits <= 0\) return null/.test(stats),
+    'with no figure configured the hero must show nothing, not a zero');
+  /* The number must arrive as a prop. A literal in the JSX would mean the
+     config table had stopped being the source of truth. (The doc comment
+     mentions 500 as an example, so only code lines are checked.) */
+  const code = stats.split('\n').filter((l) => !/^\s*(\*|\/\*|\/\/)/.test(l)).join('\n');
+  assert.ok(/clients: string/.test(code), 'the figure must be a prop');
+  assert.ok(!/[>"']\s*\d{3,}\s*\+?\s*[<"']/.test(code),
+    'no client count should be written into the component');
 });
 
 test('the counted numbers are correct before any JavaScript runs', () => {
@@ -174,4 +180,21 @@ test('Tamil headlines are given room for their vowel marks', () => {
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
   assert.ok(/html\[lang="ta"\] \.display\{line-height:1\.[23]/.test(css),
     'the Latin 1.06 line-height makes Tamil lines collide');
+});
+
+test('a length is spelled the same way in its label and its short form', () => {
+  /* The price box used the full label and the WhatsApp message the short one,
+     so "30 வினாடி" and "30 விநாடி" went out to the same customer. */
+  for (const lang of ['en', 'ta'] as const) {
+    const table = STRINGS[lang] as Record<string, string>;
+    for (const code of ['30s', '1m', '2m', '3m', '4m', '5m']) {
+      const full = table[`len_${code}`];
+      const short = table[`len_${code}_short`];
+      const letters = (v: string) => v.replace(/[0-9\s]/g, '');
+      assert.ok(
+        letters(short) === letters(full) || letters(full).startsWith(letters(short)),
+        `${lang} len_${code}: "${full}" and "${short}" are spelled differently`,
+      );
+    }
+  }
 });

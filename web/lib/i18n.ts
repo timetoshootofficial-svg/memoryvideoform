@@ -259,7 +259,7 @@ const STRINGS = {
     len_3m: '3 நிமிடம்',
     len_4m: '4 நிமிடம்',
     len_5m: '5 நிமிடம்',
-    len_30s_short: '30 விநாடி',
+    len_30s_short: '30 வினாடி',
     len_1m_short: '1 நிமிடம்',
     len_2m_short: '2 நிமிடம்',
     len_3m_short: '3 நிமிடம்',

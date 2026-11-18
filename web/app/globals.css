@@ -631,38 +631,28 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
 
 }
 
-/* ---------------------------- hero stats ----------------------------
-   Replaces the yellow "200+" pill and the row of ticks under it. Three
-   real numbers, each one something a buyer actually wants to know before
-   they tap, on a quiet card rather than a loud badge. */
-.stats{
-  display:grid; grid-template-columns:repeat(3,1fr);
-  border:1px solid var(--border); border-radius:var(--radius);
-  background:var(--card); box-shadow:var(--shadow);
-  margin:26px auto 24px; max-width:460px; overflow:hidden;
+/* ----------------------------- hero stat -----------------------------
+   One figure, no border. A card drawn around a single number reads like a
+   widget; given space and a rule under it, it reads like a claim. */
+.stat1{
+  margin:30px 0 26px; text-align:center;
 }
-.stats div{
-  padding:16px 10px 15px; text-align:center;
-  border-right:1px solid var(--border);
-}
-.stats div:last-child{border-right:0}
-.stats .n{
+.stat1 .n{
   display:block; font-family:var(--display); font-weight:800;
-  font-size:clamp(21px,5.6vw,26px); letter-spacing:-.03em; color:var(--ink);
-  line-height:1.1; font-variant-numeric:tabular-nums;
+  font-size:clamp(46px,13vw,68px); letter-spacing:-.045em; color:var(--ink);
+  line-height:1; font-variant-numeric:tabular-nums;
 }
-.stats .n .unit{font-size:.62em; font-weight:700; margin-left:1px; letter-spacing:0}
-.stats .l{
-  display:block; margin-top:5px; font-size:12px; line-height:1.35;
-  color:var(--muted); font-weight:500; letter-spacing:.01em;
+.stat1 .n .unit{
+  font-size:.52em; font-weight:800; margin-left:2px; letter-spacing:-.02em;
+  color:var(--yellow-line); vertical-align:.14em;
 }
-html[lang="ta"] .stats .l{font-size:11.5px}
-html[lang="ta"] .stats .n{font-size:clamp(19px,5vw,24px)}
-.stats i.rule{
-  display:block; height:2px; width:22px; margin:9px auto 0;
-  background:var(--yellow); border-radius:2px;
+.stat1 .rule{
+  display:block; height:3px; width:34px; margin:13px auto 0;
+  background:var(--yellow); border-radius:3px;
 }
-@media (max-width:359px){
-  .stats .l{font-size:11px}
-  .stats div{padding:13px 6px 12px}
+.stat1 .l{
+  display:block; margin-top:11px; font-size:14px; line-height:1.4;
+  color:var(--muted); font-weight:500; letter-spacing:.02em;
 }
+html[lang="ta"] .stat1 .n{font-size:clamp(42px,11.5vw,60px)}
+html[lang="ta"] .stat1 .l{font-size:13.5px}
