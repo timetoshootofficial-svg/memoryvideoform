@@ -44,7 +44,6 @@ html[lang="ta"] .display{font-family:var(--tamil); font-weight:700; letter-spaci
    that suits the Latin display face makes consecutive lines collide. */
 html[lang="ta"] .display{line-height:1.3}
 html[lang="ta"] h1{font-size:clamp(31px,8.4vw,44px); margin-bottom:20px}
-html[lang="ta"] h1 .alt::after{bottom:.1em}
 img,video{max-width:100%; display:block}
 button{font:inherit; color:inherit; cursor:pointer}
 a{color:var(--ink); text-decoration:none}
@@ -60,7 +59,6 @@ a{color:var(--ink); text-decoration:none}
   }
   [data-goto-book]::after{display:none}
   .occ button svg{animation:none !important; transform:none !important}
-  h1 .alt::after{transform:scaleX(1) !important; opacity:1 !important}
   /* With the travel switched off the track would sit still and clipped, so
      hand it back to the reader as a row they can swipe. */
   .reels,.shots{width:auto; overflow-x:auto; padding-bottom:8px}
@@ -120,60 +118,49 @@ h1 .alt{position:relative; z-index:0; animation-delay:.3s}
   to  {opacity:1; transform:translateY(0);     clip-path:inset(-30% -6% -30% -6%)}
 }
 
-h1 .alt::after{
-  content:''; position:absolute; left:-2px; right:-2px; bottom:.04em; height:.26em;
-  z-index:-1; border-radius:3px;
-  background:linear-gradient(100deg,
-    var(--yellow) 0%, var(--yellow) 38%,
-    #FFEFAF 50%,
-    var(--yellow) 62%, var(--yellow) 100%);
-  background-size:320% 100%;
-  background-position:140% 0;
-  transform:scaleX(1); transform-origin:left center;
-  animation:draw .7s cubic-bezier(.16,.84,.3,1) .85s backwards,
-            swell 3.4s ease-in-out 1.6s infinite,
-            sweep 3.4s ease-in-out 1.6s infinite;
-}
-@keyframes draw{from{transform:scaleX(0)} to{transform:scaleX(1)}}
-@keyframes swell{
-  0%,100%{transform:scaleX(1) scaleY(1)}
-  48%    {transform:scaleX(1) scaleY(1.42)}
-}
-@keyframes sweep{
-  0%     {background-position:140% 0}
-  55%,100%{background-position:-60% 0}
-}
-
 /* ------------------------- the running light -------------------------
-   A yellow band the full height of the text travels across the whole
-   headline, left to right, over and over -- the light moving along an LED
-   sign. It is a highlighter, not a cover: `multiply` leaves black letters
-   black and turns only the white behind them yellow.
+   A bar of light travels THROUGH the letters, left to right, from the Y of
+   "Your" to the g of "breathing". The page behind them never changes colour:
+   the gradient is painted on the heading and then clipped to the shape of
+   its own text, so only the strokes light up.
 
-   The isolation and the white background are what make that true. Without
-   them the band would blend with whatever happens to sit under the heading
-   and the words would go dark as it passed. */
-h1{position:relative; isolation:isolate; background:var(--bg)}
-h1::after{
-  content:''; position:absolute; inset:-.04em -.14em;
-  pointer-events:none; z-index:2; border-radius:5px;
-  mix-blend-mode:multiply;
-  background:linear-gradient(104deg,
-    rgba(255,199,0,0) 0%, rgba(255,199,0,0) 30%,
-    rgba(255,199,0,.92) 39%,
-    rgba(255,232,150,.98) 48%,
-    rgba(255,199,0,.92) 57%,
-    rgba(255,199,0,0) 66%, rgba(255,199,0,0) 100%);
-  background-size:300% 100%;
-  background-repeat:no-repeat;
-  animation:led-run 5.2s linear 1.9s infinite;
+   All of it sits inside @supports, because the trick needs the letters
+   themselves to be transparent. Where a background cannot be clipped to
+   text, transparent letters are invisible letters, and a blank headline has
+   shipped from this file once already. */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  h1{
+    background-image:linear-gradient(100deg,
+      var(--ink) 0%,  var(--ink) 45.4%,
+      #C98F00 46.8%, #FFC700 48.6%, #FFEFB0 50%, #FFC700 51.4%, #C98F00 53.2%,
+      var(--ink) 54.6%, var(--ink) 100%);
+    background-size:300% 100%;
+    background-repeat:no-repeat;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:led-run 5s linear 1.4s infinite;
+  }
+  /* The gradient belongs to the h1 box, so both lines are lit by one bar
+     crossing the whole heading rather than two bars crossing two lines. */
+  h1 > span{-webkit-text-fill-color:inherit}
 }
-/* The band travels LEFT to RIGHT. With a background wider than its box, a
+
+/* The bar travels LEFT to RIGHT. With a background wider than its box, a
    larger background-position pulls the image left, so the percentages run
-   downward to make the light move the way a person reads. */
+   downward to move the light the way a person reads. */
 @keyframes led-run{
   from{background-position:150% 0}
   to  {background-position:-150% 0}
+}
+
+/* Asked for less motion: no travelling light, the heading simply in ink. */
+@media (prefers-reduced-motion: reduce){
+  h1{
+    background-image:none !important;
+    -webkit-text-fill-color:var(--ink) !important;
+    color:var(--ink) !important;
+  }
 }
 
 /* the lines around the headline follow it in */

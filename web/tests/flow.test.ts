@@ -199,17 +199,41 @@ test('a length is spelled the same way in its label and its short form', () => {
   }
 });
 
-test('the headline light sweeps left to right and never hides the words', () => {
+test('the headline light runs inside the letters, not over the page', () => {
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  const block = css.slice(css.indexOf('h1::after{'), css.indexOf('@keyframes led-run') + 200);
-  assert.ok(/mix-blend-mode:multiply/.test(block),
-    'the band must tint the background, not paint over the letters');
-  assert.ok(/isolation:isolate/.test(css) && /h1\{[^}]*background:var\(--bg\)/.test(css),
-    'multiply needs an isolated group with a known backdrop, or the words go dark');
+  const block = css.slice(css.indexOf('@supports ((-webkit-background-clip:text)'),
+                          css.indexOf('@keyframes led-run'));
+  assert.ok(/-webkit-background-clip:text/.test(block) && /background-clip:text/.test(block),
+    'the gradient must be clipped to the text');
+  assert.ok(!/mix-blend-mode/.test(block),
+    'blending would tint the white page; the light belongs in the strokes');
+
+  /* Transparent letters are invisible letters where the clip is unsupported,
+     so every line of it must live inside the @supports block. */
+  assert.ok(/text-fill-color:transparent/.test(block), 'the fill must be transparent inside @supports');
+  const outside = css.replace(block, '');
+  assert.ok(!/text-fill-color:transparent/.test(outside),
+    'a transparent fill outside @supports would blank the headline');
+
   const kf = css.slice(css.indexOf('@keyframes led-run'));
   const from = Number(/from\{background-position:(-?\d+)%/.exec(kf)?.[1]);
   const to = Number(/to  \{background-position:(-?\d+)%/.exec(kf)?.[1]);
   assert.ok(from > to, `the light must run left to right (from ${from}% to ${to}%)`);
+});
+
+test('reduced motion leaves the headline readable in plain ink', () => {
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const quiet = css.slice(css.lastIndexOf('@media (prefers-reduced-motion: reduce)'));
+  assert.ok(/text-fill-color:var\(--ink\) !important/.test(quiet),
+    'with the animation off the letters must be given their colour back');
+});
+
+test('the underline under the second line is gone', () => {
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  assert.ok(!/h1 \.alt::after/.test(css), 'the yellow underline should be removed');
+  for (const name of ['draw', 'swell', 'sweep'])
+    assert.ok(!new RegExp('@keyframes ' + name + '\\b').test(css),
+      `@keyframes ${name} was only used by that underline`);
 });
 
 test('the floating WhatsApp button is on the public pages and not in admin', () => {
