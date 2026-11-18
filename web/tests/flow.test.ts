@@ -276,9 +276,16 @@ test('the headline itself is never animated, clipped or faded', () => {
   assert.ok(/position:absolute/.test(lit), 'the moving copy must be an overlay');
   assert.ok(/pointer-events:none/.test(lit), 'the overlay must not catch taps');
 
-  /* Only the overlay carries the animation. */
+  /* Only the overlay carries the animation, and it slides a mask rather than
+     a hard-edged clip: a clip gives the bar straight sides and the light
+     arrives and leaves like a shutter. */
   const kf = css.slice(css.indexOf('@keyframes bar-slide'));
-  assert.ok(/clip-path:inset/.test(kf), 'the bar is a sliding window, not a repaint of the text');
+  assert.ok(/mask-position/.test(kf), 'the bar should slide a mask, not repaint the text');
+  assert.ok(!/clip-path/.test(kf), 'a clipped band has sharp edges');
+  const band = /--band:linear-gradient\(([\s\S]*?)\);/.exec(lit)?.[1] ?? '';
+  const stops = [...band.matchAll(/rgba\(0,0,0,([\d.]+)\)/g)].map((m) => Number(m[1]));
+  const partial = stops.filter((a) => a > 0 && a < 1).length;
+  assert.ok(partial >= 4, `the band needs soft edges; found ${partial} partial stops`);
   assert.ok(hero.includes('aria-hidden="true"'), 'the duplicate must not be read out twice');
 });
 

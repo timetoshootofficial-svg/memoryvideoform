@@ -145,13 +145,34 @@ h1 .alt{position:relative; z-index:0; animation-delay:.05s}
   position:absolute; inset:0; margin:0;
   color:#B8860B;                 /* 3.3:1 on white; the words stay readable */
   pointer-events:none; user-select:none;
-  /* band fully off to the left, then fully off to the right */
-  clip-path:inset(-20% 100% -20% -26%);
+
+  /* A soft-edged band rather than a hard cut. clip-path could only give a
+     rectangle with sharp sides, and the light arrived and left like a shutter.
+     A gradient mask fades the gold in and out, so it reads as light moving
+     over the letters instead of a block passing them. */
+  --band:linear-gradient(100deg,
+    rgba(0,0,0,0)    0%,    rgba(0,0,0,0)   42%,
+    rgba(0,0,0,.18) 45%,
+    rgba(0,0,0,.72) 47.6%,
+    rgba(0,0,0,1)   50%,
+    rgba(0,0,0,.72) 52.4%,
+    rgba(0,0,0,.18) 55%,
+    rgba(0,0,0,0)   58%,    rgba(0,0,0,0)  100%);
+  -webkit-mask-image:var(--band);          mask-image:var(--band);
+  -webkit-mask-size:300% 100%;             mask-size:300% 100%;
+  -webkit-mask-repeat:no-repeat;           mask-repeat:no-repeat;
+  -webkit-mask-position:100% 0;            mask-position:100% 0;
+
   animation:bar-slide 5s linear .6s infinite;
 }
+/* Where a mask is not supported the gold copy would cover the black one
+   outright, so it is only shown once the browser says it can mask. */
+@supports not ((-webkit-mask-image:linear-gradient(#000,#000)) or (mask-image:linear-gradient(#000,#000))){
+  .h1wrap > .lit{display:none}
+}
 @keyframes bar-slide{
-  from{clip-path:inset(-20% 100% -20% -26%)}
-  to  {clip-path:inset(-20% -26% -20% 100%)}
+  from{-webkit-mask-position:100% 0; mask-position:100% 0}
+  to  {-webkit-mask-position:0% 0;   mask-position:0% 0}
 }
 
 /* Asked for less motion: no travelling bar at all, just the heading in ink. */
