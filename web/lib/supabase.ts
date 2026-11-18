@@ -1,6 +1,7 @@
 import 'server-only';
 import type { Bootstrap, BookingResult, SiteConfig } from './types';
 import { SITE } from './site';
+import { normaliseSupabaseUrl } from './supabase-url';
 
 /**
  * The only place that talks to Supabase, and it never runs in the browser.
@@ -11,10 +12,13 @@ import { SITE } from './site';
  * all. The row level security behind it is unchanged — belt and braces.
  */
 
-const URL_ = process.env.SUPABASE_URL ?? '';
-const KEY = process.env.SUPABASE_PUBLISHABLE_KEY ?? '';
+const URL_ = normaliseSupabaseUrl(process.env.SUPABASE_URL);
+const KEY = String(process.env.SUPABASE_PUBLISHABLE_KEY ?? '').trim();
 
-export const backendConfigured = () => URL_.startsWith('http') && KEY.length > 0;
+export const backendConfigured = () => /^https?:\/\//.test(URL_) && KEY.length > 0;
+
+/** Non-secret: which host the server will call, for the diagnostic route. */
+export const backendHost = () => URL_;
 
 type Rpc = 'tts_bootstrap' | 'tts_log_events' | 'tts_create_lead'
          | 'tts_create_booking' | 'tts_save_partial'

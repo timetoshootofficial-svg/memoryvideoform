@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { normaliseSupabaseUrl } from '@/lib/supabase-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,8 @@ export async function GET(req: Request) {
   try { const u = new URL(url); host = u.protocol + '//' + u.host; pathname = u.pathname; }
   catch { /* leave as is */ }
 
-  const target = `${url}/rest/v1/rpc/tts_bootstrap`;
+  const fixed = normaliseSupabaseUrl(url);
+  const target = `${fixed}/rest/v1/rpc/tts_bootstrap`;
   let probe: Record<string, unknown> = {};
   try {
     const r = await fetch(target, {
@@ -44,6 +46,7 @@ export async function GET(req: Request) {
     urlPath: pathname,
     urlHasTrailingSlash: /\/$/.test(url),
     urlHasWhitespace: /\s/.test(url),
+    urlAfterNormalising: fixed,
     keySet: key.length > 0,
     keyLength: key.length,
     keyPrefix: key.slice(0, 14),

@@ -340,3 +340,33 @@ test('a measure in ch is read in the font it is written for', () => {
   assert.ok(/font-size:/.test(wrap) && /font-family:/.test(wrap),
     'a ch measure on the wrapper needs the heading’s own font metrics beside it');
 });
+
+test('a pasted Supabase URL is accepted in the shapes a dashboard gives it', async () => {
+  /* Every one of these is the same project. Each shape, at some point, meant
+     the live site quietly served built-in prices instead of real ones. */
+  const { normaliseSupabaseUrl: n } = await import('../lib/supabase-url.ts');
+  const want = 'https://abc.supabase.co';
+  for (const given of [
+    'https://abc.supabase.co',
+    'https://abc.supabase.co/',
+    'https://abc.supabase.co///',
+    'abc.supabase.co',
+    '  https://abc.supabase.co  ',
+    'https://abc.supabase.co\n',
+    'https://abc.supabase.co/rest/v1',
+    'https://abc.supabase.co/rest',
+    'https://db.abc.supabase.co',
+  ]) assert.equal(n(given), want, `"${given.trim()}" should normalise to ${want}`);
+
+  assert.equal(n('http://abc.supabase.co'), 'http://abc.supabase.co', 'an explicit scheme is kept');
+  assert.equal(n(''), '', 'an empty value stays empty');
+  assert.equal(n(undefined), '', 'a missing value stays empty');
+});
+
+test('the server layer uses the normaliser rather than the raw variable', () => {
+  const src = readFileSync(new URL('../lib/supabase.ts', import.meta.url), 'utf8');
+  assert.ok(/normaliseSupabaseUrl\(process\.env\.SUPABASE_URL\)/.test(src),
+    'SUPABASE_URL must be normalised before use');
+  assert.ok(!/process\.env\.SUPABASE_URL \?\? ''/.test(src),
+    'the raw variable must not be used directly');
+});
