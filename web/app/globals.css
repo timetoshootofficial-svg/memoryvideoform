@@ -161,10 +161,16 @@ h1 .alt{position:relative; z-index:0; animation-delay:.3s}
 
 /* The bar travels LEFT to RIGHT. With a background wider than its box, a
    larger background-position pulls the image left, so the percentages run
-   downward to move the light the way a person reads. */
+   downward to move the light the way a person reads.
+ 
+   The range is 100% to 0% and must stay inside it. A 300% background only
+   covers the heading between those two positions; past either end part of
+   the heading has no background at all, and with a transparent fill no
+   background means no letters. Running 150% to -150% is what made the
+   headline blink out and come back on every pass. */
 @keyframes led-run{
-  from{background-position:150% 0}
-  to  {background-position:-150% 0}
+  from{background-position:100% 0}
+  to  {background-position:0% 0}
 }
 
 /* Asked for less motion: no travelling light, the heading simply in ink. */

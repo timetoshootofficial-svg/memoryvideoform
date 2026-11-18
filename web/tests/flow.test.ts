@@ -294,3 +294,37 @@ test('the heading has room to paint its descenders', () => {
   assert.ok(/margin:-[\d.]+em/.test(block),
     'the padding must be given back as negative margin, or the layout shifts');
 });
+
+test('the headline always has a background, so the letters never blink out', () => {
+  /* With background-clip:text and a transparent fill, the letters ARE the
+     background. A 300% background only covers its box while the position
+     stays between 100% and 0%; outside that the heading is bare and the
+     words vanish. Running 150% to -150% is what made it flash on and off. */
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const block = css.slice(css.indexOf('@supports ((-webkit-background-clip:text)'),
+                          css.indexOf('@keyframes led-run'));
+  const size = Number(/background-size:(\d+)%/.exec(block)?.[1]);
+  assert.ok(size > 100, 'the gradient must be wider than the heading');
+
+  const kf = css.slice(css.indexOf('@keyframes led-run'));
+  const from = Number(/from\{background-position:(-?[\d.]+)%/.exec(kf)?.[1]);
+  const to = Number(/to  \{background-position:(-?[\d.]+)%/.exec(kf)?.[1]);
+
+  /** Does the gradient still cover the whole box at this position? */
+  const covers = (p: number) => {
+    const left = -((size - 100) / 100) * (p / 100);   // in box widths
+    return left <= 0 && left + size / 100 >= 1;
+  };
+  for (const p of [from, to, (from + to) / 2])
+    assert.ok(covers(p), `at background-position ${p}% the heading is partly bare`);
+  assert.ok(from > to, `the light must run left to right (from ${from}% to ${to}%)`);
+});
+
+test('the headline arrives once and then stays put', () => {
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const entrance = css.slice(css.indexOf('h1 > span{'), css.indexOf('@keyframes wipe-up'));
+  assert.ok(/animation:wipe-up [^;]*backwards/.test(entrance),
+    'the entrance must fill backwards so the text is there before it runs');
+  assert.ok(!/infinite/.test(entrance),
+    'the words must not re-animate; only the light repeats');
+});
