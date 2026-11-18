@@ -134,3 +134,21 @@ test('the leads view is gated by the same PIN as everything else', () => {
   const guard = route.slice(0, route.indexOf("action === 'leads'"));
   assert.ok(/if \(!pin\) return/.test(guard), 'a request with no PIN must be refused first');
 });
+
+test('the funnel stages are read from what people did, not from a step number', () => {
+  const fix = readFileSync(new URL('../../supabase/04_fix_stage_counts.sql', import.meta.url), 'utf8');
+  assert.ok(/\(occasion <> ''\)\s*as did_choose_occasion/.test(fix),
+    'choosing an occasion must be judged by there being an occasion');
+  assert.ok(!/chose_occasion[\s\S]{0,80}step_reached >= 2/.test(fix),
+    'reaching step 2 only means they gave a number');
+  assert.ok(/case when step_reached >= 3 or completed then price else 0 end/.test(fix),
+    'a price should not count before the step that shows it');
+});
+
+test('the form records the step it is entering, which the SQL must agree with', () => {
+  assert.ok(/capture\(from \+ 1, data\)/.test(form),
+    'capture sends the step being entered');
+  const fix = readFileSync(new URL('../../supabase/04_fix_stage_counts.sql', import.meta.url), 'utf8');
+  assert.ok(/did_see_price[\s\S]{0,60}step_reached >= 3/.test(fix),
+    'entering step 3 is what "saw the price" means');
+});
