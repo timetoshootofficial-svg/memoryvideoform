@@ -1,0 +1,105 @@
+/* Ported from the static admin.html. The dashboard stays dark on purpose:
+   it is a work tool, not part of the public site. */
+
+.admin{
+  color-scheme: dark;
+  --bg:#0A0A0A; --bg-2:#111; --card:#1A1A1A; --card-2:#151515;
+  --border:#2A2A2A; --border-2:#383838;
+  --yellow:#FFC700; --text:#F5F5F5; --muted:#A0A0A0; --on-yellow:#0A0A0A;
+  --ok:#9BE28F; --warn:#FFD21F; --danger:#FF9B9B; --info:#7FE3D4;
+  --radius:14px; --display:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+.admin *, .admin *::before, .admin *::after{box-sizing:border-box}
+.admin{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.admin button, .admin input, .admin select{font:inherit;color:inherit}
+.admin button{cursor:pointer}
+.admin a{color:var(--yellow)}
+.admin :focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+.display{font-family:var(--display);letter-spacing:.5px;text-transform:uppercase;font-weight:400}
+
+.head{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--body);font-weight:700;font-size:17px;letter-spacing:1.9px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);box-shadow:0 0 10px var(--yellow)}
+.brand small{font-family:var(--body);font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;font-weight:600}
+.hactions{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 14px;border-radius:10px;border:1px solid var(--border-2);background:var(--card);color:var(--text);font-size:14px;font-weight:600}
+.btn:hover{border-color:var(--yellow)}
+.btn-primary{background:var(--yellow);color:var(--on-yellow);border-color:var(--yellow)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.stamp{font-size:12px;color:var(--muted)}
+
+/* ---- gate ---- */
+.gate{max-width:380px;margin:14vh auto;padding:0 16px;text-align:center}
+.gate h1{font-family:var(--display);font-weight:800;font-size:32px;margin:0 0 6px}
+.gate p{color:var(--muted);font-size:14px;margin:0 0 20px}
+.gate input{width:100%;min-height:50px;padding:12px 14px;font-size:17px;background:var(--bg-2);border:1px solid var(--border-2);border-radius:12px;text-align:center;letter-spacing:2px}
+.gate input:focus{border-color:var(--yellow);outline:none;box-shadow:0 0 0 3px rgba(255,199,0,.18)}
+.gate .btn{width:100%;margin-top:12px;min-height:50px}
+.gate .err{color:var(--danger);font-size:14px;margin-top:12px;min-height:20px}
+.gate .note{font-size:12px;color:var(--muted);margin-top:18px;line-height:1.5}
+
+.admin main{padding:20px 0 60px}
+.sec{margin-bottom:28px}
+.sec h2{font-size:13px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin:0 0 11px;font-weight:600}
+
+/* ---- stat cards ---- */
+.grid{display:grid;gap:11px;grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat .k{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stat .v{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:33px;line-height:1.15;margin-top:3px}
+.stat .s{font-size:12px;color:var(--muted);margin-top:2px}
+.stat.hi{border-color:var(--yellow)}
+.stat.hi .v{color:var(--yellow)}
+.v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.info{color:var(--info)} .v.dim{color:var(--muted)}
+
+/* ---- funnel ---- */
+.funnel{display:grid;gap:7px}
+.frow{display:grid;grid-template-columns:168px 1fr 108px;gap:12px;align-items:center;font-size:14px}
+.frow .lbl{color:var(--muted)}
+.bar{height:26px;background:var(--bg-2);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--yellow),#FFD21F);min-width:2px}
+.frow .num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.frow .num span{color:var(--muted);font-weight:400;font-size:12.5px;margin-left:6px}
+
+/* ---- table ---- */
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:11px;align-items:center}
+.tools input, .tools select{min-height:40px;padding:8px 11px;background:var(--bg-2);border:1px solid var(--border-2);border-radius:10px;font-size:14px}
+.tools input{flex:1;min-width:170px}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+.admin table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:980px}
+.admin th{text-align:left;padding:11px 12px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);background:var(--card-2);position:sticky;top:0;border-bottom:1px solid var(--border);white-space:nowrap}
+.admin td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.admin tr:last-child td{border-bottom:0}
+.admin tr:hover td{background:rgba(255,255,255,.022)}
+.mono{font-variant-numeric:tabular-nums}
+.id{font-weight:700;color:var(--yellow);white-space:nowrap}
+.sub{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.p-Pending{background:#3A3000;color:#FFD21F}
+.p-Confirmed{background:#0F2A10;color:#9BE28F}
+.p-Paid{background:#0C2A2A;color:#7FE3D4}
+.p-Cancelled{background:#2A0F0F;color:#FF9B9B}
+.p-Expired{background:#1F1F1F;color:#A0A0A0}
+.admin td select{min-height:34px;padding:5px 8px;background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;font-size:12.5px}
+.wa{display:inline-flex;align-items:center;gap:5px;color:var(--text);text-decoration:none;font-size:12.5px;border:1px solid var(--border-2);border-radius:8px;padding:5px 9px;white-space:nowrap}
+.wa:hover{border-color:var(--yellow)}
+.empty{padding:34px 16px;text-align:center;color:var(--muted)}
+.hold{color:var(--warn);font-size:11.5px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:40;background:var(--card);border:1px solid var(--yellow);border-radius:11px;padding:11px 18px;font-size:14px;box-shadow:0 10px 34px rgba(0,0,0,.6);display:none}
+.toast.on{display:block}
+.toast.bad{border-color:var(--danger)}
+.skel{height:86px;border-radius:var(--radius);background:linear-gradient(90deg,#141414,#1E1E1E,#141414);background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{.admin from{background-position:200% 0}.admin to{background-position:-200% 0}}
+.split{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.box h3{margin:0 0 10px;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px}
+.kv:last-child{border-bottom:0}
+.kv b{font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+  .frow{grid-template-columns:118px 1fr 78px;font-size:13px}
+  .stat .v{font-size:28px}
+}

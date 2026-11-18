@@ -1,0 +1,627 @@
+/* Timetoshoot — the whole design, ported verbatim from the static site.
+ *
+ * Deliberately one global stylesheet rather than CSS Modules: the design was
+ * already token-driven and class-scoped, and copying it unchanged is what
+ * guarantees the rebuild looks identical to the page that is live today.
+ *
+ * The only edit is the three font tokens, which now point at next/font
+ * variables. The fonts are self-hosted instead of fetched from Google, so
+ * there is no render-blocking request to a third party.
+ */
+
+/* ============================== TOKENS ==============================
+   Light, minimal, yellow accent. Text sits on white; yellow is reserved for
+   action and emphasis, never for body text, where it fails contrast. */
+:root{
+  color-scheme: light;
+  --bg:#FFFFFF; --bg-2:#FAFAF7; --bg-3:#F4F4F0;
+  --card:#FFFFFF; --card-2:#FAFAF7;
+  --border:#E8E8E2; --border-2:#D8D8D0;
+  --ink:#101114; --ink-2:#3C4047; --muted:#6C7178;
+  --yellow:#FFC700; --yellow-soft:#FFF4CC; --yellow-line:#F0C200;
+  --on-yellow:#101114;
+  --ok:#1F7A4C; --danger:#C0362C;
+  --radius:16px; --radius-sm:12px;
+  --display:var(--font-display),-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --body:var(--font-body),-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --tamil:var(--font-tamil),sans-serif;
+  --tap:48px;
+  --maxw:600px;
+  --shadow:0 1px 2px rgba(16,17,20,.04), 0 8px 24px -16px rgba(16,17,20,.18);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink-2);
+  font-family:var(--body); font-size:16.5px; line-height:1.62;
+  overflow-x:hidden; min-width:320px;
+  -webkit-font-smoothing:antialiased;
+}
+html[lang="ta"] body{font-family:var(--tamil); line-height:1.75}
+html[lang="ta"] .display{font-family:var(--tamil); font-weight:700; letter-spacing:0}
+img,video{max-width:100%; display:block}
+button{font:inherit; color:inherit; cursor:pointer}
+a{color:var(--ink); text-decoration:none}
+:focus-visible{outline:3px solid var(--yellow-line); outline-offset:2px; border-radius:6px}
+
+.grain{display:none}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+  /* These start invisible and are revealed by their animation, so with
+     animation switched off they must be shown outright. */
+  h1 > span,.kicker,.hero p.sub,.hero-proof,.hero .badges,.hero > .wrap > .btn{
+    opacity:1 !important; transform:none !important; clip-path:none !important;
+  }
+  [data-goto-book]::after{display:none}
+  .occ button svg{animation:none !important; transform:none !important}
+  h1 .alt::after{transform:scaleX(1) !important; opacity:1 !important}
+  /* With the travel switched off the track would sit still and clipped, so
+     hand it back to the reader as a row they can swipe. */
+  .reels,.shots{width:auto; overflow-x:auto; padding-bottom:8px}
+  .marquee::before,.marquee::after{display:none}
+}
+
+.wrap{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 20px}
+.display{
+  font-family:var(--display); font-weight:800; letter-spacing:-.035em;
+  line-height:1.06; color:var(--ink);
+}
+.sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.muted{color:var(--muted)}
+.yellow{color:var(--ink)}
+
+/* ============================== HEADER ============================== */
+header{
+  position:sticky; top:0; z-index:20;
+  background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.hrow{display:flex; align-items:center; justify-content:space-between; height:60px}
+.brand{display:flex; align-items:center; gap:9px; font-family:var(--body); font-weight:700; font-size:17px; letter-spacing:1.9px; color:var(--ink)}
+.brand .dot{width:8px; height:8px; border-radius:50%; background:var(--yellow)}
+.langtog{display:flex; border:1px solid var(--border-2); border-radius:999px; overflow:hidden; background:var(--bg)}
+.langtog button{background:transparent; border:0; color:var(--muted); padding:7px 13px; font-size:13px; font-weight:600; min-height:36px}
+.langtog button[aria-pressed="true"]{background:var(--yellow); color:var(--on-yellow)}
+
+/* =============================== HERO =============================== */
+.hero{padding:44px 0 30px}
+.kicker{
+  display:block; font-size:12px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:18px; font-weight:600;
+}
+html[lang="ta"] .kicker{letter-spacing:.5px; text-transform:none; font-size:13px}
+h1{margin:0 0 18px; font-size:clamp(39px,10.8vw,54px)}
+
+/* ------------------------- headline motion -------------------------
+   Each line wipes upward into view behind its own edge, the mark draws
+   itself under the second line, and then it keeps moving: a slow swell with
+   a light sweeping across it. The words hold still. The headline says the
+   photos are still breathing, so the mark is the thing that breathes. */
+/* Visible by default. The animation states the hidden-to-shown change in its
+   own keyframes and uses `backwards` fill, which paints the first frame
+   during the delay. If the animation never runs — a throttled tab, an old
+   browser, a slow phone — the text is simply there. Hiding content and
+   relying on an animation to reveal it leaves a blank page when it does not
+   run, which happened on the live site. */
+h1 > span{
+  display:inline-block;
+  animation:wipe-up .95s cubic-bezier(.16,.84,.3,1) backwards;
+}
+h1 > span:first-child{animation-delay:.08s}
+h1 .alt{position:relative; z-index:0; animation-delay:.3s}
+@keyframes wipe-up{
+  from{opacity:0; transform:translateY(.42em); clip-path:inset(0 -6% 102% -6%)}
+  to  {opacity:1; transform:translateY(0);     clip-path:inset(-30% -6% -30% -6%)}
+}
+
+h1 .alt::after{
+  content:''; position:absolute; left:-2px; right:-2px; bottom:.04em; height:.26em;
+  z-index:-1; border-radius:3px;
+  background:linear-gradient(100deg,
+    var(--yellow) 0%, var(--yellow) 38%,
+    #FFEFAF 50%,
+    var(--yellow) 62%, var(--yellow) 100%);
+  background-size:320% 100%;
+  background-position:140% 0;
+  transform:scaleX(1); transform-origin:left center;
+  animation:draw .7s cubic-bezier(.16,.84,.3,1) .85s backwards,
+            swell 3.4s ease-in-out 1.6s infinite,
+            sweep 3.4s ease-in-out 1.6s infinite;
+}
+@keyframes draw{from{transform:scaleX(0)} to{transform:scaleX(1)}}
+@keyframes swell{
+  0%,100%{transform:scaleX(1) scaleY(1)}
+  48%    {transform:scaleX(1) scaleY(1.42)}
+}
+@keyframes sweep{
+  0%     {background-position:140% 0}
+  55%,100%{background-position:-60% 0}
+}
+
+/* the lines around the headline follow it in */
+@keyframes rise{
+  from{opacity:0; transform:translateY(14px)}
+  to  {opacity:1; transform:translateY(0)}
+}
+.kicker,.hero p.sub,.hero-proof,.hero .badges,.hero > .wrap > .btn{
+  animation:rise .66s cubic-bezier(.16,.84,.3,1) backwards;
+}
+/* listing both keeps the entrance; a bare `animation` here would drop it */
+.hero > .wrap > .btn{
+  animation:rise .66s cubic-bezier(.16,.84,.3,1) backwards,
+            cta-glow 3.6s ease-in-out 1.5s infinite;
+}
+.sticky .btn-primary{animation:cta-glow 3.6s ease-in-out 1.5s infinite}
+
+.kicker{animation-delay:0s}
+.hero p.sub{animation-delay:.34s}
+.hero-proof{animation-delay:.44s}
+.hero .badges{animation-delay:.52s}
+.hero > .wrap > .btn{animation-delay:.6s}
+.hero p.sub{margin:0 0 26px; color:var(--muted); font-size:17px; max-width:36ch}
+.badges{display:flex; flex-wrap:wrap; gap:8px 18px; margin:22px 0 0; padding:0; list-style:none}
+.badges li{display:flex; align-items:center; gap:7px; font-size:13.5px; color:var(--ink-2); font-weight:500}
+.badges svg{flex:0 0 auto}
+.hero-proof{
+  display:inline-flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600;
+  color:var(--ink); background:var(--yellow-soft); border:1px solid var(--yellow);
+  border-radius:999px; padding:6px 14px; margin-bottom:20px;
+}
+
+/* ============================== BUTTONS ============================= */
+.btn{
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  width:100%; min-height:var(--tap); padding:14px 20px;
+  border-radius:var(--radius-sm); border:1px solid transparent;
+  font-weight:600; font-size:16px; text-align:center;
+  transition:transform .12s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:active{transform:scale(.99)}
+.btn-primary{background:var(--yellow); color:var(--on-yellow); box-shadow:0 2px 0 var(--yellow-line)}
+.btn-primary:hover{background:#FFD21F}
+.btn-primary[disabled]{opacity:.45; box-shadow:none; cursor:not-allowed}
+.btn-ghost{background:var(--bg); border-color:var(--border-2); color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink-2)}
+.btn-wa{background:var(--bg); border-color:var(--border-2); color:var(--ink)}
+.btn-wa:hover{border-color:var(--ink-2)}
+.btn-sm{min-height:42px; font-size:14.5px; padding:9px 16px; width:auto}
+
+/* --------------------------- the main CTA ---------------------------
+   This is the one button the whole page is pointing at, so it keeps a
+   light moving across it. The sweep lives on a pseudo-element: the hero
+   copy of this button already runs its own entrance animation, and putting
+   a second animation on the element itself would cancel that and leave the
+   button invisible. */
+[data-goto-book]{position:relative; overflow:hidden; isolation:isolate}
+[data-goto-book] > *{position:relative; z-index:1}
+[data-goto-book]::after{
+  content:''; position:absolute; top:-30%; bottom:-30%; left:-60%; width:58%;
+  background:linear-gradient(100deg,
+    rgba(255,255,255,0) 0%, rgba(255,255,255,.95) 50%, rgba(255,255,255,0) 100%);
+  transform:skewX(-18deg); pointer-events:none; z-index:0;
+  animation:cta-sweep 3.6s cubic-bezier(.35,0,.25,1) 1.5s infinite;
+}
+@keyframes cta-sweep{
+  0%      {left:-65%}
+  52%,100%{left:140%}
+}
+
+/* A ring breathing outward, so the button is noticed even before the light
+   crosses it. box-shadow only, so it never fights the hero entrance, which
+   animates opacity and transform. */
+@keyframes cta-glow{
+  0%,100%{box-shadow:0 2px 0 var(--yellow-line)}
+  50%    {box-shadow:0 2px 0 var(--yellow-line), 0 0 0 8px rgba(255,199,0,.26)}
+}
+.btn-primary{transition:transform .16s ease, box-shadow .2s ease, background .15s ease}
+[data-goto-book]:hover{transform:translateY(-2px); box-shadow:0 4px 0 var(--yellow-line), 0 12px 26px -14px rgba(255,199,0,.9)}
+[data-goto-book]:active{transform:translateY(0)}
+
+/* ============================= SECTIONS ============================= */
+section{padding:52px 0; scroll-margin-top:68px}
+.sec-h{margin:0 0 8px; font-size:clamp(28px,7.6vw,36px)}
+.sec-s{margin:0 0 28px; color:var(--muted); font-size:16px}
+.strip{height:1px; background:var(--border); margin:0}
+.alt-bg{background:var(--bg-2); border-top:1px solid var(--border); border-bottom:1px solid var(--border)}
+
+/* samples */
+/* ----------------------------- marquee -----------------------------
+   One track holding the items twice. The animation travels exactly half the
+   track, so the second copy lands where the first began and the loop has no
+   seam. Items carry margin-right rather than a flex gap, because a gap would
+   make that halfway point land slightly off. */
+.marquee{position:relative; overflow:hidden; margin:0 -20px; padding:4px 0}
+.marquee::before,.marquee::after{
+  content:''; position:absolute; top:0; bottom:0; width:13%; min-width:48px;
+  z-index:2; pointer-events:none;
+}
+.marquee::before{left:0; background:linear-gradient(90deg,var(--bg) 12%,rgba(255,255,255,0))}
+.marquee::after{right:0; background:linear-gradient(270deg,var(--bg) 12%,rgba(255,255,255,0))}
+.marquee.on-alt::before{background:linear-gradient(90deg,var(--bg-2) 12%,rgba(250,250,247,0))}
+.marquee.on-alt::after{background:linear-gradient(270deg,var(--bg-2) 12%,rgba(250,250,247,0))}
+
+.reels{display:flex; width:max-content; padding-left:20px; animation:slide-left 48s linear infinite}
+/* Stop while someone is reaching for a card, or has opened one. */
+.marquee:hover .reels,.marquee:focus-within .reels,.reels.paused{animation-play-state:paused}
+@keyframes slide-left{from{transform:translate3d(0,0,0)} to{transform:translate3d(-50%,0,0)}}
+
+.reel{
+  flex:0 0 auto; width:min(78vw,340px); margin-right:14px;
+  position:relative; border-radius:var(--radius); overflow:hidden;
+  border:1px solid var(--border); background:var(--bg-3); aspect-ratio:16/9;
+  box-shadow:var(--shadow);
+}
+.reel iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+.reel .ph{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:13px; text-align:center; padding:16px}
+.reel .cap{position:absolute; left:0; right:0; bottom:0; padding:26px 12px 11px; font-size:12.5px; font-weight:600; color:#fff; background:linear-gradient(transparent,rgba(0,0,0,.72)); pointer-events:none}
+.yt{position:absolute; inset:0; width:100%; height:100%; padding:0; border:0; background:var(--bg-3); cursor:pointer; display:block}
+.yt img{width:100%; height:100%; object-fit:cover; display:block}
+.yt .play{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2;
+  width:58px; height:58px; border-radius:50%; background:var(--yellow);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 20px rgba(16,17,20,.3); transition:transform .15s ease;
+}
+.yt:hover .play{transform:translate(-50%,-50%) scale(1.07)}
+.yt:active .play{transform:translate(-50%,-50%) scale(.95)}
+.yt .play svg{margin-left:3px}
+
+/* ---------------------------- process ----------------------------- */
+.process{list-style:none; margin:0; padding:0; display:grid; gap:0; counter-reset:p; position:relative}
+.process li{display:grid; grid-template-columns:44px 1fr; gap:16px; padding:0 0 26px; position:relative}
+.process li:last-child{padding-bottom:0}
+.process li::before{
+  content:''; position:absolute; left:21px; top:40px; bottom:-4px; width:1px;
+  background:var(--border-2);
+}
+.process li:last-child::before{display:none}
+.process .n{
+  width:44px; height:44px; border-radius:12px; background:var(--bg);
+  border:1px solid var(--border-2); color:var(--ink);
+  font-family:var(--display); font-weight:800; font-size:16px; letter-spacing:-.02em;
+  display:flex; align-items:center; justify-content:center; position:relative; z-index:1;
+}
+.process li.key .n{background:var(--yellow); border-color:var(--yellow); box-shadow:0 2px 0 var(--yellow-line)}
+.process b{display:block; font-size:17px; color:var(--ink); margin:9px 0 4px; font-weight:600}
+.process p{margin:0; font-size:15px; color:var(--muted)}
+.process .who{
+  display:inline-block; margin-top:8px; font-size:11.5px; font-weight:700;
+  letter-spacing:.9px; text-transform:uppercase; padding:3px 9px; border-radius:999px;
+  background:var(--bg-3); color:var(--muted);
+}
+.process li.you .who{background:var(--yellow-soft); color:var(--ink)}
+
+/* ============================== FORM =============================== */
+#book{scroll-margin-top:68px}
+.formcard{background:var(--card); border:1px solid var(--border); border-radius:20px; padding:22px; position:relative; overflow:hidden; box-shadow:var(--shadow)}
+.prog{height:4px; background:var(--bg-3); border-radius:999px; overflow:hidden; margin:0 0 8px}
+.prog i{display:block; height:100%; width:25%; background:var(--yellow); border-radius:999px; transition:width .3s ease}
+.prog-lbl{font-size:11.5px; letter-spacing:1.3px; text-transform:uppercase; color:var(--muted); margin:0 0 18px; font-weight:600}
+.step{display:none; animation:fade .25s ease}
+.step.on{display:block}
+@keyframes fade{from{opacity:0; transform:translateY(5px)} to{opacity:1; transform:none}}
+.step h3{margin:0 0 6px; font-size:23px; font-weight:600; color:var(--ink); letter-spacing:0}
+html[lang="ta"] .step h3{font-size:21px}
+.step .hint{margin:0 0 20px; font-size:15px; color:var(--muted)}
+.field{margin-bottom:16px}
+.field label{display:block; font-size:14px; font-weight:600; margin-bottom:7px; color:var(--ink)}
+.field input[type="date"]{cursor:pointer}
+.field input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer; opacity:.55}
+.field input[type="date"]:hover{border-color:var(--yellow-line)}
+.field input[type="text"],.field input[type="tel"],.field input[type="date"]{
+  width:100%; min-height:var(--tap); padding:13px 15px; font-size:16px;
+  background:var(--bg); color:var(--ink);
+  border:1px solid var(--border-2); border-radius:var(--radius-sm);
+}
+.field input::placeholder{color:#A8ADB4}
+.field input:focus{border-color:var(--yellow-line); outline:none; box-shadow:0 0 0 3px var(--yellow-soft)}
+.field .sub{font-size:13px; color:var(--muted); margin-top:6px}
+.phonewrap{display:flex; align-items:stretch}
+.phonewrap .cc{display:flex; align-items:center; padding:0 13px; background:var(--bg-2); border:1px solid var(--border-2); border-right:0; border-radius:var(--radius-sm) 0 0 var(--radius-sm); color:var(--muted); font-size:15px}
+.phonewrap input{border-radius:0 var(--radius-sm) var(--radius-sm) 0 !important}
+.check{display:flex; gap:11px; align-items:flex-start; padding:13px 14px; background:var(--bg); border:1px solid var(--border-2); border-radius:var(--radius-sm); font-size:14.5px; cursor:pointer; min-height:var(--tap); color:var(--ink-2)}
+.check input{width:21px; height:21px; flex:0 0 21px; accent-color:var(--yellow-line); margin:1px 0 0}
+.check.on{border-color:var(--yellow); background:var(--yellow-soft)}
+.err{color:var(--danger); font-size:14px; margin:10px 0 0; display:none}
+.err.on{display:block}
+.hp{position:absolute; left:-9999px; width:1px; height:1px; opacity:0}
+
+/* occasion cards */
+.occ{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px}
+.occ button{
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column; align-items:flex-start; gap:9px; text-align:left;
+  background:var(--bg); border:1px solid var(--border-2); border-radius:var(--radius-sm);
+  padding:15px 14px; min-height:88px; font-size:14.5px; font-weight:500; line-height:1.3; color:var(--ink);
+  box-shadow:0 1px 2px rgba(16,17,20,.04);
+  transition:transform .15s ease, border-color .15s ease, box-shadow .2s ease, background .15s ease;
+}
+.occ button:hover{transform:translateY(-2px); border-color:var(--yellow-line); box-shadow:0 6px 16px -8px rgba(16,17,20,.28)}
+.occ button:active{transform:translateY(0) scale(.985)}
+
+/* The icons keep a slow float going, one after another, so the row reads as
+   something to touch rather than a list to read. */
+.occ button svg{color:var(--ink-2); animation:occ-float 3.2s ease-in-out infinite; transition:color .15s ease}
+.occ button:nth-child(2) svg{animation-delay:.26s}
+.occ button:nth-child(3) svg{animation-delay:.52s}
+.occ button:nth-child(4) svg{animation-delay:.78s}
+.occ button:nth-child(5) svg{animation-delay:1.04s}
+@keyframes occ-float{
+  0%,100%{transform:translateY(0)}
+  50%    {transform:translateY(-4px)}
+}
+
+/* A tap lands with a ring that spreads from the card. */
+.occ button::after{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:radial-gradient(circle at 50% 50%, rgba(255,199,0,.5), rgba(255,199,0,0) 62%);
+  opacity:0; transform:scale(.4);
+}
+.occ button.tapped::after{animation:occ-tap .5s ease-out}
+@keyframes occ-tap{
+  0%  {opacity:.85; transform:scale(.4)}
+  100%{opacity:0; transform:scale(1.5)}
+}
+
+.occ button[aria-pressed="true"]{
+  border-color:var(--yellow); background:var(--yellow-soft);
+  box-shadow:0 0 0 1px var(--yellow), 0 6px 16px -10px rgba(255,199,0,.9);
+}
+.occ button[aria-pressed="true"] svg{color:var(--ink); animation:none; transform:none}
+.gentle{background:var(--bg-2); border:1px solid var(--border); border-left:3px solid var(--yellow); border-radius:var(--radius-sm); padding:13px 14px; font-size:14px; color:var(--ink-2); margin-bottom:18px}
+
+/* length stepper */
+.stepper{margin:6px 0 22px}
+.track{position:relative; height:46px; display:flex; align-items:center}
+.track input[type="range"]{-webkit-appearance:none; appearance:none; width:100%; height:46px; background:transparent; margin:0}
+.track::before{content:''; position:absolute; left:6px; right:6px; top:21px; height:4px; background:var(--border-2); border-radius:999px}
+.track i.fill{position:absolute; left:6px; top:21px; height:4px; background:var(--yellow-line); border-radius:999px; transition:width .18s ease}
+.track input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:28px; height:28px; border-radius:50%;
+  background:var(--yellow); border:3px solid #fff; box-shadow:0 0 0 1px var(--yellow-line), 0 2px 8px rgba(16,17,20,.2); cursor:grab;
+}
+.track input[type="range"]::-moz-range-thumb{
+  width:28px; height:28px; border:3px solid #fff; border-radius:50%;
+  background:var(--yellow); box-shadow:0 0 0 1px var(--yellow-line); cursor:grab;
+}
+.stops{display:flex; justify-content:space-between; margin-top:2px}
+.stops{gap:2px}
+.stops button{background:none; border:0; padding:6px 1px; font-size:12px; font-weight:500; color:var(--muted); min-height:38px; flex:1; white-space:nowrap}
+@media (min-width:480px){ .stops button{font-size:13px} }
+.stops button:first-child{text-align:left}
+.stops button:last-child{text-align:right}
+.stops button[aria-pressed="true"]{color:var(--ink); font-weight:700}
+.pricebox{background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; text-align:center; margin-bottom:16px}
+.pricebox .lbl{font-size:13.5px; color:var(--muted)}
+.pricebox .amt{
+  font-family:var(--display); font-weight:800; font-size:40px; color:var(--ink);
+  line-height:1.1; margin:4px 0; letter-spacing:-.02em;
+  display:flex; align-items:baseline; justify-content:center; gap:9px; flex-wrap:wrap;
+}
+/* The price that is not being charged sits small and quiet beside the one
+   that is, so the two can never be mistaken for each other. */
+.was{
+  font-family:var(--body); font-weight:500; font-size:16px; color:var(--muted);
+  text-decoration:line-through; text-decoration-thickness:1.5px; letter-spacing:0;
+}
+.minisum .was{font-size:13.5px; margin-right:6px}
+.pricebox .off{font-size:13.5px; color:var(--ok); font-weight:600}
+
+/* calendar */
+.legend{display:flex; flex-wrap:wrap; gap:14px; margin:0 0 16px; font-size:12.5px; color:var(--muted)}
+.legend span{display:flex; align-items:center; gap:6px}
+.sw{width:14px; height:14px; border-radius:4px; display:inline-block}
+.sw.av{border:1.5px solid var(--border-2)}
+.sw.bs{border:1.5px solid var(--yellow-line); background:var(--yellow-soft)}
+.sw.sel{background:var(--yellow); border:1.5px solid var(--yellow-line)}
+.sw.fl{background:var(--bg-3); border:1px solid var(--border-2)}
+.month{margin-bottom:20px}
+.month h4{margin:0 0 10px; font-size:13px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); font-weight:600}
+.dow{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px}
+.dow span{text-align:center; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px}
+.days{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+.day{
+  min-height:48px; min-width:0; border-radius:10px; border:1px solid var(--border);
+  background:var(--bg); color:var(--ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  font-size:15px; font-weight:600; padding:2px;
+}
+.day .s{font-size:9px; font-weight:600; color:var(--muted); line-height:1; max-width:100%; overflow:hidden; white-space:nowrap}
+html[lang="ta"] .day .s{font-size:8px}
+.day.pad{visibility:hidden}
+.day.avail{border-color:var(--border-2); color:var(--ink)}
+.day.avail .s{color:var(--muted)}
+.day.best{background:var(--yellow-soft); border-color:var(--yellow-line)}
+.day.sel{background:var(--yellow); border-color:var(--yellow-line); color:var(--on-yellow); box-shadow:0 2px 0 var(--yellow-line)}
+.day.sel .s{color:var(--on-yellow)}
+.day.full{background:var(--bg-3); border-color:var(--border); color:#9AA0A6; text-decoration:line-through; cursor:not-allowed}
+.day.full .s{color:#9AA0A6; text-decoration:none}
+.day.dis{background:transparent; border-color:#F0F0EC; color:#C2C6CB; cursor:not-allowed}
+.skel{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+.skel i{min-height:48px; border-radius:10px; background:linear-gradient(90deg,#F4F4F0,#FAFAF7,#F4F4F0); background-size:200% 100%; animation:sh 1.2s linear infinite}
+@keyframes sh{from{background-position:200% 0} to{background-position:-200% 0}}
+.nofit{background:var(--bg-2); border:1px solid var(--border); border-left:3px solid var(--yellow); border-radius:var(--radius-sm); padding:16px; margin-bottom:14px}
+.nofit b{display:block; margin-bottom:6px; color:var(--ink)}
+.nofit p{margin:0 0 14px; font-size:14.5px; color:var(--muted)}
+
+/* time slots */
+.timeh{margin:22px 0 10px; font-size:14.5px; font-weight:600; color:var(--ink)}
+.times{display:grid; grid-template-columns:repeat(2,1fr); gap:9px}
+.tchip{
+  min-height:50px; border-radius:var(--radius-sm); border:1px solid var(--border-2);
+  background:var(--bg); color:var(--ink); font-weight:600; font-size:15px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+}
+.tchip .s{font-size:10px; font-weight:600; color:var(--muted)}
+.tchip[aria-pressed="true"]{background:var(--yellow); border-color:var(--yellow-line); color:var(--on-yellow); box-shadow:0 2px 0 var(--yellow-line)}
+.tchip[aria-pressed="true"] .s{color:var(--on-yellow)}
+.tchip[disabled]{opacity:.5; cursor:not-allowed; text-decoration:line-through; background:var(--bg-3)}
+.tchip[disabled] .s{text-decoration:none}
+.minisum{
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  background:var(--yellow-soft); border:1px solid var(--yellow);
+  border-radius:var(--radius-sm); padding:14px; margin:18px 0 6px; font-size:14.5px; color:var(--ink);
+}
+.minisum b{color:var(--ink); font-size:19px; font-weight:700; white-space:nowrap}
+
+.hold{display:flex; gap:9px; align-items:flex-start; font-size:13.5px; color:var(--muted); margin:0 0 16px}
+.navrow{display:flex; gap:10px; margin-top:6px}
+.navrow .btn-ghost{flex:0 0 32%}
+
+/* result */
+.result{text-align:center; padding:10px 0}
+.result .tick{width:62px; height:62px; margin:0 auto 18px; border-radius:50%; background:var(--yellow); display:flex; align-items:center; justify-content:center}
+.result h3{font-size:25px; margin:0 0 10px; color:var(--ink)}
+.result p{color:var(--muted); font-size:15.5px; margin:0 0 20px}
+
+/* review screenshots */
+.shots{display:flex; width:max-content; padding-left:20px; animation:slide-left 56s linear infinite}
+.marquee:hover .shots,.marquee:focus-within .shots,.shots.paused{animation-play-state:paused}
+.shot{
+  flex:0 0 auto; width:min(62vw,236px); margin-right:12px;
+  position:relative; border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; background:var(--bg-2); aspect-ratio:4/5; padding:0; display:block;
+  box-shadow:var(--shadow); cursor:zoom-in;
+}
+.shot img{width:100%; height:100%; object-fit:cover; display:block}
+.lightbox{
+  position:fixed; inset:0; z-index:40; background:rgba(16,17,20,.88);
+  display:none; align-items:center; justify-content:center; padding:20px;
+  backdrop-filter:blur(2px);
+}
+.lightbox.on{display:flex}
+.lightbox img{max-width:100%; max-height:88vh; border-radius:12px; object-fit:contain}
+.lightbox .x{
+  position:absolute; top:16px; right:16px; width:44px; height:44px; border-radius:50%;
+  background:#fff; border:0; font-size:22px; line-height:1; color:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* testimonials */
+.tcards{display:grid; gap:14px}
+.tcard{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow)}
+.tcard p{margin:0 0 12px; font-size:16px; line-height:1.6; color:var(--ink-2)}
+.tcard .who{font-size:13.5px; color:var(--muted)}
+.tcard .who b{color:var(--ink); font-weight:600}
+
+/* faq */
+.faq{display:grid; gap:0; border-top:1px solid var(--border)}
+details{border-bottom:1px solid var(--border); background:transparent}
+summary{padding:18px 2px; font-size:16px; font-weight:600; color:var(--ink); cursor:pointer; list-style:none; display:flex; justify-content:space-between; gap:14px; align-items:center; min-height:var(--tap)}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+'; color:var(--muted); font-size:22px; line-height:1; flex:0 0 auto; font-weight:400}
+details[open] summary::after{content:'\2212'}
+details p{margin:0; padding:0 2px 20px; font-size:15.5px; color:var(--muted)}
+
+/* footer */
+footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px; background:var(--bg-2)}
+.flinks{display:flex; gap:10px; margin:18px 0}
+.flinks a{flex:1; display:flex; align-items:center; justify-content:center; gap:8px; min-height:48px; background:var(--bg); border:1px solid var(--border-2); border-radius:var(--radius-sm); color:var(--ink); font-size:14.5px; font-weight:600}
+.flinks a:hover{border-color:var(--ink-2)}
+.fnote{font-size:13px; color:var(--muted); margin:14px 0 6px}
+
+/* sticky cta */
+.sticky{
+  position:fixed; left:0; right:0; bottom:0; z-index:25;
+  padding:12px 20px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,rgba(255,255,255,.97) 30%);
+  transition:transform .28s ease;
+}
+.sticky .wrap{padding:0}
+.sticky.hide{transform:translateY(130%)}
+.toast{
+  position:fixed; left:20px; right:20px; bottom:88px; z-index:30;
+  background:var(--ink); border:1px solid var(--ink); color:#fff;
+  border-radius:var(--radius-sm); padding:13px 16px; font-size:14.5px;
+  box-shadow:0 12px 32px rgba(16,17,20,.28); display:none;
+}
+.toast.on{display:block}
+
+
+
+/* ========================= TABLET AND DESKTOP =========================
+   The page is written mobile-first. These rules only widen it; nothing
+   above here changes, so the phone layout is untouched. */
+
+@media (min-width:768px){
+  :root{--maxw:720px}
+  .hero{padding:72px 0 48px}
+  section{padding:72px 0}
+  h1{font-size:52px}
+  .sec-h{font-size:37px}
+
+  /* two across is the natural fit at this width */
+  .cards{grid-template-columns:repeat(2,1fr); align-items:start}
+  .tcards{grid-template-columns:repeat(2,1fr)}
+
+}
+
+@media (min-width:1024px){
+  :root{--maxw:1120px}
+  body{font-size:17px}
+
+  .hrow{height:72px}
+  .brand{font-size:21px}
+
+  /* ------------------------------ hero ------------------------------ */
+  .hero{padding:86px 0 58px; text-align:center}
+  /* Centre each block explicitly. A blanket `.hero .wrap > *` rule loses to
+     any base rule that uses the margin shorthand, which silently left-aligns
+     whatever it touched. */
+  .kicker{margin-bottom:22px}
+  h1{font-size:64px; max-width:15ch; margin-left:auto; margin-right:auto}
+  .hero p.sub{font-size:19px; max-width:52ch; margin:0 auto 30px}
+  .badges{justify-content:center; margin:26px auto 0}
+  .hero > .wrap > .btn{max-width:360px; margin-left:auto; margin-right:auto}
+  .hero-proof{margin-bottom:26px}
+
+  /* --------------------------- section heads ------------------------ */
+  .sec-h{font-size:43px; text-align:center}
+  .sec-s{text-align:center; max-width:60ch; margin-left:auto; margin-right:auto; margin-bottom:44px; font-size:17px}
+
+  /* ------------------------------ work ------------------------------ */
+  .marquee{margin:0 calc((100vw - var(--maxw)) / -2 - 20px)}
+  .reel{width:400px; margin-right:18px; box-shadow:0 2px 4px rgba(16,17,20,.04), 0 18px 40px -28px rgba(16,17,20,.35)}
+  .shot{width:260px; margin-right:16px}
+
+  /* ---------------------------- process ----------------------------- */
+  .process{grid-template-columns:repeat(2,1fr); gap:28px 40px}
+  .process li{padding-bottom:0}
+  .process li::before{display:none}
+  .process .n{width:48px; height:48px; font-size:18px}
+  .process b{font-size:18px; margin-top:11px}
+
+  /* ------------------------------ form ------------------------------ */
+  /* Forms read badly when they stretch; keep this column narrow. */
+  #book .wrap{max-width:660px}
+  .formcard{padding:32px}
+  .occ{grid-template-columns:repeat(3,1fr)}
+  .times{grid-template-columns:repeat(4,1fr)}
+  .day{min-height:56px; font-size:16px}
+  .skel i{min-height:56px}
+
+  /* -------------------------- testimonials -------------------------- */
+  .tcards{grid-template-columns:repeat(3,1fr); gap:20px}
+
+
+  /* ------------------------------ faq ------------------------------- */
+  #faq .faq{max-width:820px; margin:0 auto}
+  summary{font-size:17px; padding:22px 4px}
+  details p{padding:0 4px 24px; font-size:16px}
+
+  /* ----------------------------- footer ----------------------------- */
+  footer{padding:56px 0 48px}
+  .fcols{display:grid; grid-template-columns:1.4fr 1fr; gap:40px; align-items:start}
+  .flinks{max-width:420px}
+
+  /* The sticky bar exists for thumbs. On a desktop the page CTA is always
+     a short scroll away, so it only covers content. */
+  .sticky{display:none}
+}
+
+@media (min-width:1280px){
+  :root{--maxw:1180px}
+  h1{font-size:70px}
+
+}
