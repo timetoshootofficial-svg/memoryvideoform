@@ -920,6 +920,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
 <div class="toast" id="toast" role="alert"></div>
 
 <script src="js/config.js"></script>
+<script src="js/api.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/logic.js"></script>
 <script>
@@ -1093,18 +1094,12 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     }
   }
 
-  function flush(useBeacon) {
+  function flush(unloading) {
     if (!queue.length || !apiReady()) { queue = []; return; }
-    var body = JSON.stringify({ action: 'logEvent', token: CFG.apiToken, events: queue.slice(0, 50) });
+    var batch = queue.slice(0, 50);
     queue = [];
     clearTimeout(flushTimer);
-    try {
-      if (useBeacon && navigator.sendBeacon) {
-        navigator.sendBeacon(CFG.apiUrl, new Blob([body], { type: 'text/plain' }));
-      } else {
-        fetch(CFG.apiUrl, { method: 'POST', body: body, keepalive: true }).catch(function () {});
-      }
-    } catch (e) {}
+    try { API.logEvents(batch, !!unloading); } catch (e) {}
   }
   window.addEventListener('pagehide', function () { flush(true); });
   document.addEventListener('visibilitychange', function () {
@@ -1130,9 +1125,9 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
   }
 
   /* ================================ API ============================= */
-  function apiReady() {
-    return CFG.apiUrl && CFG.apiUrl.indexOf('http') === 0 && CFG.apiUrl.indexOf('PASTE') === -1;
-  }
+  var API = window.TTS_API || { ready: function () { return false; } };
+
+  function apiReady() { return API.ready(); }
 
   var CACHE_KEY = 'tts_bootstrap';
 
@@ -1164,9 +1159,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     state.loading = true;
     state.loadError = false;
     renderCalendar();
-    var url = CFG.apiUrl + '?action=bootstrap&token=' + encodeURIComponent(CFG.apiToken);
-    return fetch(url, { method: 'GET', redirect: 'follow' })
-      .then(function (r) { return r.json(); })
+    return API.bootstrap()
       .then(function (j) {
         if (!j || !j.ok) throw new Error((j && j.code) || 'bad_response');
         writeCache(j);
@@ -1739,8 +1732,6 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
     showErr('e4', '');
 
     var payload = {
-      action: 'createBooking',
-      token: CFG.apiToken,
       name: d.name,
       phone: d.phone,
       consent: true,
@@ -1761,8 +1752,7 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
       referrer: UTM.referrer || ''
     };
 
-    fetch(CFG.apiUrl, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload) })
-      .then(function (r) { return r.json(); })
+    API.createBooking(payload)
       .then(function (j) {
         btn.dataset.busy = '';
         btn.textContent = t('reserve_cta');

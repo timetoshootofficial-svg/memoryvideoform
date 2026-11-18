@@ -1,14 +1,16 @@
-/* Timetoshoot — the only file you edit to connect the site to your Sheet.
- * Everything else (prices, capacity, rules, copy numbers) lives in the Config tab.
+/* Timetoshoot — the only file you edit to connect the site to Supabase.
+ * Prices, capacity, rules and copy numbers live in the `config` table.
  */
 window.TTS_CONFIG = {
-  /* Paste the Apps Script Web App URL here (ends with /exec) */
-  apiUrl: 'https://script.google.com/macros/s/AKfycby4Bo9k1GACPUKu_aF1jPS1kxUPJ78xlkZSZmQ41teoqQ1OYawBRzF9s0eRy1rtpYA/exec',
+  /* Supabase → Project Settings → Data API → Project URL */
+  supabaseUrl: 'https://ksvctdgpwyrtbsucespc.supabase.co',
 
-  /* Must match API_TOKEN in Apps Script > Project Settings > Script Properties.
-     NOTE: on a static site this is visible to visitors. It stops drive-by spam,
-     it is not a secret. Your Sheet ID and Sheet data are never exposed. */
-  apiToken: '772329400d0a496a9857643dd0f17ddb1d3cf313',
+  /* Supabase → Project Settings → API Keys → Publishable key.
+     This one is MEANT to be public. Every table has row level security on
+     with no policy, so this key can read and write nothing directly; it can
+     only call the five tts_* functions, which validate everything server
+     side. Never put the SECRET key (sb_secret_...) in this file. */
+  supabaseKey: 'sb_publishable_-k6uRiL9nVxByNP887x4QA_FxC97DlY',
 
   /* Meta Pixel ID — leave empty to disable the pixel completely */
   pixelId: '',

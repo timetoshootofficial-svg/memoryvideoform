@@ -815,22 +815,27 @@ test('WhatsApp messages carry no emoji, because wa.me mangles them', () => {
   });
 });
 
-test('index.html loads the three script files that exist on disk', () => {
+test('index.html loads the script files that exist on disk', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-  ['js/config.js', 'js/i18n.js', 'js/logic.js'].forEach(f => {
+  ['js/config.js', 'js/api.js', 'js/i18n.js', 'js/logic.js'].forEach(f => {
     assert.ok(html.indexOf('src="' + f + '"') !== -1, 'index.html should load ' + f);
     assert.ok(fs.existsSync(path.join(__dirname, '..', f)), f + ' should exist');
   });
 });
 
 test('no real secret is committed', () => {
-  /* The Apps Script URL and apiToken ARE meant to be here: a static site has
-     no server to hide them in, they ship in every visitor's page source, and
-     Apps Script re-validates everything they can reach. What must never land
-     in this repo is anything that grants account access. */
-  const files = ['index.html', 'admin.html', 'js/config.js', 'js/logic.js', 'js/i18n.js',
-                 'README.md', 'CHECKLIST.md', '.env.example', 'vercel.json'];
+  /* The Supabase project URL and the PUBLISHABLE key ARE meant to be here: a
+     static site has no server to hide them in, they ship in every visitor's
+     page source, and every table has RLS on with no policy, so that key can
+     only call the tts_* functions, which re-validate everything. What must
+     never land in this repo is anything that grants real access. */
+  const files = ['index.html', 'admin.html', 'js/config.js', 'js/api.js', 'js/logic.js',
+                 'js/i18n.js', 'README.md', 'CHECKLIST.md', '.env.example', 'vercel.json',
+                 'supabase/schema.sql'];
   const forbidden = [
+    [/sb_secret_[A-Za-z0-9_-]{10,}/, 'a Supabase SECRET key'],
+    [/service_role/, 'the service_role key'],
+    [/eyJ[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{30,}/, 'a JWT'],
     [/gh[pousr]_[A-Za-z0-9]{20,}/, 'a GitHub token'],
     [/docs\.google\.com\/spreadsheets\/d\/[\w-]{20,}/, 'a Google Sheet ID'],
     [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'a private key'],
@@ -847,11 +852,58 @@ test('no real secret is committed', () => {
   });
 });
 
-test('the live Apps Script endpoint is wired up', () => {
+test('the live Supabase project is wired up', () => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'js', 'config.js'), 'utf8');
-  assert.ok(!/PASTE_YOUR/.test(src), 'config.js still has placeholders — the site cannot reach the Sheet');
-  assert.ok(/script\.google\.com\/macros\/s\/[\w-]+\/exec/.test(src), 'apiUrl should be an Apps Script /exec URL');
-  assert.ok(/apiToken:\s*'[A-Za-z0-9_-]{16,}'/.test(src), 'apiToken should be set');
+  assert.ok(!/PASTE_YOUR/.test(src), 'config.js still has placeholders — the site cannot reach Supabase');
+  assert.ok(/supabaseUrl:\s*'https:\/\/[a-z0-9]+\.supabase\.co'/.test(src),
+    'supabaseUrl should be the project URL');
+  assert.ok(/supabaseKey:\s*'sb_publishable_[A-Za-z0-9_-]{10,}'/.test(src),
+    'supabaseKey should be the publishable key');
+});
+
+test('the browser only ever calls the five allowed database functions', () => {
+  /* If the page ever talked to /rest/v1/<table> directly it would be relying
+     on RLS policies we deliberately did not write, and it would break. */
+  const api = fs.readFileSync(path.join(__dirname, '..', 'js', 'api.js'), 'utf8');
+  const called = new Set();
+  let m;
+  const re = /call\('([a-z_]+)'|rpcUrl\('([a-z_]+)'/g;
+  while ((m = re.exec(api))) called.add(m[1] || m[2]);
+  const allowed = ['tts_bootstrap', 'tts_log_events', 'tts_create_booking',
+                   'tts_admin_data', 'tts_admin_set_status'];
+  called.forEach(fn => assert.ok(allowed.includes(fn), fn + ' is not a granted function'));
+  allowed.forEach(fn => assert.ok(called.has(fn), fn + ' is never called'));
+  assert.ok(!/rest\/v1\/(?!rpc)/.test(api), 'api.js must not hit a table endpoint directly');
+});
+
+test('every function the browser calls is granted in the schema, and no more', () => {
+  const sql = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'schema.sql'), 'utf8');
+  const granted = new Set();
+  let m;
+  const re = /grant execute on function public\.(tts_[a-z_]+)\(/g;
+  while ((m = re.exec(sql))) granted.add(m[1]);
+  ['tts_bootstrap', 'tts_log_events', 'tts_create_booking',
+   'tts_admin_data', 'tts_admin_set_status'].forEach(fn =>
+    assert.ok(granted.has(fn), fn + ' is not granted to anon'));
+  assert.ok(!granted.has('tts_set_admin_pin'), 'tts_set_admin_pin must stay owner-only');
+  assert.ok(!granted.has('tts_expire_holds'), 'tts_expire_holds must stay owner-only');
+  assert.strictEqual(granted.size, 5, 'exactly five functions should be reachable');
+});
+
+test('every table has row level security turned on', () => {
+  const sql = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'schema.sql'), 'utf8');
+  const tables = new Set();
+  let m;
+  const create = /create table if not exists public\.([a-z_]+)/g;
+  while ((m = create.exec(sql))) tables.add(m[1]);
+  assert.ok(tables.size >= 5, 'expected several tables');
+  tables.forEach(t => {
+    assert.ok(new RegExp('alter table public\\.' + t + '\\s+enable row level security').test(sql),
+      t + ' must have RLS enabled');
+    assert.ok(new RegExp('revoke all on public\\.' + t + '\\s+from anon').test(sql),
+      t + ' must have its grants revoked from anon');
+  });
+  assert.ok(!/create policy/i.test(sql), 'no table should carry a policy — the functions are the door');
 });
 
 ['index.html', 'admin.html', 'privacy.html'].forEach(file => {

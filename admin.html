@@ -210,6 +210,7 @@ td select{min-height:34px;padding:5px 8px;background:var(--bg-2);border:1px soli
 <div class="toast" id="toast" role="status"></div>
 
 <script src="js/config.js"></script>
+<script src="js/api.js"></script>
 <script>
 (function () {
   'use strict';
@@ -252,10 +253,14 @@ td select{min-height:34px;padding:5px 8px;background:var(--bg-2);border:1px soli
   }
 
   /* ------------------------------- api ------------------------------ */
+  var API = window.TTS_API;
+
   function call(action, extra) {
-    var body = Object.assign({ action: action, token: CFG.apiToken, pin: state.pin }, extra || {});
-    return fetch(CFG.apiUrl, { method: 'POST', redirect: 'follow', body: JSON.stringify(body) })
-      .then(function (r) { return r.json(); });
+    extra = extra || {};
+    if (action === 'adminSetStatus') {
+      return API.adminSetStatus(state.pin, extra.bookingId, extra.status);
+    }
+    return API.adminData(state.pin);
   }
 
   /* ------------------------------- gate ----------------------------- */
@@ -271,15 +276,20 @@ td select{min-height:34px;padding:5px 8px;background:var(--bg-2);border:1px soli
       if (!j || !j.ok) {
         state.pin = '';
         try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
-        $('#pinErr').innerHTML = (j && j.code === 'BAD_PIN')
-          ? 'Wrong PIN.'
-          : (j && j.code === 'PIN_NOT_SET')
-            ? 'No PIN is set on the server yet.<br><span style="color:var(--muted);font-size:12.5px">'
-              + 'Apps Script &rarr; Project Settings &rarr; Script Properties &rarr; add <b>ADMIN_PIN</b>.</span>'
-            : (j && j.code === 'UNKNOWN_ACTION')
-              ? 'The Apps Script is still running the old version.<br><span style="color:var(--muted);font-size:12.5px">'
-                + 'Deploy &rarr; Manage deployments &rarr; pencil &rarr; New version.</span>'
-              : esc((j && j.message) || 'Could not reach the server.');
+        var code = (j && j.code) || '';
+        var hint = 'color:var(--muted);font-size:12.5px';
+        $('#pinErr').innerHTML =
+            code === 'BAD_PIN'      ? 'Wrong PIN.'
+          : code === 'LOCKED'       ? 'Too many wrong attempts.<br><span style="' + hint + '">'
+                                      + 'Wait 15 minutes and try again.</span>'
+          : code === 'PIN_NOT_SET'  ? 'No PIN is set yet.<br><span style="' + hint + '">'
+                                      + 'Supabase &rarr; SQL Editor &rarr; run '
+                                      + '<b>select tts_set_admin_pin(\'your-pin\');</b></span>'
+          : code === 'NOT_DEPLOYED' ? 'The database functions are missing.<br><span style="' + hint + '">'
+                                      + 'Supabase &rarr; SQL Editor &rarr; run <b>supabase/schema.sql</b>.</span>'
+          : code === 'NO_API'       ? 'This page is not connected to Supabase yet.<br><span style="' + hint + '">'
+                                      + 'Set supabaseUrl and supabaseKey in <b>js/config.js</b>.</span>'
+          : esc((j && j.message) || 'Could not reach the server.');
         return false;
       }
       try { sessionStorage.setItem(PIN_KEY, pin); } catch (e) {}
