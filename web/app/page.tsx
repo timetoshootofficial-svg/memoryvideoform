@@ -1,6 +1,8 @@
 import { getBootstrap } from '@/lib/supabase';
 import { getLang } from '@/lib/lang';
 import { makeT } from '@/lib/i18n';
+import { SITE } from '@/lib/site';
+import { availableLengths, basePrice } from '@/lib/logic';
 import LangToggle from '@/components/LangToggle';
 import Hero from '@/components/Hero';
 import WorkMarquee from '@/components/WorkMarquee';
@@ -21,6 +23,11 @@ export default async function Page() {
   const t = makeT(lang);
   const c = data.config;
 
+  /* Math.min of nothing is Infinity, which would print a stat nobody can
+     read. No priced length means no price column. */
+  const priced = availableLengths(c).map((l) => basePrice(c, l)).filter((n) => n > 0);
+  const cheapest = priced.length ? Math.min(...priced) : 0;
+
   return (
     <>
       <header>
@@ -31,7 +38,13 @@ export default async function Page() {
       </header>
 
       <main>
-        <Hero t={t} clients={String(c.clients_count)} holdHours={Number(c.slot_hold_hours)} />
+        <Hero
+          t={t}
+          lang={lang}
+          clients={String(c.clients_count)}
+          deliveryDays={Number(c.delivery_days) || SITE.fallback.delivery_days}
+          fromPrice={cheapest}
+        />
         <div className="strip" aria-hidden="true" />
         <WorkMarquee lang={lang} />
         <Process t={t} deliveryText={String(c.delivery_text)} />

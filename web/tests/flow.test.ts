@@ -152,3 +152,26 @@ test('the form records the step it is entering, which the SQL must agree with', 
   assert.ok(/did_see_price[\s\S]{0,60}step_reached >= 3/.test(fix),
     'entering step 3 is what "saw the price" means');
 });
+
+test('the hero shows only numbers the project actually has', () => {
+  const stats = readFileSync(new URL('../components/Stats.tsx', import.meta.url), 'utf8');
+  for (const invented of ['rating', 'stars', '4.9', '98%', 'reviews'])
+    assert.ok(!new RegExp(invented, 'i').test(stats), `Stats invents a ${invented}`);
+  assert.ok(/if \(digits > 0\)/.test(stats), 'the families figure must be skipped when there is none');
+  assert.ok(/if \(fromPrice > 0\)/.test(stats), 'the price must be skipped when nothing is priced');
+  assert.ok(/cells\.length < 2/.test(stats), 'one lonely number is not a stats strip');
+});
+
+test('the counted numbers are correct before any JavaScript runs', () => {
+  const cu = readFileSync(new URL('../components/CountUp.tsx', import.meta.url), 'utf8');
+  assert.ok(/useState\(value\)/.test(cu),
+    'the finished number must be the server-rendered one');
+  assert.ok(/prefers-reduced-motion/.test(cu), 'it must honour reduced motion');
+  assert.ok(/setShown\(value\)/.test(cu), 'reduced motion must land on the real number');
+});
+
+test('Tamil headlines are given room for their vowel marks', () => {
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  assert.ok(/html\[lang="ta"\] \.display\{line-height:1\.[23]/.test(css),
+    'the Latin 1.06 line-height makes Tamil lines collide');
+});

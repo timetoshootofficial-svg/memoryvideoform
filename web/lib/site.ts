@@ -38,6 +38,7 @@ export const SITE = {
     slot_hold_hours: 24,
     most_chosen_package: '1m',
     delivery_text: 'Ready within 5 days of receiving all details',
+    delivery_days: 5,
     clients_count: '200+',
     revisions_text: '',
   },
