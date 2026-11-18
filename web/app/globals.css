@@ -43,7 +43,7 @@ html[lang="ta"] .display{font-family:var(--tamil); font-weight:700; letter-spaci
 /* Tamil glyphs carry tall vowel marks above and below the line, so the 1.06
    that suits the Latin display face makes consecutive lines collide. */
 html[lang="ta"] .display{line-height:1.3}
-html[lang="ta"] h1{font-size:clamp(31px,8.4vw,44px); margin-bottom:20px}
+html[lang="ta"] h1{font-size:clamp(31px,8.4vw,44px); margin-bottom:calc(20px - .2em)}
 img,video{max-width:100%; display:block}
 button{font:inherit; color:inherit; cursor:pointer}
 a{color:var(--ink); text-decoration:none}
@@ -130,10 +130,23 @@ h1 .alt{position:relative; z-index:0; animation-delay:.3s}
    shipped from this file once already. */
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
   h1{
+    /* `background-clip:text` paints the background box and then cuts it to
+       the glyphs, so anything the glyphs reach outside that box simply never
+       gets painted. With line-height 1.06 the descender of the g in
+       "breathing" hangs about 5px below it and was being sliced off. The
+       padding gives the box room; the negative margins give the space back
+       to the layout, so nothing moves. */
+    padding:.1em .03em .2em;
+    margin:-.1em -.03em calc(18px - .2em);
+
+    /* The brand yellow measures 1.56:1 against white. Letters filled with it
+       do not read as lit, they read as gone -- which is what "the text keeps
+       disappearing" was. This gold holds 3.3:1 at the brightest point, so the
+       words stay legible the whole way across. */
     background-image:linear-gradient(100deg,
-      var(--ink) 0%,  var(--ink) 45.4%,
-      #C98F00 46.8%, #FFC700 48.6%, #FFEFB0 50%, #FFC700 51.4%, #C98F00 53.2%,
-      var(--ink) 54.6%, var(--ink) 100%);
+      var(--ink) 0%,  var(--ink) 45.2%,
+      #7A5600 46.6%, #A87400 48.4%, #B8860B 50%, #A87400 51.6%, #7A5600 53.4%,
+      var(--ink) 54.8%, var(--ink) 100%);
     background-size:300% 100%;
     background-repeat:no-repeat;
     -webkit-background-clip:text;

@@ -257,3 +257,40 @@ test('the floating button opens a plain enquiry, not a booking message', () => {
   assert.ok(!/wa_message/.test(fab),
     'the booking message names a length and a reference this visitor does not have');
 });
+
+/** WCAG relative luminance, so the contrast check is measured not guessed. */
+function contrastOnWhite(hex: string): number {
+  const ch = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lin = ch.map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+  const L = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+  return 1.05 / (L + 0.05);
+}
+
+test('every colour the light passes through stays readable on white', () => {
+  /* The brand yellow is 1.56:1 against white. A letter filled with it does
+     not look lit, it looks missing -- which is how this first shipped. */
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const grad = css.slice(css.indexOf('background-image:linear-gradient(100deg'),
+                         css.indexOf('background-size:300%'));
+  const colours = [...grad.matchAll(/#([0-9A-Fa-f]{6})/g)].map((m) => '#' + m[1]);
+  assert.ok(colours.length >= 3, 'expected several stops in the sweep gradient');
+  for (const c of colours) {
+    const ratio = contrastOnWhite(c);
+    assert.ok(ratio >= 3,
+      `${c} is ${ratio.toFixed(2)}:1 on white — the words vanish as the light crosses them`);
+  }
+});
+
+test('the heading has room to paint its descenders', () => {
+  /* background-clip:text cuts the background box to the glyphs, so a glyph
+     that reaches outside that box is simply not painted. The g in
+     "breathing" was losing its tail. */
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const block = css.slice(css.indexOf('@supports ((-webkit-background-clip:text)'),
+                          css.indexOf('@keyframes led-run'));
+  const pad = /padding:([^;]+);/.exec(block)?.[1] ?? '';
+  const bottom = Number(/([\d.]+)em\s*;?\s*$/.exec(pad.trim())?.[1] ?? 0);
+  assert.ok(bottom >= 0.15, `padding-bottom is ${bottom}em; a descender needs about .2em`);
+  assert.ok(/margin:-[\d.]+em/.test(block),
+    'the padding must be given back as negative margin, or the layout shifts');
+});
