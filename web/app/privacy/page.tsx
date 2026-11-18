@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getBootstrap } from '@/lib/supabase';
 import s from './privacy.module.css';
+import WhatsAppFab from '@/components/WhatsAppFab';
+import { getLang } from '@/lib/lang';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Timetoshoot',
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function PrivacyPage() {
-  const { data } = await getBootstrap();
+  const [{ data }, lang] = await Promise.all([getBootstrap(), getLang()]);
   const link = String(data.config.whatsapp_link ?? '');
   const num = String(data.config.whatsapp_number ?? '917448326503').replace(/[^0-9]/g, '');
   const wa = /^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(link) ? link : `https://wa.me/${num}`;
@@ -176,6 +178,9 @@ export default async function PrivacyPage() {
           <p style={{ margin: 0 }}>&copy; {new Date().getFullYear()} Timetoshoot. All rights reserved.</p>
         </div>
       </footer>
+      <WhatsAppFab lang={lang}
+                   number={String(data.config.whatsapp_number ?? '')}
+                   link={String(data.config.whatsapp_link ?? '')} />
     </div>
   );
 }

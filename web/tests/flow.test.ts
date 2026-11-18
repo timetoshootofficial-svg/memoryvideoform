@@ -198,3 +198,38 @@ test('a length is spelled the same way in its label and its short form', () => {
     }
   }
 });
+
+test('the headline light sweeps left to right and never hides the words', () => {
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const block = css.slice(css.indexOf('h1::after{'), css.indexOf('@keyframes led-run') + 200);
+  assert.ok(/mix-blend-mode:multiply/.test(block),
+    'the band must tint the background, not paint over the letters');
+  assert.ok(/isolation:isolate/.test(css) && /h1\{[^}]*background:var\(--bg\)/.test(css),
+    'multiply needs an isolated group with a known backdrop, or the words go dark');
+  const kf = css.slice(css.indexOf('@keyframes led-run'));
+  const from = Number(/from\{background-position:(-?\d+)%/.exec(kf)?.[1]);
+  const to = Number(/to  \{background-position:(-?\d+)%/.exec(kf)?.[1]);
+  assert.ok(from > to, `the light must run left to right (from ${from}% to ${to}%)`);
+});
+
+test('the floating WhatsApp button is on the public pages and not in admin', () => {
+  const home = readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
+  const privacy = readFileSync(new URL('../app/privacy/page.tsx', import.meta.url), 'utf8');
+  const admin = readFileSync(new URL('../app/admin/page.tsx', import.meta.url), 'utf8');
+  assert.ok(home.includes('<WhatsAppFab'), 'missing on the home page');
+  assert.ok(privacy.includes('<WhatsAppFab'), 'missing on the privacy page');
+  assert.ok(!admin.includes('WhatsAppFab'), 'the dashboard is a work tool, not a sales page');
+
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const fab = css.slice(css.indexOf('.wafab{'), css.indexOf('.wafab:hover'));
+  assert.ok(/position:fixed/.test(fab) && /right:16px/.test(fab), 'it must be pinned bottom right');
+  /* Below 768px the sticky Book now bar owns the bottom of the screen. */
+  assert.ok(/bottom:calc\(96px/.test(fab), 'it must clear the sticky bar on a phone');
+});
+
+test('the floating button opens a plain enquiry, not a booking message', () => {
+  const fab = readFileSync(new URL('../components/WhatsAppFab.tsx', import.meta.url), 'utf8');
+  assert.ok(fab.includes("t('wa_plain')"), 'it must use the plain message');
+  assert.ok(!/wa_message/.test(fab),
+    'the booking message names a length and a reference this visitor does not have');
+});

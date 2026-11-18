@@ -24,7 +24,7 @@ export const SITE = {
   fallback: {
     whatsapp_number: '917448326503',
     whatsapp_link: 'https://wa.me/message/PB6XEXRKZL7BH1',
-    instagram_handle: 'timetoshoot',
+    instagram_handle: 'timetoshoot_',
     price_30s: 2999, price_1m: 4999, price_2m: 7999,
     price_3m: 9999, price_4m: 13999, price_5m: 16999,
     list_price_30s: 0, list_price_1m: 0, list_price_2m: 0,

@@ -10,6 +10,7 @@ import Reviews from '@/components/Reviews';
 import Faq from '@/components/Faq';
 import Footer from '@/components/Footer';
 import StickyCta from '@/components/StickyCta';
+import WhatsAppFab from '@/components/WhatsAppFab';
 
 /* Prices and availability are fetched on the server and arrive inside the
    HTML. The static site had to ask for them after the page had painted,
@@ -42,6 +43,7 @@ export default async function Page() {
 
       <Footer t={t} instagram={String(c.instagram_handle)} whatsapp={String(c.whatsapp_link)} />
       <StickyCta lang={lang} />
+      <WhatsAppFab lang={lang} number={String(c.whatsapp_number)} link={String(c.whatsapp_link)} />
     </>
   );
 }

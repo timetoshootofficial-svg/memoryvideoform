@@ -144,6 +144,38 @@ h1 .alt::after{
   55%,100%{background-position:-60% 0}
 }
 
+/* ------------------------- the running light -------------------------
+   A yellow band the full height of the text travels across the whole
+   headline, left to right, over and over -- the light moving along an LED
+   sign. It is a highlighter, not a cover: `multiply` leaves black letters
+   black and turns only the white behind them yellow.
+
+   The isolation and the white background are what make that true. Without
+   them the band would blend with whatever happens to sit under the heading
+   and the words would go dark as it passed. */
+h1{position:relative; isolation:isolate; background:var(--bg)}
+h1::after{
+  content:''; position:absolute; inset:-.04em -.14em;
+  pointer-events:none; z-index:2; border-radius:5px;
+  mix-blend-mode:multiply;
+  background:linear-gradient(104deg,
+    rgba(255,199,0,0) 0%, rgba(255,199,0,0) 30%,
+    rgba(255,199,0,.92) 39%,
+    rgba(255,232,150,.98) 48%,
+    rgba(255,199,0,.92) 57%,
+    rgba(255,199,0,0) 66%, rgba(255,199,0,0) 100%);
+  background-size:300% 100%;
+  background-repeat:no-repeat;
+  animation:led-run 5.2s linear 1.9s infinite;
+}
+/* The band travels LEFT to RIGHT. With a background wider than its box, a
+   larger background-position pulls the image left, so the percentages run
+   downward to make the light move the way a person reads. */
+@keyframes led-run{
+  from{background-position:150% 0}
+  to  {background-position:-150% 0}
+}
+
 /* the lines around the headline follow it in */
 @keyframes rise{
   from{opacity:0; transform:translateY(14px)}
@@ -656,3 +688,32 @@ footer{border-top:1px solid var(--border); padding:40px 0 120px; margin-top:20px
 }
 html[lang="ta"] .stat1 .n{font-size:clamp(42px,11.5vw,60px)}
 html[lang="ta"] .stat1 .l{font-size:13.5px}
+
+/* ------------------------ floating WhatsApp ------------------------
+   On every page, bottom right. Below 768px the sticky Book now bar owns
+   the bottom of the screen, so this sits clear above it; from 768px that
+   bar is hidden and this drops to the corner. */
+.wafab{
+  position:fixed; right:16px; z-index:28;
+  bottom:calc(96px + env(safe-area-inset-bottom));
+  width:54px; height:54px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:#25D366; color:#fff;
+  box-shadow:0 4px 14px rgba(16,17,20,.22), 0 1px 3px rgba(16,17,20,.14);
+  transition:transform .18s ease, box-shadow .2s ease;
+}
+.wafab:hover{transform:translateY(-2px); box-shadow:0 8px 22px rgba(16,17,20,.26)}
+.wafab:active{transform:translateY(0)}
+.wafab::before{
+  content:''; position:absolute; inset:0; border-radius:50%;
+  box-shadow:0 0 0 0 rgba(37,211,102,.55);
+  animation:wafab-pulse 3.4s ease-out infinite;
+}
+@keyframes wafab-pulse{
+  0%{box-shadow:0 0 0 0 rgba(37,211,102,.5)}
+  60%{box-shadow:0 0 0 15px rgba(37,211,102,0)}
+  100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}
+}
+@media (min-width:768px){
+  .wafab{bottom:24px; right:24px; width:58px; height:58px}
+}
