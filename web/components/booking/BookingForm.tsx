@@ -26,7 +26,7 @@ const LAST_STEP = 3;
 const RESULT_STEP = 4;
 
 interface Data {
-  name: string; phone: string; consent: boolean;
+  name: string; phone: string;
   occasion: string; eventDate: string;
   filmLength: string; follower: boolean;
 }
@@ -50,7 +50,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   const [err, setErr] = useState<Record<number, string>>({});
   const [booking, setBooking] = useState<BookingSuccess | null>(null);
   const [data, setData] = useState<Data>({
-    name: '', phone: '', consent: false,
+    name: '', phone: '',
     occasion: '', eventDate: '',
     filmLength: lengths.includes(config.most_chosen_package as FilmLength)
       ? config.most_chosen_package
@@ -90,7 +90,6 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
     if (n === 1) {
       if (!L.isValidName(data.name)) return fail(1, t('err_name'));
       if (!L.isValidPhone(data.phone)) return fail(1, t('err_phone'));
-      if (!data.consent) return fail(1, t('err_consent'));
     }
     if (n === 2) {
       if (!OCCASIONS.some((o) => o.v === data.occasion)) return fail(2, t('err_occasion'));
@@ -207,15 +206,16 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
                 </div>
                 <p className="sub">{t('phone_hint')}</p>
               </div>
-              <label className="check">
-                <input type="checkbox" checked={data.consent}
-                       onChange={(e) => set({ consent: e.target.checked })} />
-                <span>{t('consent')}</span>
-              </label>
               {err[1] ? <p className="err on">{err[1]}</p> : <p className="err" />}
               <div className="navrow">
                 <button type="button" className="btn btn-primary" onClick={() => next(1)}>{t('next')}</button>
               </div>
+              {/* Consent is given by carrying on rather than by a tick. The
+                  sentence has to stay visible at the moment they continue,
+                  which is the whole reason it sits under the button. */}
+              <p className="sub muted" style={{ textAlign: 'center', marginTop: 11 }}>
+                {t('consent')}
+              </p>
             </div>
 
             {/* ----------------------------- 2 ----------------------------- */}

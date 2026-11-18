@@ -85,3 +85,22 @@ test('the WhatsApp button is the loudest thing on the thank-you screen', () => {
   assert.ok(/className="btn btn-primary" href=\{waHref\}/.test(screen),
     'it must use the primary style, not the quiet btn-wa outline');
 });
+
+test('consent is given by continuing, not by a tick', () => {
+  assert.ok(!/type="checkbox"[^>]*consent|checked=\{data\.consent\}/.test(form),
+    'the consent checkbox should be gone');
+  assert.ok(form.includes("{t('consent')}"), 'the consent line must still be shown');
+  assert.ok(form.includes("consent: 'true'"), 'the server still requires consent to be asserted');
+  for (const lang of ['en', 'ta'] as const)
+    assert.ok(!/\btick\b|கட்டம்/.test((STRINGS[lang] as Record<string, string>).consent),
+      `${lang}.consent must not tell anyone to tick anything`);
+});
+
+test('the privacy policy describes what the site actually does', () => {
+  for (const f of ['../app/privacy/page.tsx', '../../privacy.html']) {
+    const page = readFileSync(new URL(f, import.meta.url), 'utf8');
+    assert.ok(!/tick a box/i.test(page), `${f} still claims there is a tick box`);
+    assert.ok(!/Google Sheet/i.test(page), `${f} still says the data is in a Google Sheet`);
+    assert.ok(!/time slot you choose/i.test(page), `${f} still mentions choosing a time slot`);
+  }
+});

@@ -52,14 +52,15 @@ export default async function PrivacyPage() {
           <tr><td>Your name</td><td>So we know who we are speaking to</td></tr>
           <tr><td>Your WhatsApp number</td><td>To confirm your booking and send your film</td></tr>
           <tr><td>Occasion and, if you give one, the date of that occasion</td><td>To shape the film and make sure it is ready in time</td></tr>
-          <tr><td>Film length and the date and time slot you choose</td><td>To hold your slot and price the work</td></tr>
+          <tr><td>The film length you choose</td><td>To price the work before we talk</td></tr>
           <tr><td>Whether you follow us on Instagram</td><td>Only to apply the follower discount</td></tr>
           <tr><td>Language you used the site in</td><td>So we reply in the same language</td></tr>
         </tbody></table>
       
         <p>
-          You tick a box confirming you agree to be contacted on WhatsApp before the
-          form will accept your booking. That consent is recorded with the booking.
+          The form says, on the step where you give your number and again before
+          you send it, that continuing means you agree to be contacted on
+          WhatsApp about your film. Pressing the button is that agreement.
         </p>
       
         <h2>Information about how you arrived</h2>
@@ -101,18 +102,18 @@ export default async function PrivacyPage() {
       
         <h2>Where your information is kept</h2>
         <p>
-          Bookings are stored in a private Google Sheet belonging to Timetoshoot,
-          hosted by Google. Access is limited to the people at Timetoshoot who need
-          it to make and deliver your film. The website itself is hosted by Vercel.
-          We do not store your information anywhere else, and this site has no
-          account for you to create and no password of yours to lose.
+          Bookings are stored in a private database belonging to Timetoshoot,
+          hosted by Supabase on servers in Mumbai, India. Access is limited to the
+          people at Timetoshoot who need it to make and deliver your film: the
+          website itself cannot read the table, only add to it. The site is hosted
+          by Vercel. We do not store your information anywhere else, and this site
+          has no account for you to create and no password of yours to lose.
         </p>
       
         <h2>How long we keep it</h2>
         <p>
-          We keep booking records while we are working on your film and afterwards as
-          a record of the work, so we can help you if you come back. Bookings that
-          are never confirmed expire on their own and are marked as such.
+          We keep booking records while we are working on your film and afterwards
+          as a record of the work, so we can help you if you come back.
         </p>
         <p>
           <strong>You can ask us to delete your details at any time</strong> and we
