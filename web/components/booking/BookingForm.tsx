@@ -4,7 +4,7 @@ import type { SiteConfig, BookingSuccess, FilmLength } from '@/lib/types';
 import { makeT, type Lang, type StringKey } from '@/lib/i18n';
 import * as L from '@/lib/logic';
 import { inr, waUrl } from '@/lib/format';
-import { useFunnel } from './useFunnel';
+import { useFunnel, sessionId } from './useFunnel';
 
 const OCCASIONS = [
   { v: 'Anniversary',           k: 'occ_anniversary', icon: 'heart'  },
@@ -59,11 +59,45 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
+  /* Refs so the unload listener reads the latest values, not the ones it
+     closed over when it was attached. */
+  const dataRef = useRef<Data>(null as unknown as Data);
+  const stepRef = useRef(1);
   const hpRef = useRef<HTMLInputElement>(null);
   const started = useRef(false);
   const { track, flush, utm } = useFunnel(lang);
 
+  /* Sent as they move, so a number typed on step one reaches the Leads tab
+     whether or not they ever press Book now. It is fire and forget: the form
+     does not wait for it and never shows an error if it fails. */
+  const saved = useRef('');
+  const capture = (step: number, d: Data) => {
+    const sig = `${step}|${d.name}|${d.phone}|${d.occasion}|${d.filmLength}|${d.follower}`;
+    if (saved.current === sig) return;
+    saved.current = sig;
+    try {
+      fetch('/api/partial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionId(), step,
+          name: d.name, phone: d.phone, occasion: d.occasion, eventDate: d.eventDate,
+          filmLength: d.filmLength, follower: String(d.follower),
+          price: L.calcPrice(config, d.filmLength, d.follower).total,
+          language: lang,
+          utm_source: utm.current.utm_source ?? '', utm_medium: utm.current.utm_medium ?? '',
+          utm_campaign: utm.current.utm_campaign ?? '', utm_content: utm.current.utm_content ?? '',
+          ad_id: utm.current.ad_id ?? utm.current.adset_id ?? '',
+          fbclid: utm.current.fbclid ?? '', referrer: utm.current.referrer ?? '',
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch { /* never let capture break the form */ }
+  };
+
   const set = (patch: Partial<Data>) => setData((d) => ({ ...d, ...patch }));
+  dataRef.current = data;
+  stepRef.current = step;
   const today = config.today;
   const price = L.calcPrice(config, data.filmLength, data.follower);
 
@@ -99,7 +133,32 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
     return true;
   }
 
-  const next = (from: number) => { if (validate(from)) goStep(from + 1); };
+  const next = (from: number) => {
+    if (!validate(from)) return;
+    capture(from + 1, data);
+    goStep(from + 1);
+  };
+
+  /* They may change the length, or tick the follower box, and then leave
+     without pressing the button. That is still worth knowing. */
+  useEffect(() => {
+    if (step !== LAST_STEP) return;
+    const id = setTimeout(() => capture(LAST_STEP, data), 900);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, data.filmLength, data.follower]);
+
+  /* And if they close the tab mid-step, take what there is. */
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === 'hidden' && dataRef.current.phone) {
+        capture(stepRef.current, dataRef.current);
+      }
+    };
+    document.addEventListener('visibilitychange', onHide);
+    return () => document.removeEventListener('visibilitychange', onHide);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const lenLabel = (code: string) => t(`len_${code}` as StringKey);
   const lenShort = (code: string) => t(`len_${code}_short` as StringKey);
@@ -122,6 +181,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId: sessionId(),
           name: data.name, phone: data.phone, consent: 'true',
           occasion: data.occasion, eventDate: data.eventDate,
           filmLength: data.filmLength, follower: String(data.follower),

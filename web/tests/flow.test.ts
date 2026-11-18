@@ -104,3 +104,33 @@ test('the privacy policy describes what the site actually does', () => {
     assert.ok(!/time slot you choose/i.test(page), `${f} still mentions choosing a time slot`);
   }
 });
+
+test('the form captures a lead at every step, not only at the end', () => {
+  assert.ok(form.includes("fetch('/api/partial'"), 'the form never saves a partial');
+  assert.ok(/capture\(from \+ 1, data\)/.test(form), 'advancing a step must capture');
+  assert.ok(/visibilitychange/.test(form), 'leaving the tab should capture what there is');
+  assert.ok(form.includes("sessionId: sessionId()"), 'the booking must carry the session');
+});
+
+test('the privacy policy says that partial entries are kept', () => {
+  for (const f of ['../app/privacy/page.tsx', '../../privacy.html']) {
+    const page = readFileSync(new URL(f, import.meta.url), 'utf8');
+    assert.ok(/record this as you go/i.test(page),
+      `${f} does not disclose that half-finished forms are kept`);
+  }
+});
+
+test('a partial save can never block or break the booking form', () => {
+  const capture = form.slice(form.indexOf('const capture ='), form.indexOf('const goStep'));
+  assert.ok(!/await\s+fetch\('\/api\/partial'/.test(capture), 'capture must not be awaited');
+  assert.ok(/catch\s*\(\s*\)\s*=>\s*\{\s*\}/.test(capture) || /\.catch\(/.test(capture),
+    'capture must swallow its own failures');
+});
+
+test('the leads view is gated by the same PIN as everything else', () => {
+  const route = readFileSync(new URL('../app/api/admin/route.ts', import.meta.url), 'utf8');
+  const leadsLine = route.slice(route.indexOf("action === 'leads'"));
+  assert.ok(leadsLine.includes('adminLeads(pin)'), 'the leads call must pass the PIN');
+  const guard = route.slice(0, route.indexOf("action === 'leads'"));
+  assert.ok(/if \(!pin\) return/.test(guard), 'a request with no PIN must be refused first');
+});

@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import s from './admin.module.css';
-import type { AdminPayload, AdminBooking } from './types';
+import type { AdminPayload, AdminBooking, LeadsPayload, Lead, StageWindow } from './types';
 
 const STATUSES = ['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Expired'] as const;
 
@@ -37,6 +37,24 @@ const fmtDate = (iso: string | null) => {
   } catch { return String(iso); }
 };
 
+const STAGE_WINDOWS: Array<[StageWindow, string]> = [
+  ['today', 'Today'], ['last7', 'Last 7 days'], ['last30', 'Last 30 days'], ['all', 'All time'],
+];
+
+const STEP_NAMES = ['', 'Gave name and number', 'Chose an occasion', 'Saw the price', 'Finished'];
+
+/** Four dots: how far this person got before they stopped. */
+function StepDots({ step, completed }: { step: number; completed: boolean }) {
+  return (
+    <span className={s.stepdot} title={STEP_NAMES[Math.min(step, 4)]}>
+      {[1, 2, 3, 4].map((n) => (
+        <i key={n} className={completed && n <= 4 ? s.done : n <= step ? s.on : ''} />
+      ))}
+      <span>{completed ? 'finished' : STEP_NAMES[Math.min(step, 4)]}</span>
+    </span>
+  );
+}
+
 function Stat({ k, v, sub, cls, hi }:
   { k: string; v: string | number; sub?: string; cls?: string; hi?: boolean }) {
   return (
@@ -63,10 +81,119 @@ function Box({ title, obj, fmt }:
   );
 }
 
+/**
+ * Everyone who typed a number, finished or not.
+ *
+ * The ones who did not finish are the point of this table: they wanted a film
+ * enough to give you their number, and before this existed you never saw them.
+ */
+function LeadsTable({ data, filter, setFilter }: {
+  data: LeadsPayload | null;
+  filter: 'all' | 'abandoned' | 'finished';
+  setFilter: (f: 'all' | 'abandoned' | 'finished') => void;
+}) {
+  const [q, setQ] = useState('');
+  if (!data) {
+    return (
+      <div className={s.sec}>
+        <h2>Leads</h2>
+        <p style={{ color: 'var(--muted)' }}>
+          Could not load leads. If this is the first time, run <b>03_capture_partials.sql</b>.
+        </p>
+      </div>
+    );
+  }
+
+  /* Captured after the guard: TypeScript cannot carry the narrowing into the
+     hoisted csv() below. */
+  const payload = data;
+  const needle = q.trim().toLowerCase();
+  const rows = payload.leads.filter((l) => {
+    if (filter === 'abandoned' && l.completed) return false;
+    if (filter === 'finished' && !l.completed) return false;
+    if (!needle) return true;
+    return [l.name, l.phone, l.occasion, l.campaign, l.bookingId]
+      .join(' ').toLowerCase().includes(needle);
+  });
+
+  function csv() {
+    const head = ['Name', 'Phone', 'Step', 'Finished', 'Reference', 'Occasion',
+                  'Film', 'Price', 'First seen', 'Last seen', 'Campaign', 'Language'];
+    const body = rows.map((l) => [l.name, l.phone, STEP_NAMES[Math.min(l.step, 4)],
+      l.completed ? 'yes' : 'no', l.bookingId, l.occasion, l.filmLength, l.price,
+      l.firstSeen, l.lastSeen, l.campaign, l.language]);
+    const text = [head, ...body]
+      .map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `timetoshoot-leads-${payload.today}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className={s.sec}>
+      <h2>Leads</h2>
+      <div className={s.tools}>
+        <input type="search" placeholder="Search name, phone, campaign…" aria-label="Search leads"
+               value={q} onChange={(e) => setQ(e.target.value)} />
+        <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)}>
+          <option value="all">Everyone</option>
+          <option value="abandoned">Did not finish</option>
+          <option value="finished">Finished</option>
+        </select>
+        <button className={s.btn} onClick={csv}>Download CSV</button>
+      </div>
+      <div className={s.tablewrap}>
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Phone</th><th>How far</th><th>Wanted</th>
+            <th>Price</th><th>Last seen</th><th>Source</th><th />
+          </tr></thead>
+          <tbody>
+            {rows.map((l) => (
+              <tr key={l.sessionId}>
+                <td>
+                  <b>{l.name || '—'}</b>
+                  {l.bookingId ? <span className={s.sub}>{l.bookingId}</span> : null}
+                </td>
+                <td className={s.mono}>{l.phone ? `+91 ${l.phone}` : '—'}</td>
+                <td><StepDots step={l.step} completed={l.completed} /></td>
+                <td>
+                  {l.occasion || '—'}
+                  {l.filmLength ? <span className={s.sub}>{LEN[l.filmLength] ?? l.filmLength}</span> : null}
+                </td>
+                <td className={s.mono}>{l.price ? money(l.price) : '—'}</td>
+                <td className={s.mono}>{l.lastSeen}</td>
+                <td>
+                  {l.campaign}
+                  {l.source ? <span className={s.sub}>{l.source}</span> : null}
+                </td>
+                <td>
+                  {l.phone
+                    ? <a className={s.btn} target="_blank" rel="noopener"
+                         href={`https://wa.me/91${l.phone}`}>WhatsApp</a>
+                    : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {rows.length === 0 ? <div className={s.empty}>Nothing matches that filter.</div> : null}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [pin, setPin] = useState('');
   const [entry, setEntry] = useState('');
   const [data, setData] = useState<AdminPayload | null>(null);
+  const [leadsData, setLeadsData] = useState<LeadsPayload | null>(null);
+  const [tab, setTab] = useState<'dashboard' | 'leads' | 'bookings'>('dashboard');
+  const [stageWin, setStageWin] = useState<StageWindow>('all');
+  const [leadFilter, setLeadFilter] = useState<'all' | 'abandoned' | 'finished'>('all');
   const [err, setErr] = useState<React.ReactNode>('');
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
@@ -86,8 +213,9 @@ export default function AdminDashboard() {
   const load = useCallback(async (usePin: string) => {
     setBusy(true);
     setErr('');
-    const j = await call({ pin: usePin });
+    const [j, lj] = await Promise.all([call({ pin: usePin }), call({ action: 'leads', pin: usePin })]);
     setBusy(false);
+    setLeadsData(lj?.ok ? (lj as LeadsPayload) : null);
 
     if (!j?.ok) {
       setData(null);
@@ -219,6 +347,78 @@ export default function AdminDashboard() {
       </header>
 
       <main className={s.wrap}>
+        <div className={s.tabs} role="tablist">
+          <button role="tab" aria-selected={tab === 'dashboard'} onClick={() => setTab('dashboard')}>
+            Dashboard
+          </button>
+          <button role="tab" aria-selected={tab === 'leads'} onClick={() => setTab('leads')}>
+            Leads
+            {leadsData ? <span className={s.count}>{leadsData.leads.length}</span> : null}
+          </button>
+          <button role="tab" aria-selected={tab === 'bookings'} onClick={() => setTab('bookings')}>
+            Bookings
+            <span className={s.count}>{data.bookings.length}</span>
+          </button>
+        </div>
+
+        {tab === 'dashboard' && leadsData ? (
+          <div className={s.sec}>
+            <h2>Who gets how far</h2>
+            <div className={s.tools} style={{ marginBottom: 12 }}>
+              <select value={stageWin} onChange={(e) => setStageWin(e.target.value as StageWindow)}>
+                {STAGE_WINDOWS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+              </select>
+            </div>
+            {(() => {
+              const st2 = leadsData.stages[stageWin];
+              if (!st2) return <p style={{ color: 'var(--muted)' }}>Nothing yet.</p>;
+              const top = Math.max(1, st2.gaveNumber);
+              const rows: Array<[string, number]> = [
+                ['Gave name and number', st2.gaveNumber],
+                ['Chose an occasion', st2.choseOccasion],
+                ['Saw the price', st2.sawPrice],
+                ['Pressed Book now', st2.finished],
+              ];
+              let prev: number | null = null;
+              return (
+                <>
+                  <div className={s.grid} style={{ marginBottom: 16 }}>
+                    <Stat k="Numbers captured" v={st2.gaveNumber} sub="even if they left" hi />
+                    <Stat k="Finished" v={st2.finished} sub="pressed Book now" cls="ok" />
+                    <Stat k="Left part way" v={st2.abandoned} sub="worth a message" cls="warn" />
+                    <Stat k="Finished value" v={money(st2.valueFinished)} cls="info" />
+                    <Stat k="Walked away with" v={money(st2.valueLeft)} sub="unfinished, at list price" cls="warn" />
+                  </div>
+                  <div className={s.funnel}>
+                    {rows.map(([label, n]) => {
+                      const width = Math.max(0, Math.min(100, (n / top) * 100));
+                      const drop = prev !== null && prev > 0 && n < prev
+                        ? `↓ ${Math.round(((prev - n) / prev) * 100)}%` : '';
+                      prev = n;
+                      return (
+                        <div className={s.frow} key={label}>
+                          <div className={s.lbl}>{label}</div>
+                          <div className={s.bar}><i style={{ width: `${width}%` }} /></div>
+                          <div className={s.num}>{n}{drop ? <span>{drop}</span> : null}</div>
+                        </div>
+                      );
+                    })}
+                    <p style={{ color: 'var(--muted)', fontSize: 12.5, margin: '10px 0 0' }}>
+                      Number to booking: <b style={{ color: 'var(--yellow)' }}>
+                        {pct(st2.finished, st2.gaveNumber)}
+                      </b>
+                    </p>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        ) : null}
+
+        {tab === 'leads' ? <LeadsTable data={leadsData} filter={leadFilter} setFilter={setLeadFilter} /> : null}
+
+        {tab === 'dashboard' ? (
+        <>
         <div className={s.sec}>
           <h2>Reservations</h2>
           <div className={s.grid}>
@@ -288,7 +488,10 @@ export default function AdminDashboard() {
             <Box title="By campaign" obj={st.byCampaign} />
           </div>
         </div>
+        </>
+        ) : null}
 
+        {tab === 'bookings' ? (
         <div className={s.sec}>
           <h2>All bookings</h2>
           <div className={s.tools}>
@@ -359,6 +562,7 @@ export default function AdminDashboard() {
             {visible.length === 0 ? <div className={s.empty}>Nothing matches that filter.</div> : null}
           </div>
         </div>
+        ) : null}
       </main>
 
       {toast ? <div className={`${s.toast} ${s.on}`} role="status">{toast}</div> : null}

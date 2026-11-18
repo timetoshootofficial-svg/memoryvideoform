@@ -103,3 +103,23 @@
   .frow{grid-template-columns:118px 1fr 78px;font-size:13px}
   .stat .v{font-size:28px}
 }
+
+/* tabs — added with the Leads view */
+.tabs{display:flex;gap:6px;margin:0 0 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tabs button{
+  background:none;border:0;border-bottom:2px solid transparent;
+  padding:10px 14px;color:var(--muted);font-weight:600;font-size:14.5px;
+  min-height:44px;border-radius:6px 6px 0 0;
+}
+.tabs button:hover{color:var(--text)}
+.tabs button[aria-selected="true"]{color:var(--yellow);border-bottom-color:var(--yellow)}
+.tabs .count{
+  display:inline-block;margin-left:7px;padding:1px 7px;border-radius:999px;
+  background:var(--card);font-size:12px;color:var(--muted);font-weight:600;
+}
+.stepdot{
+  display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);
+}
+.stepdot i{width:7px;height:7px;border-radius:50%;background:var(--border-2);display:block}
+.stepdot i.on{background:var(--yellow)}
+.stepdot i.done{background:#2FA36B}

@@ -17,7 +17,8 @@ const KEY = process.env.SUPABASE_PUBLISHABLE_KEY ?? '';
 export const backendConfigured = () => URL_.startsWith('http') && KEY.length > 0;
 
 type Rpc = 'tts_bootstrap' | 'tts_log_events' | 'tts_create_lead'
-         | 'tts_create_booking' | 'tts_admin_data' | 'tts_admin_set_status';
+         | 'tts_create_booking' | 'tts_save_partial'
+         | 'tts_admin_data' | 'tts_admin_leads' | 'tts_admin_set_status';
 
 async function rpc<T>(
   fn: Rpc,
@@ -107,6 +108,13 @@ export const createBooking = (payload: Record<string, unknown>) =>
 
 export const logEvents = (events: unknown[]) =>
   rpc<{ ok: true; written: number }>('tts_log_events', { p_events: events }, { timeoutMs: 8000 });
+
+/** One row per visit, updated as they move through the form. */
+export const savePartial = (payload: Record<string, unknown>) =>
+  rpc<{ ok: true }>('tts_save_partial', { p: payload }, { timeoutMs: 6000 });
+
+export const adminLeads = (pin: string) =>
+  rpc<Record<string, unknown>>('tts_admin_leads', { p_pin: pin }, { timeoutMs: 20000 });
 
 export const adminData = (pin: string) =>
   rpc<Record<string, unknown>>('tts_admin_data', { p_pin: pin }, { timeoutMs: 20000 });

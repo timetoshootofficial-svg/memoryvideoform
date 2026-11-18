@@ -9,7 +9,7 @@ export interface FunnelEvent {
 const UTM_KEY = 'tts_utm';
 const SID_KEY = 'tts_sid';
 
-function sessionId(): string {
+export function sessionId(): string {
   try {
     let v = sessionStorage.getItem(SID_KEY);
     if (!v) {

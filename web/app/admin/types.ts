@@ -27,3 +27,43 @@ export interface AdminPayload {
   config: { whatsapp_number: string; time_slots: string[];
             daily_capacity: number; slot_hold_hours: number };
 }
+
+export interface Lead {
+  sessionId: string;
+  firstSeen: string;
+  lastSeen: string;
+  day: string;
+  name: string;
+  phone: string;
+  occasion: string;
+  eventDate: string | null;
+  filmLength: string;
+  price: number;
+  follower: boolean;
+  step: number;
+  completed: boolean;
+  bookingId: string;
+  language: string;
+  campaign: string;
+  source: string;
+  adId: string;
+}
+
+export interface StageCounts {
+  gaveNumber: number;
+  choseOccasion: number;
+  sawPrice: number;
+  finished: number;
+  abandoned: number;
+  valueFinished: number;
+  valueLeft: number;
+}
+
+export type StageWindow = 'today' | 'last7' | 'last30' | 'all';
+
+export interface LeadsPayload {
+  ok: true;
+  leads: Lead[];
+  stages: Record<StageWindow, StageCounts>;
+  today: string;
+}
