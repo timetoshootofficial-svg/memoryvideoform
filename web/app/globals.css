@@ -43,7 +43,8 @@ html[lang="ta"] .display{font-family:var(--tamil); font-weight:700; letter-spaci
 /* Tamil glyphs carry tall vowel marks above and below the line, so the 1.06
    that suits the Latin display face makes consecutive lines collide. */
 html[lang="ta"] .display{line-height:1.3}
-html[lang="ta"] h1{font-size:clamp(31px,8.4vw,44px); margin-bottom:calc(20px - .2em)}
+html[lang="ta"] h1{font-size:clamp(31px,8.4vw,44px); margin-bottom:0}
+html[lang="ta"] .h1wrap{margin-bottom:20px}
 img,video{max-width:100%; display:block}
 button{font:inherit; color:inherit; cursor:pointer}
 a{color:var(--ink); text-decoration:none}
@@ -95,6 +96,7 @@ header{
 }
 html[lang="ta"] .kicker{letter-spacing:.5px; text-transform:none; font-size:13px}
 h1{margin:0 0 18px; font-size:clamp(39px,10.8vw,54px)}
+.h1wrap{margin:0 0 18px}
 
 /* ------------------------- headline motion -------------------------
    Each line wipes upward into view behind its own edge, the mark draws
@@ -107,79 +109,54 @@ h1{margin:0 0 18px; font-size:clamp(39px,10.8vw,54px)}
    browser, a slow phone — the text is simply there. Hiding content and
    relying on an animation to reveal it leaves a blank page when it does not
    run, which happened on the live site. */
+/* The headline is the first thing anyone reads and it is never hidden, not
+   for a frame. The old entrance faded in from opacity 0 behind a .3s delay,
+   so the second line took 1.25s to arrive and the page looked slow to open.
+   This moves only transform: the words are at full strength from the start
+   and simply settle. */
 h1 > span{
   display:inline-block;
-  animation:wipe-up .95s cubic-bezier(.16,.84,.3,1) backwards;
+  animation:head-in .4s cubic-bezier(.16,.84,.3,1) both;
 }
-h1 > span:first-child{animation-delay:.08s}
-h1 .alt{position:relative; z-index:0; animation-delay:.3s}
-@keyframes wipe-up{
-  from{opacity:0; transform:translateY(.42em); clip-path:inset(0 -6% 102% -6%)}
-  to  {opacity:1; transform:translateY(0);     clip-path:inset(-30% -6% -30% -6%)}
+h1 > span:first-child{animation-delay:0s}
+h1 .alt{position:relative; z-index:0; animation-delay:.05s}
+@keyframes head-in{
+  from{transform:translateY(.1em)}
+  to  {transform:translateY(0)}
 }
 
 /* ------------------------- the running light -------------------------
-   A bar of light travels THROUGH the letters, left to right, from the Y of
-   "Your" to the g of "breathing". The page behind them never changes colour:
-   the gradient is painted on the heading and then clipped to the shape of
-   its own text, so only the strokes light up.
+   A gold bar travels through the letters, left to right, for ever.
 
-   All of it sits inside @supports, because the trick needs the letters
-   themselves to be transparent. Where a background cannot be clipped to
-   text, transparent letters are invisible letters, and a blank headline has
-   shipped from this file once already. */
-@supports ((-webkit-background-clip:text) or (background-clip:text)){
-  h1{
-    /* `background-clip:text` paints the background box and then cuts it to
-       the glyphs, so anything the glyphs reach outside that box simply never
-       gets painted. With line-height 1.06 the descender of the g in
-       "breathing" hangs about 5px below it and was being sliced off. The
-       padding gives the box room; the negative margins give the space back
-       to the layout, so nothing moves. */
-    padding:.1em .03em .2em;
-    margin:-.1em -.03em calc(18px - .2em);
+   This is NOT done with background-clip:text any more. That worked on paper
+   -- computed styles all correct, gradient in place, opacity 1 -- and the
+   heading still rendered as nothing at all, because a background clipped to
+   text does not reliably repaint while its background-position animates.
+   Three rounds of "the text keeps disappearing" were that bug.
 
-    /* The brand yellow measures 1.56:1 against white. Letters filled with it
-       do not read as lit, they read as gone -- which is what "the text keeps
-       disappearing" was. This gold holds 3.3:1 at the brightest point, so the
-       words stay legible the whole way across. */
-    background-image:linear-gradient(100deg,
-      var(--ink) 0%,  var(--ink) 45.2%,
-      #7A5600 46.6%, #A87400 48.4%, #B8860B 50%, #A87400 51.6%, #7A5600 53.4%,
-      var(--ink) 54.8%, var(--ink) 100%);
-    background-size:300% 100%;
-    background-repeat:no-repeat;
-    -webkit-background-clip:text;
-    background-clip:text;
-    -webkit-text-fill-color:transparent;
-    animation:led-run 5s linear 1.4s infinite;
-  }
-  /* The gradient belongs to the h1 box, so both lines are lit by one bar
-     crossing the whole heading rather than two bars crossing two lines. */
-  h1 > span{-webkit-text-fill-color:inherit}
+   So the words are now ordinary black text that is always painted and never
+   animated, and a second copy in gold sits exactly on top of them, revealed
+   only inside a sliding window. Clipping a normal element repaints reliably.
+   If the overlay never animates, or its copy fails to load, what is left is
+   the headline in plain ink. */
+.h1wrap{position:relative}
+.h1wrap h1{margin-bottom:0}
+.h1wrap > .lit{
+  position:absolute; inset:0; margin:0;
+  color:#B8860B;                 /* 3.3:1 on white; the words stay readable */
+  pointer-events:none; user-select:none;
+  /* band fully off to the left, then fully off to the right */
+  clip-path:inset(-20% 100% -20% -26%);
+  animation:bar-slide 5s linear .6s infinite;
+}
+@keyframes bar-slide{
+  from{clip-path:inset(-20% 100% -20% -26%)}
+  to  {clip-path:inset(-20% -26% -20% 100%)}
 }
 
-/* The bar travels LEFT to RIGHT. With a background wider than its box, a
-   larger background-position pulls the image left, so the percentages run
-   downward to move the light the way a person reads.
- 
-   The range is 100% to 0% and must stay inside it. A 300% background only
-   covers the heading between those two positions; past either end part of
-   the heading has no background at all, and with a transparent fill no
-   background means no letters. Running 150% to -150% is what made the
-   headline blink out and come back on every pass. */
-@keyframes led-run{
-  from{background-position:100% 0}
-  to  {background-position:0% 0}
-}
-
-/* Asked for less motion: no travelling light, the heading simply in ink. */
+/* Asked for less motion: no travelling bar at all, just the heading in ink. */
 @media (prefers-reduced-motion: reduce){
-  h1{
-    background-image:none !important;
-    -webkit-text-fill-color:var(--ink) !important;
-    color:var(--ink) !important;
-  }
+  .h1wrap > .lit{display:none}
 }
 
 /* the lines around the headline follow it in */
@@ -198,10 +175,10 @@ h1 .alt{position:relative; z-index:0; animation-delay:.3s}
 .sticky .btn-primary{animation:cta-glow 3.6s ease-in-out 1.5s infinite}
 
 .kicker{animation-delay:0s}
-.hero p.sub{animation-delay:.34s}
-.hero-proof{animation-delay:.44s}
-.hero .badges{animation-delay:.52s}
-.hero > .wrap > .btn{animation-delay:.6s}
+.hero p.sub{animation-delay:.16s}
+.hero-proof{animation-delay:.24s}
+.hero .badges{animation-delay:.3s}
+.hero > .wrap > .btn{animation-delay:.34s}
 .hero p.sub{margin:0 0 26px; color:var(--muted); font-size:17px; max-width:36ch}
 .badges{display:flex; flex-wrap:wrap; gap:8px 18px; margin:22px 0 0; padding:0; list-style:none}
 .badges li{display:flex; align-items:center; gap:7px; font-size:13.5px; color:var(--ink-2); font-weight:500}

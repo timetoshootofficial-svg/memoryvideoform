@@ -199,35 +199,6 @@ test('a length is spelled the same way in its label and its short form', () => {
   }
 });
 
-test('the headline light runs inside the letters, not over the page', () => {
-  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  const block = css.slice(css.indexOf('@supports ((-webkit-background-clip:text)'),
-                          css.indexOf('@keyframes led-run'));
-  assert.ok(/-webkit-background-clip:text/.test(block) && /background-clip:text/.test(block),
-    'the gradient must be clipped to the text');
-  assert.ok(!/mix-blend-mode/.test(block),
-    'blending would tint the white page; the light belongs in the strokes');
-
-  /* Transparent letters are invisible letters where the clip is unsupported,
-     so every line of it must live inside the @supports block. */
-  assert.ok(/text-fill-color:transparent/.test(block), 'the fill must be transparent inside @supports');
-  const outside = css.replace(block, '');
-  assert.ok(!/text-fill-color:transparent/.test(outside),
-    'a transparent fill outside @supports would blank the headline');
-
-  const kf = css.slice(css.indexOf('@keyframes led-run'));
-  const from = Number(/from\{background-position:(-?\d+)%/.exec(kf)?.[1]);
-  const to = Number(/to  \{background-position:(-?\d+)%/.exec(kf)?.[1]);
-  assert.ok(from > to, `the light must run left to right (from ${from}% to ${to}%)`);
-});
-
-test('reduced motion leaves the headline readable in plain ink', () => {
-  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  const quiet = css.slice(css.lastIndexOf('@media (prefers-reduced-motion: reduce)'));
-  assert.ok(/text-fill-color:var\(--ink\) !important/.test(quiet),
-    'with the animation off the letters must be given their colour back');
-});
-
 test('the underline under the second line is gone', () => {
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
   assert.ok(!/h1 \.alt::after/.test(css), 'the yellow underline should be removed');
@@ -266,65 +237,64 @@ function contrastOnWhite(hex: string): number {
   return 1.05 / (L + 0.05);
 }
 
-test('every colour the light passes through stays readable on white', () => {
-  /* The brand yellow is 1.56:1 against white. A letter filled with it does
-     not look lit, it looks missing -- which is how this first shipped. */
+test('the headline is visible from the first frame and then stays put', () => {
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  const grad = css.slice(css.indexOf('background-image:linear-gradient(100deg'),
-                         css.indexOf('background-size:300%'));
-  const colours = [...grad.matchAll(/#([0-9A-Fa-f]{6})/g)].map((m) => '#' + m[1]);
-  assert.ok(colours.length >= 3, 'expected several stops in the sweep gradient');
-  for (const c of colours) {
-    const ratio = contrastOnWhite(c);
-    assert.ok(ratio >= 3,
-      `${c} is ${ratio.toFixed(2)}:1 on white — the words vanish as the light crosses them`);
-  }
+  const entrance = css.slice(css.indexOf('h1 > span{'), css.indexOf('@keyframes head-in'));
+  const keyframes = css.slice(css.indexOf('@keyframes head-in'),
+                              css.indexOf('}', css.indexOf('to  {transform')) + 2);
+
+  /* Nothing in the headline's entrance may touch opacity or clip the glyphs:
+     either one means the words are absent while it plays, and the page reads
+     as slow to open. It may only move them. */
+  assert.ok(!/opacity/.test(keyframes), 'the headline must never animate from invisible');
+  assert.ok(!/clip-path/.test(keyframes), 'clipping the glyphs hides them just as surely');
+
+  const delays = [...entrance.matchAll(/animation-delay:([\d.]+)s/g)].map((m) => Number(m[1]));
+  for (const d of delays)
+    assert.ok(d <= 0.1, `an entrance delay of ${d}s keeps the headline waiting`);
+
+  assert.ok(!/infinite/.test(entrance), 'the words must not re-animate; only the light repeats');
 });
 
-test('the heading has room to paint its descenders', () => {
-  /* background-clip:text cuts the background box to the glyphs, so a glyph
-     that reaches outside that box is simply not painted. The g in
-     "breathing" was losing its tail. */
+test('the headline itself is never animated, clipped or faded', () => {
+  /* background-clip:text looked right in every computed style and still
+     rendered nothing, because a background clipped to text does not reliably
+     repaint while its position animates. The words are now plain text and
+     only a second copy moves. This test is the scar. */
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  const block = css.slice(css.indexOf('@supports ((-webkit-background-clip:text)'),
-                          css.indexOf('@keyframes led-run'));
-  const pad = /padding:([^;]+);/.exec(block)?.[1] ?? '';
-  const bottom = Number(/([\d.]+)em\s*;?\s*$/.exec(pad.trim())?.[1] ?? 0);
-  assert.ok(bottom >= 0.15, `padding-bottom is ${bottom}em; a descender needs about .2em`);
-  assert.ok(/margin:-[\d.]+em/.test(block),
-    'the padding must be given back as negative margin, or the layout shifts');
+  const hero = readFileSync(new URL('../components/Hero.tsx', import.meta.url), 'utf8');
+
+  /* The comment above the rule explains why this was abandoned, so only
+     real declarations are checked. */
+  const rules = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/background-clip:\s*text/.test(rules),
+    'the heading must not depend on clipping a background to text');
+  assert.ok(!/text-fill-color:\s*transparent/.test(rules),
+    'transparent letters are invisible letters when anything goes wrong');
+
+  const lit = css.slice(css.indexOf('.h1wrap > .lit{'), css.indexOf('@keyframes bar-slide'));
+  assert.ok(/position:absolute/.test(lit), 'the moving copy must be an overlay');
+  assert.ok(/pointer-events:none/.test(lit), 'the overlay must not catch taps');
+
+  /* Only the overlay carries the animation. */
+  const kf = css.slice(css.indexOf('@keyframes bar-slide'));
+  assert.ok(/clip-path:inset/.test(kf), 'the bar is a sliding window, not a repaint of the text');
+  assert.ok(hero.includes('aria-hidden="true"'), 'the duplicate must not be read out twice');
 });
 
-test('the headline always has a background, so the letters never blink out', () => {
-  /* With background-clip:text and a transparent fill, the letters ARE the
-     background. A 300% background only covers its box while the position
-     stays between 100% and 0%; outside that the heading is bare and the
-     words vanish. Running 150% to -150% is what made it flash on and off. */
+test('reduced motion leaves the headline in plain ink', () => {
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  const block = css.slice(css.indexOf('@supports ((-webkit-background-clip:text)'),
-                          css.indexOf('@keyframes led-run'));
-  const size = Number(/background-size:(\d+)%/.exec(block)?.[1]);
-  assert.ok(size > 100, 'the gradient must be wider than the heading');
-
-  const kf = css.slice(css.indexOf('@keyframes led-run'));
-  const from = Number(/from\{background-position:(-?[\d.]+)%/.exec(kf)?.[1]);
-  const to = Number(/to  \{background-position:(-?[\d.]+)%/.exec(kf)?.[1]);
-
-  /** Does the gradient still cover the whole box at this position? */
-  const covers = (p: number) => {
-    const left = -((size - 100) / 100) * (p / 100);   // in box widths
-    return left <= 0 && left + size / 100 >= 1;
-  };
-  for (const p of [from, to, (from + to) / 2])
-    assert.ok(covers(p), `at background-position ${p}% the heading is partly bare`);
-  assert.ok(from > to, `the light must run left to right (from ${from}% to ${to}%)`);
+  const quiet = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce){\n  .h1wrap"));
+  assert.ok(/\.h1wrap > \.lit\{display:none\}/.test(quiet),
+    'with motion off the gold copy should simply not be there');
 });
 
-test('the headline arrives once and then stays put', () => {
+test('the gold overlay stays readable on white', () => {
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  const entrance = css.slice(css.indexOf('h1 > span{'), css.indexOf('@keyframes wipe-up'));
-  assert.ok(/animation:wipe-up [^;]*backwards/.test(entrance),
-    'the entrance must fill backwards so the text is there before it runs');
-  assert.ok(!/infinite/.test(entrance),
-    'the words must not re-animate; only the light repeats');
+  const lit = css.slice(css.indexOf('.h1wrap > .lit{'), css.indexOf('@keyframes bar-slide'));
+  const hex = /color:(#[0-9A-Fa-f]{6})/.exec(lit)?.[1];
+  assert.ok(hex, 'the overlay needs an explicit colour');
+  const ratio = contrastOnWhite(hex);
+  assert.ok(ratio >= 3,
+    `${hex} is ${ratio.toFixed(2)}:1 on white — the words would vanish as the bar crosses`);
 });

@@ -13,9 +13,20 @@ export default function Hero({ t, lang, clients }: {
     <section className="hero">
       <div className="wrap">
         <span className="kicker">{t('hero_tagline')}</span>
-        <h1 className="display">
-          <span>{t('hero_h1_1')}</span> <span className="alt">{t('hero_h1_2')}</span>
-        </h1>
+        {/* Two copies on purpose. The first is the heading: ordinary black
+            text, always painted, never animated. The second is the gold one,
+            laid exactly over it and shown only through a sliding window, so
+            the light appears to travel through the letters. If the animation
+            never runs, the second copy simply stays hidden off to one side
+            and the heading is there in plain ink. */}
+        <div className="h1wrap">
+          <h1 className="display">
+            <span>{t('hero_h1_1')}</span> <span className="alt">{t('hero_h1_2')}</span>
+          </h1>
+          <h1 className="display lit" aria-hidden="true">
+            <span>{t('hero_h1_1')}</span> <span className="alt">{t('hero_h1_2')}</span>
+          </h1>
+        </div>
         <p className="sub">{t('hero_sub')}</p>
         <Stats lang={lang} clients={clients} />
         <a className="btn btn-primary" href="#book">{t('start_cta')}</a>
