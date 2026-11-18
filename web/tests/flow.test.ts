@@ -305,3 +305,38 @@ test('the gold overlay stays readable on white', () => {
   assert.ok(ratio >= 3,
     `${hex} is ${ratio.toFixed(2)}:1 on white — the words would vanish as the bar crosses`);
 });
+
+test('the heading box lives on the wrapper, so both copies cannot drift apart', () => {
+  /* The gold copy is absolutely positioned and fills the wrapper. If an h1
+     rule sets a width or a horizontal margin, the copy in flow honours it and
+     the overlay does not, and the two slide apart -- which is exactly what
+     happened the moment a breakpoint centred the heading with max-width and
+     margin:auto. The box belongs to .h1wrap and only to .h1wrap. */
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const rules = css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  const offenders: string[] = [];
+  const re = /(^|[},])\s*([^{}@]*\bh1\b[^{}]*)\{([^}]*)\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(rules))) {
+    const selector = m[2].trim();
+    if (/h1wrap/.test(selector)) continue;             // the wrapper's own rules are fine
+    const body = m[3];
+    if (/max-width|margin-left|margin-right|margin:[^;]*auto/.test(body))
+      offenders.push(`${selector} { ${body.trim()} }`);
+  }
+  assert.deepEqual(offenders, [],
+    'these h1 rules set a box the absolutely positioned copy cannot follow');
+});
+
+test('a measure in ch is read in the font it is written for', () => {
+  /* `ch` is the width of a zero in the element's own font. Moving max-width
+     from the heading to the wrapper silently read it at body size and broke
+     the headline onto five lines. */
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  const wrap = /\.h1wrap\{([^}]*max-width:[^}]*)\}/.exec(css)?.[1];
+  if (!wrap) return;                                    // no ch measure, nothing to check
+  if (!/max-width:[\d.]+ch/.test(wrap)) return;
+  assert.ok(/font-size:/.test(wrap) && /font-family:/.test(wrap),
+    'a ch measure on the wrapper needs the heading’s own font metrics beside it');
+});
