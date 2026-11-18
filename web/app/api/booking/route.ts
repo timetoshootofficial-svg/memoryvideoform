@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createBooking } from '@/lib/supabase';
+import { createLead } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
    Keeping one set of rules in one place is why the two can never disagree. */
 const FIELDS = [
   'name', 'phone', 'consent', 'occasion', 'eventDate', 'filmLength',
-  'deliveryDate', 'slotTime', 'follower', 'honeypot', 'language',
+  'follower', 'honeypot', 'language',
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_content',
   'ad_id', 'fbclid', 'referrer', 'notes',
 ] as const;
@@ -26,6 +26,6 @@ export async function POST(req: Request) {
     if (body[f] !== undefined && body[f] !== null) payload[f] = String(body[f]).slice(0, 300);
   }
 
-  const result = await createBooking(payload);
+  const result = await createLead(payload);
   return NextResponse.json(result, { status: 'ok' in result && result.ok ? 200 : 200 });
 }

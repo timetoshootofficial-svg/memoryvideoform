@@ -35,7 +35,7 @@ export default async function Page() {
         <div className="strip" aria-hidden="true" />
         <WorkMarquee lang={lang} />
         <Process t={t} deliveryText={String(c.delivery_text)} />
-        <BookingForm config={c} availability={data.availability} lang={lang} />
+        <BookingForm config={c} lang={lang} />
         <Reviews lang={lang} />
         <Faq t={t} deliveryText={String(c.delivery_text)} revisionsText={String(c.revisions_text ?? '')} />
       </main>

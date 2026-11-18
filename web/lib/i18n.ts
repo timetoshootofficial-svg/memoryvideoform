@@ -11,8 +11,8 @@ const STRINGS = {
   en: {
     /* ---- chrome ---- */
     brand: 'TIMETOSHOOT',
-    nav_cta: 'Check availability',
-    sticky_cta: 'Check availability and book',
+    nav_cta: 'Book now',
+    sticky_cta: 'Book now',
     lang_label: 'Language',
 
     /* ---- hero ---- */
@@ -21,7 +21,7 @@ const STRINGS = {
     hero_h1_2: 'still breathing.',
     hero_sub: 'Send us your photos. We turn them into a short film your family will watch again and again.',
     hero_badge: '{count} families trusted us',
-    hero_point_1: 'Real dates',
+    hero_point_1: 'Reply the same day',
     hero_point_2: 'Price upfront',
     hero_point_3: 'No call needed',
 
@@ -49,11 +49,11 @@ const STRINGS = {
 
     /* ---- form shell ---- */
     form_title: 'Book your film',
-    form_sub: 'About a minute. You see the price and the free dates before anything is confirmed.',
+    form_sub: 'Under a minute. You see the price before you send anything.',
     step_of: 'Step {n} of {total}',
     back: 'Back',
     next: 'Continue',
-    start_cta: 'Check availability and book',
+    start_cta: 'Book now',
 
     /* ---- step 1 ---- */
     s1_title: 'Who is this film for?',
@@ -88,7 +88,7 @@ const STRINGS = {
 
     /* ---- step 3 ---- */
     s3_title: 'How long should it be?',
-    s3_sub: 'Longer films hold more moments.',
+    s3_sub: 'Longer films hold more moments. This is the full price.',
     len_30s: '30 seconds',
     len_1m: '1 minute',
     len_2m: '2 minutes',
@@ -112,9 +112,9 @@ const STRINGS = {
     s4_sub_event: 'Choose a day before {date}, then a time. Highlighted days are the sweet spot.',
     time_title: 'Times on {date}',
     time_taken: 'Taken',
-    mini_sum: '{length} · {date}, {time}',
-    reserve_cta: 'Reserve my slot',
-    reserve_note: 'We hold it for {hours} hours. Nothing is confirmed until we talk on WhatsApp.',
+    mini_sum: '{length} · {occasion}',
+    reserve_cta: 'Book now',
+    reserve_note: 'No payment now. We agree the date with you on WhatsApp.',
     err_pick_time: 'Please pick a time.',
     legend_available: 'Free',
     legend_best: 'Best',
@@ -133,13 +133,13 @@ const STRINGS = {
 
     /* ---- step 5 ---- */
     submitting: 'Reserving your slot…',
-    privacy_inline: 'Your name and number are used only to contact you about this booking.',
+    privacy_inline: 'Your name and number are used only to contact you about this film.',
 
     /* ---- result ---- */
-    success_title: 'Slot reserved',
-    success_body: 'Your reference is {id}. Send us the message and we will confirm the final date with you.',
-    success_note: 'We hold this slot for {hours} hours.',
-    open_whatsapp: 'Continue on WhatsApp',
+    success_title: 'Almost done',
+    success_body: 'Your reference is {id}. One more step: send us the message on WhatsApp and we will take it from there.',
+    success_note: 'We reply the same day. Nothing is confirmed until we talk.',
+    open_whatsapp: 'Book your slot on WhatsApp',
     err_slot_taken: 'That slot was just taken. Please pick another time.',
     err_rate_limit: 'You have reached today’s booking limit. Please message us on WhatsApp.',
     err_duplicate: 'You already have this booking. We will confirm on WhatsApp.',
@@ -147,7 +147,7 @@ const STRINGS = {
     err_offline: 'You look offline. Please check your connection and try again.',
 
     /* ---- whatsapp message ---- */
-    wa_message: 'Hi Timetoshoot! I’m {name}. I’ve reserved a slot for {date} at {time} — a {length} film for {occasion}. Reference {id}, total ₹{amount}. Please share the further details.',
+    wa_message: 'Hi Timetoshoot! I am {name}. I would like to book a {length} film for {occasion}. Reference {id}, total \u20b9{amount}. Please tell me the next step.',
     wa_rush: 'Hi Timetoshoot! I’m {name}. I need a {length} film delivered before {date}. Is a rush option possible?',
     wa_plain: 'Hi Timetoshoot! I would like to know more about a memory film.',
 
@@ -183,8 +183,8 @@ const STRINGS = {
 
   ta: {
     brand: 'TIMETOSHOOT',
-    nav_cta: 'தேதி பார்க்க',
-    sticky_cta: 'தேதி பார்த்து புக் செய்யுங்கள்',
+    nav_cta: 'இப்போதே புக் செய்யுங்கள்',
+    sticky_cta: 'இப்போதே புக் செய்யுங்கள்',
     lang_label: 'மொழி',
 
     hero_tagline: 'நினைவுகள் மறையும். நாங்கள் அவற்றை மீண்டும் உயிர்ப்பிக்கிறோம்.',
@@ -192,7 +192,7 @@ const STRINGS = {
     hero_h1_2: 'இன்னும் மூச்சு விடுகின்றன.',
     hero_sub: 'உங்கள் புகைப்படங்களை அனுப்புங்கள். உங்கள் குடும்பம் மீண்டும் மீண்டும் பார்க்கும் ஒரு சிறிய படமாக மாற்றுகிறோம்.',
     hero_badge: '{count} குடும்பங்கள் நம்பினார்கள்',
-    hero_point_1: 'உண்மையான தேதிகள்',
+    hero_point_1: 'அதே நாளில் பதில்',
     hero_point_2: 'விலை முன்பே',
     hero_point_3: 'அழைப்பு தேவையில்லை',
 
@@ -216,11 +216,11 @@ const STRINGS = {
 
 
     form_title: 'உங்கள் படத்தை புக் செய்யுங்கள்',
-    form_sub: 'ஒரு நிமிடம். உறுதி செய்யும் முன்பே விலையும் காலி தேதிகளும் தெரியும்.',
+    form_sub: 'ஒரு நிமிடத்திற்கும் குறைவு. அனுப்பும் முன்பே விலை தெரியும்.',
     step_of: 'படி {n} / {total}',
     back: 'பின்னால்',
     next: 'தொடரவும்',
-    start_cta: 'தேதி பார்த்து புக் செய்யுங்கள்',
+    start_cta: 'இப்போதே புக் செய்யுங்கள்',
 
     s1_title: 'இந்த படம் யாருக்காக?',
     s1_sub: 'தொடங்க இரண்டு விவரங்கள்.',
@@ -252,7 +252,7 @@ const STRINGS = {
     skip_date: 'தேவையில்லை',
 
     s3_title: 'எவ்வளவு நீளம் வேண்டும்?',
-    s3_sub: 'நீளமான படங்களில் அதிக தருணங்கள் இடம்பெறும்.',
+    s3_sub: 'நீளமான படங்களில் அதிக தருணங்கள் இடம்பெறும். இதுவே முழு விலை.',
     len_30s: '30 வினாடி',
     len_1m: '1 நிமிடம்',
     len_2m: '2 நிமிடம்',
@@ -274,9 +274,9 @@ const STRINGS = {
     s4_sub: 'முதலில் நாள், பிறகு நேரம் தேர்வு செய்யுங்கள். இவை இன்னும் காலியாக உள்ள இடங்கள்.',
     time_title: '{date} அன்று உள்ள நேரங்கள்',
     time_taken: 'பிடிபட்டது',
-    mini_sum: '{length} · {date}, {time}',
-    reserve_cta: 'எனது இடத்தை பிடிக்கவும்',
-    reserve_note: '{hours} மணி நேரம் பிடித்து வைக்கிறோம். வாட்ஸ்அப்பில் பேசும் வரை எதுவும் உறுதியாகாது.',
+    mini_sum: '{length} · {occasion}',
+    reserve_cta: 'இப்போதே புக் செய்யுங்கள்',
+    reserve_note: 'இப்போது பணம் இல்லை. வாட்ஸ்அப்பில் பேசி தேதியை முடிவு செய்வோம்.',
     err_pick_time: 'ஒரு நேரத்தை தேர்வு செய்யுங்கள்.',
     s4_sub_event: '{date}-க்கு முன் ஒரு நாளையும் நேரத்தையும் தேர்வு செய்யுங்கள். குறிக்கப்பட்ட நாட்கள் சிறந்தவை.',
     legend_available: 'காலி',
@@ -295,19 +295,19 @@ const STRINGS = {
     load_failed: 'தேதிகளை ஏற்ற முடியவில்லை. உங்கள் இணைப்பை சரிபார்க்கவும்.',
 
     submitting: 'உங்கள் இடத்தை பிடிக்கிறோம்…',
-    privacy_inline: 'உங்கள் பெயரும் எண்ணும் இந்த புக்கிங் தொடர்பாக மட்டுமே பயன்படுத்தப்படும்.',
+    privacy_inline: 'உங்கள் பெயரும் எண்ணும் இந்த படம் தொடர்பாக மட்டுமே பயன்படுத்தப்படும்.',
 
-    success_title: 'இடம் பிடிக்கப்பட்டது',
-    success_body: 'உங்கள் குறிப்பு எண் {id}. செய்தியை அனுப்புங்கள், இறுதி தேதியை உறுதி செய்வோம்.',
-    success_note: '{hours} மணி நேரம் இந்த இடம் பிடித்து வைக்கப்படும்.',
-    open_whatsapp: 'வாட்ஸ்அப்பில் தொடரவும்',
+    success_title: 'கிட்டத்தட்ட முடிந்தது',
+    success_body: 'உங்கள் குறிப்பு எண் {id}. இன்னொரு படி மட்டும்: வாட்ஸ்அப்பில் செய்தியை அனுப்புங்கள், மீதியை நாங்கள் பார்த்துக்கொள்கிறோம்.',
+    success_note: 'அதே நாளில் பதில் சொல்வோம். பேசும் வரை எதுவும் உறுதியாகாது.',
+    open_whatsapp: 'வாட்ஸ்அப்பில் ஸ்லாட் புக் செய்யுங்கள்',
     err_slot_taken: 'அந்த இடம் இப்போதே பிடிக்கப்பட்டது. வேறு நேரத்தை தேர்வு செய்யுங்கள்.',
     err_rate_limit: 'இன்றைய புக்கிங் வரம்பை எட்டிவிட்டீர்கள். வாட்ஸ்அப்பில் செய்தி அனுப்புங்கள்.',
     err_duplicate: 'இந்த புக்கிங் ஏற்கனவே உள்ளது. வாட்ஸ்அப்பில் உறுதி செய்வோம்.',
     err_generic: 'ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும் அல்லது வாட்ஸ்அப்பில் செய்தி அனுப்பவும்.',
     err_offline: 'இணையம் இல்லை எனத் தெரிகிறது. இணைப்பை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
 
-    wa_message: 'வணக்கம் Timetoshoot! நான் {name}. {date} அன்று {time} நேரத்திற்கு ஒரு இடத்தை பிடித்துள்ளேன் — {occasion} க்கான {length} படம். குறிப்பு {id}, மொத்தம் ₹{amount}. மேல் விவரங்களை பகிரவும்.',
+    wa_message: 'வணக்கம் Timetoshoot! நான் {name}. ஒரு {length} நினைவு படம் புக் செய்ய விரும்புகிறேன். நிகழ்வு: {occasion}. குறிப்பு {id}, மொத்தம் ₹{amount}. அடுத்த படி என்ன என்று சொல்லுங்கள்.',
     wa_rush: 'வணக்கம் Timetoshoot! நான் {name}. {date}-க்கு முன் {length} படம் தேவை. அவசர வசதி சாத்தியமா?',
     wa_plain: 'வணக்கம் Timetoshoot! நினைவு படம் பற்றி தெரிந்து கொள்ள விரும்புகிறேன்.',
 

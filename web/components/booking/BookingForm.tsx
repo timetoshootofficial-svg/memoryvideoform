@@ -1,10 +1,9 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { AvailabilityDay, SiteConfig, BookingSuccess, FilmLength } from '@/lib/types';
+import type { SiteConfig, BookingSuccess, FilmLength } from '@/lib/types';
 import { makeT, type Lang, type StringKey } from '@/lib/i18n';
 import * as L from '@/lib/logic';
-import { fmtDate, inr, waUrl } from '@/lib/format';
-import Calendar from './Calendar';
+import { inr, waUrl } from '@/lib/format';
 import { useFunnel } from './useFunnel';
 
 const OCCASIONS = [
@@ -23,25 +22,29 @@ const ICONS: Record<string, React.ReactNode> = {
   clap:   <path d="M3 9l18-4M3 9l2 11h14l2-11H3zM8 5.8l1 3.2M13 4.7l1 3.2" />,
 };
 
-const RESULT_STEP = 5;
+const LAST_STEP = 3;
+const RESULT_STEP = 4;
 
 interface Data {
   name: string; phone: string; consent: boolean;
   occasion: string; eventDate: string;
-  filmLength: string; deliveryDate: string; slotTime: string; follower: boolean;
+  filmLength: string; follower: boolean;
 }
 
-export default function BookingForm({ config, availability: initialAvailability, lang }: {
-  config: SiteConfig;
-  availability: AvailabilityDay[];
-  lang: Lang;
-}) {
-  /* `t` is built here rather than handed down: a server component cannot pass
-     a function across the boundary into a client component. */
+/**
+ * Three steps, then WhatsApp.
+ *
+ * There used to be a fourth: a calendar where people picked a delivery date
+ * and an hour, and the slot was held for them. Two thirds of everyone who got
+ * that far left without finishing. Nobody buying a film for their parents'
+ * anniversary knows which Tuesday they want it, and being asked made them
+ * stop. The real date is settled in the conversation, so the form no longer
+ * pretends to settle it.
+ */
+export default function BookingForm({ config, lang }: { config: SiteConfig; lang: Lang }) {
   const t = makeT(lang);
   const lengths = useMemo(() => L.availableLengths(config), [config]);
 
-  const [availability, setAvailability] = useState(initialAvailability);
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<Record<number, string>>({});
@@ -52,44 +55,25 @@ export default function BookingForm({ config, availability: initialAvailability,
     filmLength: lengths.includes(config.most_chosen_package as FilmLength)
       ? config.most_chosen_package
       : (lengths[1] ?? lengths[0] ?? ''),
-    deliveryDate: '', slotTime: '', follower: false,
+    follower: false,
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
   const hpRef = useRef<HTMLInputElement>(null);
+  const started = useRef(false);
   const { track, flush, utm } = useFunnel(lang);
 
-  const started = useRef(false);
   const set = (patch: Partial<Data>) => setData((d) => ({ ...d, ...patch }));
+  const today = config.today;
+  const price = L.calcPrice(config, data.filmLength, data.follower);
 
-  /* The funnel chart counts form_start, so it has to be fired the first time
-     someone actually types something, not when the section scrolls into view. */
+  /* The funnel chart counts form_start, so it fires the first time someone
+     actually types, not when the section scrolls into view. */
   const markStarted = () => {
     if (started.current) return;
     started.current = true;
     track('form_start', 1);
   };
-  const today = config.today;
-  const units = L.unitsFor(config, data.filmLength);
-  const price = L.calcPrice(config, data.filmLength, data.follower);
-
-  /* The calendar is derived, never stored: change the length and the days
-     that no longer fit stop being selectable in the same render. */
-  const cal = useMemo(() => L.buildCalendar(availability, {
-    today, minLeadDays: config.min_lead_days, bookingWindowDays: config.booking_window_days,
-    eventDate: data.eventDate, units,
-  }), [availability, today, config.min_lead_days, config.booking_window_days, data.eventDate, units]);
-
-  /* ...so a selection that has become invalid has to be dropped. */
-  useEffect(() => {
-    if (!data.deliveryDate) return;
-    const day = cal.find((d) => d.date === data.deliveryDate && d.selectable);
-    if (!day) { set({ deliveryDate: '', slotTime: '' }); return; }
-    if (data.slotTime && day.times && !day.times.some((x) => x.time === data.slotTime && !x.taken)) {
-      set({ slotTime: '' });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cal]);
 
   const goStep = (n: number, skipTrack = false) => {
     setStep(n);
@@ -112,29 +96,25 @@ export default function BookingForm({ config, availability: initialAvailability,
       if (!OCCASIONS.some((o) => o.v === data.occasion)) return fail(2, t('err_occasion'));
       if (data.eventDate && data.eventDate <= today) return fail(2, t('err_event_past'));
     }
-    if (n === 4) {
-      if (!data.deliveryDate) return fail(4, t('err_pick_date'));
-      if (!data.slotTime) return fail(4, t('err_pick_time'));
-    }
     setErr({});
     return true;
   }
 
   const next = (from: number) => { if (validate(from)) goStep(from + 1); };
 
-  async function refreshAvailability() {
-    try {
-      const r = await fetch('/api/availability', { cache: 'no-store' });
-      const j = await r.json();
-      if (j && Array.isArray(j.availability)) setAvailability(j.availability);
-    } catch { /* keep what we have */ }
-  }
+  const lenLabel = (code: string) => t(`len_${code}` as StringKey);
+  const lenShort = (code: string) => t(`len_${code}_short` as StringKey);
+  const occName = (v: string) => {
+    const o = OCCASIONS.find((x) => x.v === v);
+    return o ? t(o.k) : '—';
+  };
+  const isTribute = data.occasion === 'Tribute to loved ones';
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
-    if (!validate(1) || !validate(2)) { goStep(1); return; }
-    if (!validate(4)) return;
+    if (!validate(1)) { goStep(1); return; }
+    if (!validate(2)) { goStep(2); return; }
 
     setBusy(true);
     setErr({});
@@ -145,8 +125,7 @@ export default function BookingForm({ config, availability: initialAvailability,
         body: JSON.stringify({
           name: data.name, phone: data.phone, consent: 'true',
           occasion: data.occasion, eventDate: data.eventDate,
-          filmLength: data.filmLength, deliveryDate: data.deliveryDate,
-          slotTime: data.slotTime, follower: String(data.follower),
+          filmLength: data.filmLength, follower: String(data.follower),
           honeypot: hpRef.current?.value ?? '', language: lang,
           utm_source: utm.current.utm_source ?? '', utm_medium: utm.current.utm_medium ?? '',
           utm_campaign: utm.current.utm_campaign ?? '', utm_content: utm.current.utm_content ?? '',
@@ -158,60 +137,37 @@ export default function BookingForm({ config, availability: initialAvailability,
 
       if (!j?.ok) {
         const code = j?.code ?? '';
-        if (code === 'SLOT_TAKEN' || code === 'BAD_TIME') {
-          track('slot_taken', 4);
-          set({ slotTime: '' });
-          await refreshAvailability();
-          return fail(4, t('err_slot_taken'));
-        }
-        if (code === 'RATE_LIMIT') return fail(4, t('err_rate_limit'));
-        if (code === 'DUPLICATE')  return fail(4, t('err_duplicate'));
-        if (code === 'BAD_PHONE')  return fail(4, t('err_phone'));
-        if (code === 'NETWORK' || code === 'TIMEOUT') return fail(4, t('err_offline'));
-        return fail(4, j?.message || t('err_generic'));
+        if (code === 'RATE_LIMIT') return fail(LAST_STEP, t('err_rate_limit'));
+        if (code === 'BAD_PHONE')  return fail(LAST_STEP, t('err_phone'));
+        if (code === 'NETWORK' || code === 'TIMEOUT') return fail(LAST_STEP, t('err_offline'));
+        return fail(LAST_STEP, j?.message || t('err_generic'));
       }
 
       setBooking(j as BookingSuccess);
       goStep(RESULT_STEP, true);
-      track('booking_created', 4);
-      track('whatsapp_redirect', 4);
-      flush(true);
+      track('booking_created', LAST_STEP);
+      flush();
     } catch {
-      fail(4, navigator.onLine === false ? t('err_offline') : t('err_generic'));
+      fail(LAST_STEP, navigator.onLine === false ? t('err_offline') : t('err_generic'));
     } finally {
       setBusy(false);
     }
   }
 
-  const lenLabel = (code: string) => t(`len_${code}` as StringKey);
-  const lenShort = (code: string) => t(`len_${code}_short` as StringKey);
-  const occName = (v: string) => {
-    const o = OCCASIONS.find((x) => x.v === v);
-    return o ? t(o.k) : '—';
-  };
-  const isTribute = data.occasion === 'Tribute to loved ones';
-
-  const selectedDay = cal.find((d) => d.date === data.deliveryDate);
-  const times = selectedDay?.times ?? config.time_slots.map((x) => ({ time: x, taken: false }));
-
   const waHref = booking
     ? waUrl(config.whatsapp_number, t('wa_message', {
         name: data.name, id: booking.bookingId, occasion: occName(data.occasion),
-        length: lenShort(data.filmLength),
-        date: fmtDate(booking.deliveryDate || data.deliveryDate, lang),
-        time: booking.slotTime || data.slotTime, amount: inr(booking.total),
+        length: lenShort(data.filmLength), amount: inr(booking.total),
       }))
     : '#';
 
-  /* The browser is told to open WhatsApp only after the success screen has
-     painted, so a blocked redirect still leaves a button to tap. */
+  /* No automatic redirect. The thank-you screen is the confirmation that their
+     details arrived; sending them straight out would hide it, and a blocked
+     redirect would leave them on a blank page with nothing to tap. */
   useEffect(() => {
-    if (!booking || waHref === '#') return;
-    const id = setTimeout(() => { window.location.href = waHref; }, 450);
-    return () => clearTimeout(id);
-  }, [booking, waHref]);
-
-  const noneFit = step === 4 && !L.hasAnySelectable(cal);
+    if (booking) track('whatsapp_shown', RESULT_STEP);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking]);
 
   return (
     <section id="book">
@@ -221,10 +177,10 @@ export default function BookingForm({ config, availability: initialAvailability,
 
         <div className="formcard" ref={cardRef}>
           <div className="prog" aria-hidden="true">
-            <i style={{ width: `${(Math.min(step, 4) / 4) * 100}%` }} />
+            <i style={{ width: `${(Math.min(step, LAST_STEP) / LAST_STEP) * 100}%` }} />
           </div>
           <p className="prog-lbl">
-            {step <= 4 ? t('step_of', { n: step, total: 4 }) : ''}
+            {step <= LAST_STEP ? t('step_of', { n: step, total: LAST_STEP }) : ''}
           </p>
 
           <form noValidate autoComplete="on" onSubmit={submit}>
@@ -285,7 +241,6 @@ export default function BookingForm({ config, availability: initialAvailability,
                 </label>
                 <input id="f_event" type="date" value={data.eventDate} min={today}
                        onChange={(e) => { set({ eventDate: e.target.value }); track('date_selected', 2); }}
-                       /* Tapping anywhere in the field opens the picker. */
                        onFocus={(e) => { try { e.currentTarget.showPicker?.(); } catch { /* unsupported */ } }} />
                 <p className="sub">
                   {isTribute ? t('event_date_hint_tribute') : t('event_date_hint')}
@@ -298,8 +253,8 @@ export default function BookingForm({ config, availability: initialAvailability,
               </div>
             </div>
 
-            {/* ----------------------------- 3 ----------------------------- */}
-            <div className={`step${step === 3 ? ' on' : ''}`}>
+            {/* --------------------- 3 — price, then send ------------------- */}
+            <div className={`step${step === LAST_STEP ? ' on' : ''}`}>
               <h3>{t('s3_title')}</h3>
               <p className="hint">{t('s3_sub')}</p>
               <div className="stepper">
@@ -343,101 +298,22 @@ export default function BookingForm({ config, availability: initialAvailability,
                   handle: config.instagram_handle,
                 })}</span>
               </label>
-              {err[3] ? <p className="err on">{err[3]}</p> : <p className="err" />}
+
+              {err[LAST_STEP] ? <p className="err on">{err[LAST_STEP]}</p> : <p className="err" />}
+
               <div className="navrow">
                 <button type="button" className="btn btn-ghost" onClick={() => goStep(2, true)}>{t('back')}</button>
-                <button type="button" className="btn btn-primary" onClick={() => next(3)}>{t('next')}</button>
-              </div>
-            </div>
-
-            {/* ----------------------------- 4 ----------------------------- */}
-            <div className={`step${step === 4 ? ' on' : ''}`}>
-              <h3>{t('s4_title')}</h3>
-              <p className="hint">
-                {data.eventDate
-                  ? t('s4_sub_event', { date: fmtDate(data.eventDate, lang) })
-                  : t('s4_sub')}
-              </p>
-              <div className="legend">
-                <span><i className="sw av" /><span>{t('legend_available')}</span></span>
-                <span><i className="sw bs" /><span>{t('legend_best')}</span></span>
-                <span><i className="sw sel" /><span>{t('legend_selected')}</span></span>
-                <span><i className="sw fl" /><span>{t('legend_full')}</span></span>
-              </div>
-
-              <div aria-live="polite">
-                {noneFit ? (
-                  <div className="nofit">
-                    <b>{t('no_dates_title')}</b>
-                    <p>{t('no_dates_body', {
-                      date: fmtDate(data.eventDate || L.addDays(today, config.min_lead_days), lang),
-                    })}</p>
-                    <a className="btn btn-wa" style={{ width: '100%' }}
-                       href={waUrl(config.whatsapp_number, t('wa_rush', {
-                         name: data.name || '-', length: lenShort(data.filmLength),
-                         date: fmtDate(data.eventDate || L.addDays(today, config.min_lead_days), lang),
-                       }))}
-                       onClick={() => { track('rush_click', 4); flush(true); }}>
-                      {t('rush_cta')}
-                    </a>
-                  </div>
-                ) : (
-                  <Calendar cal={cal} selected={data.deliveryDate} lang={lang} t={t}
-                            onPick={(date) => {
-                              set({ deliveryDate: date, slotTime: '' });
-                              track('date_selected', 4);
-                            }} />
-                )}
-              </div>
-
-              {units > 1 ? <p className="sub muted" style={{ fontSize: 12.5 }}>{t('two_min_note')}</p> : null}
-
-              {data.deliveryDate ? (
-                <div>
-                  <h4 className="timeh">{t('time_title', { date: fmtDate(data.deliveryDate, lang) })}</h4>
-                  <div className="times" role="group">
-                    {times.map((x) => (
-                      <button type="button" key={x.time} className="tchip" disabled={x.taken}
-                              aria-pressed={x.time === data.slotTime}
-                              onClick={() => { set({ slotTime: x.time }); track('time_selected', 4); }}>
-                        <span>{x.time}</span>
-                        {x.taken ? <span className="s">{t('time_taken')}</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {data.deliveryDate && data.slotTime ? (
-                <div className="minisum">
-                  <span>{t('mini_sum', {
-                    length: lenLabel(data.filmLength),
-                    date: fmtDate(data.deliveryDate, lang),
-                    time: data.slotTime,
-                  })}</span>
-                  <span>
-                    {price.list > 0 ? <s className="was">₹{inr(price.list)}</s> : null}
-                    <b>₹{inr(price.total)}</b>
-                  </span>
-                </div>
-              ) : null}
-
-              {err[4] ? <p className="err on">{err[4]}</p> : <p className="err" />}
-
-              <div className="navrow">
-                <button type="button" className="btn btn-ghost" onClick={() => goStep(3, true)}>{t('back')}</button>
-                <button type="submit" className="btn btn-primary"
-                        disabled={busy || !data.deliveryDate || !data.slotTime}>
+                <button type="submit" className="btn btn-primary" disabled={busy}>
                   {busy ? t('submitting') : t('reserve_cta')}
                 </button>
               </div>
               <p className="sub muted" style={{ textAlign: 'center', marginTop: 11 }}>
-                {t('reserve_note', { hours: config.slot_hold_hours })}
+                {t('reserve_note')}
               </p>
               <p className="sub muted" style={{ textAlign: 'center', marginTop: 4 }}>{t('privacy_inline')}</p>
             </div>
 
-            {/* --------------------------- result -------------------------- */}
+            {/* ------------------------- thank you ------------------------- */}
             <div className={`step${step === RESULT_STEP ? ' on' : ''}`}>
               {booking ? (
                 <div className="result">
@@ -449,15 +325,15 @@ export default function BookingForm({ config, availability: initialAvailability,
                   <p>{t('success_body', { id: booking.bookingId })}</p>
                   <div className="minisum" style={{ margin: '0 0 16px' }}>
                     <span>{t('mini_sum', {
-                      length: lenLabel(data.filmLength),
-                      date: fmtDate(booking.deliveryDate || data.deliveryDate, lang),
-                      time: booking.slotTime || data.slotTime,
+                      length: lenLabel(data.filmLength), occasion: occName(data.occasion),
                     })}</span>
+                    <span><b>₹{inr(booking.total)}</b></span>
                   </div>
-                  <a className="btn btn-primary" href={waHref}>{t('open_whatsapp')}</a>
-                  <p className="sub muted" style={{ marginTop: 12 }}>
-                    {t('success_note', { hours: booking.holdHours || config.slot_hold_hours })}
-                  </p>
+                  <a className="btn btn-wa" href={waHref} style={{ width: '100%' }}
+                     onClick={() => { track('whatsapp_redirect', RESULT_STEP); flush(true); }}>
+                    {t('open_whatsapp')}
+                  </a>
+                  <p className="sub muted" style={{ marginTop: 12 }}>{t('success_note')}</p>
                 </div>
               ) : null}
             </div>
