@@ -110,19 +110,22 @@ function Campaigns({ rows }: { rows: CampaignRow[] }) {
       </p>
       <div className={s.tablewrap}>
         <table>
+          {/* Revenue sits second on purpose. It is the column this table
+              exists for, and on a phone the ones further right need a
+              sideways scroll to reach. */}
           <thead><tr>
-            <th>Campaign</th><th>Numbers</th><th>Finished</th>
-            <th>Paid</th><th>Number → paid</th><th>Revenue</th><th>Awaiting payment</th>
+            <th>Campaign</th><th>Revenue</th><th>Paid</th><th>Number → paid</th>
+            <th>Numbers</th><th>Finished</th><th>Awaiting payment</th>
           </tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.campaign}>
                 <td><b>{r.campaign}</b></td>
-                <td className={s.mono}>{r.numbers}</td>
-                <td className={s.mono}>{r.finished}</td>
+                <td className={s.mono}><b>{money(r.revenue)}</b></td>
                 <td className={s.mono}>{r.paid}</td>
                 <td className={s.mono}>{pct(r.paid, r.numbers)}</td>
-                <td className={s.mono}><b>{money(r.revenue)}</b></td>
+                <td className={s.mono}>{r.numbers}</td>
+                <td className={s.mono}>{r.finished}</td>
                 <td className={s.mono}>{r.pipeline ? money(r.pipeline) : '—'}</td>
               </tr>
             ))}
