@@ -28,7 +28,7 @@ const RESULT_STEP = 4;
 
 interface Data {
   name: string; phone: string;
-  occasion: string; eventDate: string;
+  occasion: string;
   filmLength: string; follower: boolean;
 }
 
@@ -56,7 +56,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   const [booking, setBooking] = useState<BookingSuccess | null>(null);
   const [data, setData] = useState<Data>({
     name: '', phone: '',
-    occasion: '', eventDate: '',
+    occasion: '',
     /* The CHEAPEST length, always. The advertisement quotes the lowest price,
        so anyone arriving from it must find that price here. Landing on the
        most-chosen package instead meant a visitor who clicked ₹2,999 met
@@ -91,7 +91,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: sessionId(), step,
-          name: d.name, phone: d.phone, occasion: d.occasion, eventDate: d.eventDate,
+          name: d.name, phone: d.phone, occasion: d.occasion,
           filmLength: d.filmLength, follower: String(d.follower),
           price: L.calcPrice(config, d.filmLength, d.follower).total,
           language: lang,
@@ -108,7 +108,6 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   const set = (patch: Partial<Data>) => setData((d) => ({ ...d, ...patch }));
   dataRef.current = data;
   stepRef.current = step;
-  const today = config.today;
   const price = L.calcPrice(config, data.filmLength, data.follower);
 
   /* The funnel chart counts form_start, so it fires the first time someone
@@ -137,7 +136,6 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
     }
     if (n === 2) {
       if (!OCCASIONS.some((o) => o.v === data.occasion)) return fail(2, t('err_occasion'));
-      if (data.eventDate && data.eventDate <= today) return fail(2, t('err_event_past'));
     }
     setErr({});
     return true;
@@ -196,7 +194,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
         body: JSON.stringify({
           sessionId: sessionId(),
           name: data.name, phone: data.phone, consent: 'true',
-          occasion: data.occasion, eventDate: data.eventDate,
+          occasion: data.occasion,
           filmLength: data.filmLength, follower: String(data.follower),
           honeypot: hpRef.current?.value ?? '', language: lang,
           utm_source: utm.current.utm_source ?? '', utm_medium: utm.current.utm_medium ?? '',
@@ -311,17 +309,9 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
                 ))}
               </div>
               {isTribute ? <div className="gentle">{t('tribute_note')}</div> : null}
-              <div className="field">
-                <label htmlFor="f_event">
-                  {isTribute ? t('label_event_date_tribute') : t('label_event_date')}
-                </label>
-                <input id="f_event" type="date" value={data.eventDate} min={today}
-                       onChange={(e) => { set({ eventDate: e.target.value }); track('date_selected', 2); }}
-                       onFocus={(e) => { try { e.currentTarget.showPicker?.(); } catch { /* unsupported */ } }} />
-                <p className="sub">
-                  {isTribute ? t('event_date_hint_tribute') : t('event_date_hint')}
-                </p>
-              </div>
+              {/* The date is settled on WhatsApp, where it was always really
+                  settled. Asking for it here was a field that cost a step and
+                  bought nothing the conversation does not already cover. */}
               {err[2] ? <p className="err on">{err[2]}</p> : <p className="err" />}
               <div className="navrow">
                 <button type="button" className="btn btn-ghost" onClick={() => goStep(1, true)}>{t('back')}</button>

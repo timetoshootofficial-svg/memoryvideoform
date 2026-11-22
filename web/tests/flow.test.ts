@@ -435,3 +435,20 @@ test('the hero carries the price the advertisement quotes', () => {
   assert.ok(/Math\.min\(\.\.\.priced\)/.test(page), 'the figure must be the cheapest live price');
   assert.ok(!/2,?999/.test(hero), 'the price must not be written into the component');
 });
+
+test('the form no longer asks when the occasion is', () => {
+  /* The date was settled on WhatsApp anyway. Asking for it here cost a field
+     on the step before the price and bought nothing the conversation does
+     not already cover. */
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  for (const gone of ['eventDate', 'f_event', 'showPicker'])
+    assert.ok(!form.includes(gone), `the form still references ${gone}`);
+
+  /* ...and the copy it needed went with it, in both languages. */
+  const en = STRINGS.en as Record<string, string>;
+  const ta = STRINGS.ta as Record<string, string>;
+  for (const k of ['label_event_date', 'event_date_hint', 'err_event_past', 'skip_date']) {
+    assert.ok(!(k in en), `en.${k} is dead copy`);
+    assert.ok(!(k in ta), `ta.${k} is dead copy`);
+  }
+});
