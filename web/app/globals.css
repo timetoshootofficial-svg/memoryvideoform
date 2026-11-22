@@ -735,3 +735,39 @@ html[lang="ta"] .stat1 .l{font-size:13.5px}
 @media (min-width:768px){
   .wafab{bottom:24px; right:24px; width:58px; height:58px}
 }
+
+/* --------------------------- length options ---------------------------
+   Replaces the drag track. Six lengths, each its own button carrying its
+   own price, so the choice and its cost are the same object: nothing
+   changes under the thumb without being asked for. */
+.lens{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:9px;
+  margin:4px 0 18px;
+}
+.lens .len{
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+  min-height:var(--tap); padding:12px 13px;
+  border:1.5px solid var(--border); border-radius:var(--radius-sm);
+  background:var(--card); text-align:left;
+  transition:border-color .15s ease, background .15s ease, transform .12s ease;
+}
+.lens .len:hover{border-color:var(--border-2)}
+.lens .len:active{transform:scale(.985)}
+.lens .len .t{
+  font-size:13.5px; font-weight:500; color:var(--muted); line-height:1.25;
+}
+.lens .len .p{
+  font-family:var(--display); font-weight:800; font-size:19px;
+  letter-spacing:-.02em; color:var(--ink); line-height:1.2;
+  font-variant-numeric:tabular-nums;
+}
+.lens .len .was{
+  font-size:12px; color:var(--muted); font-weight:500; margin-top:-1px;
+}
+.lens .len.on{
+  border-color:var(--yellow); background:var(--yellow-soft);
+  box-shadow:0 0 0 1px var(--yellow);
+}
+.lens .len.on .t{color:var(--ink-2)}
+@media (min-width:480px){ .lens{grid-template-columns:repeat(3,1fr)} }
+html[lang="ta"] .lens .len .t{font-size:12.5px}

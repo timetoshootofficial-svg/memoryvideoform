@@ -44,6 +44,10 @@ interface Data {
 export default function BookingForm({ config, lang }: { config: SiteConfig; lang: Lang }) {
   const t = makeT(lang);
   const lengths = useMemo(() => L.availableLengths(config), [config]);
+  const cheapest = useMemo(
+    () => lengths.slice().sort((a, b) => L.basePrice(config, a) - L.basePrice(config, b))[0] ?? '',
+    [lengths, config],
+  );
 
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -52,9 +56,14 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   const [data, setData] = useState<Data>({
     name: '', phone: '',
     occasion: '', eventDate: '',
-    filmLength: lengths.includes(config.most_chosen_package as FilmLength)
-      ? config.most_chosen_package
-      : (lengths[1] ?? lengths[0] ?? ''),
+    /* The CHEAPEST length, always. The advertisement quotes the lowest price,
+       so anyone arriving from it must find that price here. Landing on the
+       most-chosen package instead meant a visitor who clicked ₹2,999 met
+       ₹4,999 on the step where the price first appears, and left.
+
+       Cheapest by PRICE, not by duration: the two happen to agree today, but
+       a price change in the config table should not quietly move the default. */
+    filmLength: cheapest,
     follower: false,
   });
 
@@ -317,26 +326,25 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
             <div className={`step${step === LAST_STEP ? ' on' : ''}`}>
               <h3>{t('s3_title')}</h3>
               <p className="hint">{t('s3_sub')}</p>
-              <div className="stepper">
-                <div className="track">
-                  <i className="fill" style={{
-                    width: `${lengths.length < 2 ? 100
-                      : (Math.max(0, lengths.indexOf(data.filmLength as FilmLength)) / (lengths.length - 1)) * 100}%`,
-                  }} />
-                  <input type="range" min={0} max={Math.max(0, lengths.length - 1)} step={1}
-                         aria-label="Film length"
-                         value={Math.max(0, lengths.indexOf(data.filmLength as FilmLength))}
-                         onChange={(e) => set({ filmLength: lengths[Number(e.target.value)] })} />
-                </div>
-                <div className="stops">
-                  {lengths.map((code) => (
-                    <button type="button" key={code} aria-pressed={data.filmLength === code}
-                            aria-label={lenLabel(code)}
+              {/* A row of things to tap, not a track to drag. A range input is
+                  one control for six values: it has no visible options, it
+                  needs a precise drag on a phone, and it changes the price
+                  without the person being sure what they did. Each length is
+                  now its own button with its own price on it. */}
+              <div className="lens" role="radiogroup" aria-label={t('s3_title')}>
+                {lengths.map((code) => {
+                  const p = L.calcPrice(config, code, data.follower);
+                  const on = data.filmLength === code;
+                  return (
+                    <button type="button" key={code} role="radio" aria-checked={on}
+                            className={on ? 'len on' : 'len'}
                             onClick={() => set({ filmLength: code })}>
-                      {lenShort(code)}
+                      <span className="t">{lenLabel(code)}</span>
+                      <span className="p">₹{inr(p.total)}</span>
+                      {p.list > 0 ? <s className="was">₹{inr(p.list)}</s> : null}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
               <div className="pricebox">
                 <div className="lbl">{t('your_film', { length: lenLabel(data.filmLength) })}</div>

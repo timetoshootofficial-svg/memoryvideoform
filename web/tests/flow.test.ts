@@ -375,3 +375,27 @@ test('the server layer uses the normaliser rather than the raw variable', () => 
   assert.ok(!/process\.env\.SUPABASE_URL \?\? ''/.test(src),
     'the raw variable must not be used directly');
 });
+
+test('the price step opens on the cheapest film, which is what the ad quotes', () => {
+  /* The advertisement quotes the lowest price. The form used to open on the
+     most-chosen package, so someone who clicked ₹2,999 met ₹4,999 on the very
+     step where the price first appears — and left. */
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  assert.ok(/filmLength: cheapest/.test(form), 'the default must be the cheapest length');
+  assert.ok(/sort\(\(a, b\) => L\.basePrice\(config, a\) - L\.basePrice\(config, b\)\)/.test(form),
+    'cheapest must be decided by price, not by the order the lengths are listed in');
+  assert.ok(!/most_chosen_package as FilmLength/.test(form),
+    'the most-chosen package must not decide what the visitor lands on');
+});
+
+test('choosing a length is tapping an option, not dragging a slider', () => {
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  assert.ok(!/type="range"/.test(form), 'a range input gives no visible options and no certainty on a phone');
+  assert.ok(/role="radiogroup"/.test(form) && /role="radio"/.test(form),
+    'the options must announce themselves as a choice');
+  /* Each option carries its own price, so the cost and the choice are one thing. */
+  const block = form.slice(form.indexOf('className="lens"'), form.indexOf('</div>', form.indexOf('className="lens"')) + 2000);
+  assert.ok(/L\.calcPrice\(config, code, data\.follower\)/.test(block),
+    'each option must price itself');
+  assert.ok(/₹\{inr\(p\.total\)\}/.test(block), 'each option must show that price');
+});
