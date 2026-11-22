@@ -42,10 +42,9 @@ export default function Packages(
       <h2>Packages</h2>
       <p className={s.hint}>
         Turn a length off and it disappears from the booking form.{' '}
-        <b>Original price</b> is the higher figure struck through on the site —
-        not the discount. For &ldquo;₹1,000 off a ₹2,999 film&rdquo;, the price is
-        2999 and the original price is <b>3999</b>. Leave it at 0 for no
-        struck-through price.
+        Put <b>1000</b> in the discount box and a ₹2,999 film shows as
+        <s>₹3,999</s> <b>₹2,999</b> with &ldquo;Save ₹1,000&rdquo; under it. Leave it
+        at 0 and no struck-through price appears at all.
       </p>
 
       <div className={s.pkgs}>
@@ -73,10 +72,17 @@ export default function Packages(
                          onChange={(e) => set(r.code, { price: Math.max(0, Number(e.target.value) || 0) })} />
                 </label>
                 <label>
-                  <span className={s.sub}>Original price</span>
-                  <input type="number" inputMode="numeric" min={0} value={r.list}
+                  <span className={s.sub}>Discount to show (₹ off)</span>
+                  {/* The database stores the ORIGINAL price, because that is
+                      what gets struck through. Nobody thinks in original
+                      prices though — they think "₹1,000 off". So the box asks
+                      for the discount and the sum is done here. */}
+                  <input type="number" inputMode="numeric" min={0} value={save}
                          disabled={!on}
-                         onChange={(e) => set(r.code, { list: Math.max(0, Number(e.target.value) || 0) })} />
+                         onChange={(e) => {
+                           const d = Math.max(0, Number(e.target.value) || 0);
+                           set(r.code, { list: d > 0 ? r.price + d : 0 });
+                         }} />
                 </label>
               </div>
 
@@ -88,17 +94,15 @@ export default function Packages(
                       : <>Shows as <b>₹{inr(r.price)}</b></>}
                   </p>
 
-                  {/* The commonest mistake is typing the saving here instead
-                      of the price it was before. The number is then lower
-                      than the price, nothing appears on the site, and there
-                      is no clue why. So say it, and offer the sum. */}
+                  {/* A value left over from when this box asked for the
+                      original price: it is below the price, so the site shows
+                      nothing. One tap reads it as the discount instead. */}
                   {r.list > 0 && r.list <= r.price ? (
                     <p className={s.pkgWarn}>
-                      ₹{inr(r.list)} is not higher than ₹{inr(r.price)}, so nothing is
-                      struck through.{' '}
+                      An old value of ₹{inr(r.list)} is saved here and shows nothing.{' '}
                       <button type="button" className={s.link}
                               onClick={() => set(r.code, { list: r.price + r.list })}>
-                        Did you mean ₹{inr(r.price + r.list)}?
+                        Use it as ₹{inr(r.list)} off
                       </button>
                     </p>
                   ) : null}

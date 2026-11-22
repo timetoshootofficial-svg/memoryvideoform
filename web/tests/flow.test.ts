@@ -792,19 +792,25 @@ test('a saving is only shown when it is a saving', () => {
       `${lang}.you_save must carry the amount`);
 });
 
-test('the original-price field says what it wants', () => {
-  /* The first thing typed into it was 1000, meaning "₹1,000 off". It is the
-     price BEFORE the discount, so 1000 sat below 2999, nothing was struck
-     through, and the page gave no clue why. */
+test('the admin asks for the discount, because that is how it is thought about', () => {
+  /* 1000 went into this box twice, meaning "₹1,000 off". The database stores
+     the ORIGINAL price — the figure that gets struck through — so 1000 sat
+     below the 2999 being charged and the site correctly showed nothing. The
+     box asks for the discount now and does the sum itself. */
   const pkg = readFileSync(new URL('../app/admin/Packages.tsx', import.meta.url), 'utf8');
 
-  assert.ok(!/Was \(struck through\)/.test(pkg), 'the old ambiguous label must be gone');
-  assert.ok(/Original price/.test(pkg), 'it must name what it wants');
-  assert.ok(/not the discount/.test(pkg), 'and say what it is not');
+  assert.ok(!/Was \(struck through\)/.test(pkg), 'the first ambiguous label must be gone');
+  assert.ok(!/<span className=\{s\.sub\}>Original price<\/span>/.test(pkg),
+    'the second one must be gone too');
+  assert.ok(/Discount to show/.test(pkg), 'it must ask for the discount');
 
-  /* When the number is below the price it must say so, and offer the sum —
-     which is what the person meant. */
-  assert.ok(/r\.list > 0 && r\.list <= r\.price/.test(pkg), 'it must notice the mistake');
-  assert.ok(/Did you mean/.test(pkg), 'and offer the figure they meant');
-  assert.ok(/list: r\.price \+ r\.list/.test(pkg), 'which is the price plus what they typed');
+  /* value shows the discount, and writing adds it back onto the price. */
+  assert.ok(/value=\{save\}/.test(pkg), 'the box must show the discount, not the stored figure');
+  assert.ok(/list: d > 0 \? r\.price \+ d : 0/.test(pkg),
+    'and must store price + discount, or 0 for none');
+
+  /* Anything already saved below the price is a leftover from the old
+     labelling; one tap must rescue it. */
+  assert.ok(/r\.list > 0 && r\.list <= r\.price/.test(pkg), 'it must notice a leftover');
+  assert.ok(/Use it as/.test(pkg), 'and offer to read it as the discount');
 });
