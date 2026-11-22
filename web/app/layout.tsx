@@ -1,19 +1,34 @@
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans, Inter, Noto_Sans_Tamil } from 'next/font/google';
+import localFont from 'next/font/local';
 import { getLang } from '@/lib/lang';
 import { SITE } from '@/lib/site';
 import './globals.css';
 
-const display = Plus_Jakarta_Sans({
-  subsets: ['latin'], weight: ['600', '700', '800'],
+/* The same three families as before, served from this repository instead of
+   fetched from Google while the site builds.
+
+   next/font/google downloads the font during `next build`. On 22 Nov 2026
+   Google did not answer and the production deploy failed on a null dereference
+   inside the loader — nothing to do with this site's code, and nothing anyone
+   here could fix. These files are the exact ones it was downloading (the
+   variable font for each family, same subsets), so the page looks identical
+   and the build no longer needs the network.
+
+   One file covers every weight because each is a variable font; the range is
+   the font's own wght axis, trimmed to the weights this site uses. */
+const display = localFont({
+  src: './fonts/PlusJakartaSans-latin-var.woff2',
+  weight: '600 800', style: 'normal',
   variable: '--font-display', display: 'swap',
 });
-const body = Inter({
-  subsets: ['latin'], weight: ['400', '500', '600'],
+const body = localFont({
+  src: './fonts/Inter-latin-var.woff2',
+  weight: '400 600', style: 'normal',
   variable: '--font-body', display: 'swap',
 });
-const tamil = Noto_Sans_Tamil({
-  subsets: ['tamil'], weight: ['400', '500', '700'],
+const tamil = localFont({
+  src: './fonts/NotoSansTamil-tamil-var.woff2',
+  weight: '400 700', style: 'normal',
   variable: '--font-tamil', display: 'swap',
 });
 

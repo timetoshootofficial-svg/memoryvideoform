@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { STRINGS } from '../lib/i18n.ts';
 
 const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
@@ -485,4 +485,35 @@ test('the drop-off chart only names steps the page actually has', () => {
 
   /* And the summary underneath must not promise a reservation either. */
   assert.ok(!/Visit to reservation/.test(admin), 'nothing reserves a slot any more');
+});
+
+test('the build does not need Google to be up', () => {
+  /* next/font/google downloads the font while the site builds. On 22 Nov 2026
+     Google did not answer, the loader dereferenced null, and the production
+     deploy died with nothing wrong in this repository. The font files live
+     here now. */
+  const layout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8');
+
+  assert.ok(!/from\s+['"]next\/font\/google['"]/.test(layout),
+    'layout.tsx imports next/font/google again — the build is back on Google');
+  assert.ok(/from\s+['"]next\/font\/local['"]/.test(layout),
+    'layout.tsx must load the fonts from this repository');
+
+  /* Every file it names must actually be here, or the build fails. */
+  const srcs = [...layout.matchAll(/src:\s*'\.\/(fonts\/[^']+)'/g)].map((m) => m[1]);
+  assert.equal(srcs.length, 3, 'three families: display, body, Tamil');
+  for (const rel of srcs) {
+    const p = new URL('../app/' + rel, import.meta.url);
+    assert.ok(statSync(p).size > 10_000, `${rel} is missing or too small to be a font`);
+    const head = readFileSync(p).subarray(0, 4).toString('latin1');
+    assert.equal(head, 'wOF2', `${rel} is not a woff2 file`);
+  }
+
+  /* One file per family only works because each is a variable font, so the
+     weight has to be a range. A single number would flatten the headline,
+     the half-bold price labels and the Tamil body to one weight. */
+  const ranges = [...layout.matchAll(/weight:\s*'(\d+)\s+(\d+)'/g)];
+  assert.equal(ranges.length, 3, 'each family needs a weight range, not one weight');
+  for (const [, lo, hi] of ranges)
+    assert.ok(Number(hi) > Number(lo), `weight range ${lo} ${hi} is not a range`);
 });
