@@ -5,7 +5,8 @@ import { makeT, type Lang, type StringKey } from '@/lib/i18n';
 import * as L from '@/lib/logic';
 import { inr, waUrl } from '@/lib/format';
 import { useFunnel, sessionId } from './useFunnel';
-import { pixelReachedPrice, pixelLead } from '@/lib/pixel';
+import { pixelReachedPrice, pixelLead, pixelHoldPaid } from '@/lib/pixel';
+import { loadCheckout, openCheckout } from '@/lib/razorpay-checkout';
 
 const OCCASIONS = [
   { v: 'Anniversary',           k: 'occ_anniversary', icon: 'heart'  },
@@ -42,7 +43,10 @@ interface Data {
  * stop. The real date is settled in the conversation, so the form no longer
  * pretends to settle it.
  */
-export default function BookingForm({ config, lang }: { config: SiteConfig; lang: Lang }) {
+export default function BookingForm(
+  { config, lang, payments = false, fee = 0 }:
+  { config: SiteConfig; lang: Lang; payments?: boolean; fee?: number },
+) {
   const t = makeT(lang);
   const lengths = useMemo(() => L.availableLengths(config), [config]);
   const cheapest = useMemo(
@@ -54,6 +58,11 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<Record<number, string>>({});
   const [booking, setBooking] = useState<BookingSuccess | null>(null);
+  /* Paise received in this visit. Kept beside the booking rather than inside
+     it because the booking is what the server sent before any money moved. */
+  const [paidOverride, setPaidOverride] = useState(0);
+  const [payMsg, setPayMsg] = useState('');
+  const [paying, setPaying] = useState(false);
   const [data, setData] = useState<Data>({
     name: '', phone: '',
     occasion: '',
@@ -178,6 +187,73 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   };
   const isTribute = data.occasion === 'Tribute to loved ones';
 
+  /**
+   * Take the booking fee for a booking that already exists.
+   *
+   * Used twice: straight after the booking is made, and again by the button
+   * on the ticket if that first attempt was closed or declined. Either way
+   * the booking is already recorded, so nothing is lost by it failing.
+   */
+  async function payForBooking(bookingId: string): Promise<boolean> {
+    setPayMsg('');
+    setPaying(true);
+    try {
+      const r = await fetch('/api/payment/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, sessionId: sessionId() }),
+      });
+      const o = await r.json();
+      if (!o?.ok) {
+        /* Keys missing or Razorpay refusing: show the ticket, say nothing
+           about payment, and let WhatsApp carry it. */
+        if (o?.code !== 'NOT_CONFIGURED') setPayMsg(t('pay_unavailable'));
+        return false;
+      }
+
+      if (!(await loadCheckout())) { setPayMsg(t('pay_unavailable')); return false; }
+
+      const res = await openCheckout({
+        keyId: o.keyId, orderId: o.orderId, amountPaise: o.amountPaise,
+        name: data.name, phone: data.phone,
+        description: lenLabel(data.filmLength),
+      });
+
+      if (res.status === 'dismissed') { setPayMsg(t('pay_dismissed')); return false; }
+      if (res.status !== 'paid')      { setPayMsg(t(res.status === 'failed' ? 'pay_failed' : 'pay_unavailable')); return false; }
+
+      /* Razorpay says it went through. Nothing is believed until the server
+         has checked the signature. */
+      const v = await fetch('/api/payment/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_order_id: res.orderId,
+          razorpay_payment_id: res.paymentId,
+          razorpay_signature: res.signature,
+        }),
+      });
+      const vj = await v.json();
+      if (!vj?.ok) {
+        /* The webhook will still record it, so this is not a lost payment —
+           only a page that cannot yet prove it. */
+        setPayMsg(t('pay_unavailable'));
+        return false;
+      }
+
+      setPaidOverride(Number(vj.paidPaise) || o.amountPaise);
+      setPayMsg('');
+      pixelHoldPaid(Math.round((Number(vj.paidPaise) || o.amountPaise) / 100));
+      track('hold_paid', RESULT_STEP);
+      return true;
+    } catch {
+      setPayMsg(t('pay_unavailable'));
+      return false;
+    } finally {
+      setPaying(false);
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -212,13 +288,18 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
         return fail(LAST_STEP, j?.message || t('err_generic'));
       }
 
-      setBooking(j as BookingSuccess);
+      const made = j as BookingSuccess;
+      setBooking(made);
       goStep(RESULT_STEP, true);
       /* The value is what the booking is worth, so Meta can optimise toward
          revenue rather than toward whoever is cheapest to show an ad to. */
-      pixelLead(Number((j as BookingSuccess).total) || 0, data.filmLength);
+      pixelLead(Number(made.total) || 0, data.filmLength);
       track('booking_created', LAST_STEP);
       flush();
+
+      /* The ticket is already on screen, so whatever happens next the person
+         has their reference and a way to reach us. */
+      if (payments) await payForBooking(made.bookingId);
     } catch {
       fail(LAST_STEP, navigator.onLine === false ? t('err_offline') : t('err_generic'));
     } finally {
@@ -226,10 +307,17 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
     }
   }
 
-  /* Nothing has been paid yet — the booking fee is not being taken on this
-     page until Razorpay is live — so the ticket shows the total and no more.
-     When it is, this is the one line that changes. */
-  const paidPaise = Number(booking?.paidPaise ?? 0) || 0;
+  /* What has actually been received. The ticket shows the paid rows only
+     when this is a real number, so it never claims a slot is held before the
+     money has arrived. */
+  const paidPaise = paidOverride > 0 ? paidOverride : (Number(booking?.paidPaise ?? 0) || 0);
+
+  /* ~100KB, and most visitors never get this far. Fetched when they reach
+     the step where they might pay: early enough to open instantly, late
+     enough that nobody downloads it for nothing. */
+  useEffect(() => {
+    if (payments && step === LAST_STEP) void loadCheckout();
+  }, [payments, step]);
 
   /* The day they booked, in the language they are reading. Rendered on the
      client only, from the browser's own clock, so there is nothing for the
@@ -364,12 +452,22 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
                 </div>
                 <div className="off">{t('total_label')}</div>
               </div>
+              {payments ? (
+                /* The refund policy says we tell them before they pay. This is
+                   where that promise is kept. */
+                <p className="sub muted" style={{ margin: '0 0 2px', fontSize: 13 }}>
+                  {t('pay_note', { amount: inr(fee) })}
+                </p>
+              ) : null}
+
               {err[LAST_STEP] ? <p className="err on">{err[LAST_STEP]}</p> : <p className="err" />}
 
               <div className="navrow">
                 <button type="button" className="btn btn-ghost" onClick={() => goStep(2, true)}>{t('back')}</button>
                 <button type="submit" className="btn btn-primary" disabled={busy}>
-                  {busy ? t('submitting') : t('reserve_cta')}
+                  {busy ? t('submitting')
+                        : payments ? t('pay_cta', { amount: inr(fee) })
+                        : t('reserve_cta')}
                 </button>
               </div>
               <p className="sub muted" style={{ textAlign: 'center', marginTop: 11 }}>
@@ -436,6 +534,17 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
                       <span>{bookedOn}</span>
                     </div>
                   </div>
+
+                  {payMsg ? <p className="err on" style={{ margin: '0 0 12px' }}>{payMsg}</p> : null}
+
+                  {payments && paidPaise === 0 ? (
+                    <button type="button" className="btn btn-primary"
+                            style={{ width: '100%', marginBottom: 10 }}
+                            disabled={paying}
+                            onClick={() => booking && payForBooking(booking.bookingId)}>
+                      {paying ? t('pay_opening') : t('pay_retry', { amount: inr(fee) })}
+                    </button>
+                  ) : null}
 
                   <p className="sub muted" style={{ margin: '0 0 14px' }}>{t('ticket_screenshot')}</p>
 

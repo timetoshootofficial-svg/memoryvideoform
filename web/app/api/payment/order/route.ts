@@ -49,14 +49,23 @@ export async function POST(req: Request) {
   }
 
   /* Recorded before the window opens. A capture is only believed for an order
-     that exists here, and for the amount written here. */
-  await paymentStarted({
+     that exists here, and for the amount written here.
+     If this fails we must not open the checkout: the money would be taken and
+     there would be nothing to attach it to. Better to refuse than to charge
+     someone for a booking we cannot mark as held. */
+  const started = await paymentStarted({
     order_id: order.id,
     booking_id: bookingId,
     session_id: sessionId,
     kind: 'hold',
     amount_paise: amountPaise,
   });
+
+  if (!started || !('ok' in started) || !started.ok) {
+    const code = (started as { code?: string } | null)?.code ?? 'RECORD_FAILED';
+    console.error(`[payment] could not record order ${order.id} -> ${code}`);
+    return NextResponse.json({ ok: false, code: 'RECORD_FAILED' }, { status: 200 });
+  }
 
   return NextResponse.json({
     ok: true,

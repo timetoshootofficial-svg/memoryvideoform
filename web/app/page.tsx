@@ -11,6 +11,7 @@ import Reviews from '@/components/Reviews';
 import Faq from '@/components/Faq';
 import Footer from '@/components/Footer';
 import { BUSINESS } from '@/lib/business';
+import { razorpayConfigured } from '@/lib/razorpay';
 import StickyCta from '@/components/StickyCta';
 import WhatsAppFab from '@/components/WhatsAppFab';
 import MetaPixel from '@/components/MetaPixel';
@@ -44,7 +45,9 @@ export default async function Page() {
         <div className="strip" aria-hidden="true" />
         <WorkMarquee lang={lang} />
         <Process t={t} deliveryDays={Number(c.delivery_days) || BUSINESS.deliveryDays} />
-        <BookingForm config={c} lang={lang} />
+        <BookingForm config={c} lang={lang}
+                     payments={razorpayConfigured()}
+                     fee={Number(c.booking_fee) || BUSINESS.bookingFee} />
         <Reviews lang={lang} />
         <Faq t={t} deliveryDays={Number(c.delivery_days) || BUSINESS.deliveryDays}
              revisions={BUSINESS.revisions} />

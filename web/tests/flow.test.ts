@@ -692,3 +692,21 @@ test('the thank-you screen is a ticket they can keep', () => {
   /* A long label must never push the icon onto its own line. */
   assert.ok(/\.btn svg\{[^}]*flex:0 0 auto/.test(css), 'the button icon must not shrink or wrap');
 });
+
+test('nothing on the page says payment does not happen on it', () => {
+  /* The ₹99 booking fee is taken on this page. Two lines sat one above the
+     other saying "₹99 holds your slot" and "No payment now", and the refund
+     policy promises we tell people before they pay. A leftover reassurance
+     is worse than no reassurance. */
+  for (const lang of ['en', 'ta'] as const)
+    for (const [k, v] of Object.entries(STRINGS[lang] as Record<string, string>)) {
+      assert.ok(!/no payment (now|on this page)/i.test(v), `${lang}.${k}: "${v}"`);
+      assert.ok(!/இப்போது பணம் இல்லை/.test(v), `${lang}.${k}: "${v}"`);
+    }
+
+  /* And the terms of the fee must be on the step where it is taken. */
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  assert.ok(/t\('pay_note'/.test(form), 'the fee terms must be shown before paying');
+  assert.ok(/not refundable/i.test((STRINGS.en as Record<string, string>).pay_note),
+    'and they must say it is not refundable, as the refund page does');
+});
