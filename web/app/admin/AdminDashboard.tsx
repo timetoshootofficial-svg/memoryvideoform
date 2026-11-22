@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import s from './admin.module.css';
-import type { AdminPayload, AdminBooking, LeadsPayload, Lead, StageWindow } from './types';
+import type { AdminPayload, AdminBooking, LeadsPayload, Lead, StageWindow, CampaignRow } from './types';
 
 const STATUSES = ['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Expired'] as const;
 
@@ -77,6 +77,58 @@ function Box({ title, obj, fmt }:
         : keys.slice(0, 8).map((k) => (
             <div className={s.kv} key={k}><span>{fmt ? fmt(k) : k}</span><b>{obj[k]}</b></div>
           ))}
+    </div>
+  );
+}
+
+/**
+ * Which advertisement actually brings money.
+ *
+ * The Meta Pixel tells Meta who booked. It cannot tell anyone who PAID,
+ * because payment happens in a WhatsApp conversation Meta never sees. That
+ * number exists only here, in the status set by hand on the Bookings tab —
+ * which is what makes this table the one worth reading before changing spend.
+ */
+function Campaigns({ rows }: { rows: CampaignRow[] }) {
+  if (!rows.length) {
+    return (
+      <div className={s.sec}>
+        <h2>By advertisement</h2>
+        <p style={{ color: 'var(--muted)' }}>
+          Nothing yet. Campaign names arrive with the <b>utm_campaign</b> on your ad links.
+        </p>
+      </div>
+    );
+  }
+  const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) + '%' : '—');
+  return (
+    <div className={s.sec}>
+      <h2>By advertisement</h2>
+      <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 12px' }}>
+        Revenue counts only bookings you marked <b>Paid</b>. Mark them as they pay,
+        or this column stays at zero and tells you nothing.
+      </p>
+      <div className={s.tablewrap}>
+        <table>
+          <thead><tr>
+            <th>Campaign</th><th>Numbers</th><th>Finished</th>
+            <th>Paid</th><th>Number → paid</th><th>Revenue</th><th>Awaiting payment</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.campaign}>
+                <td><b>{r.campaign}</b></td>
+                <td className={s.mono}>{r.numbers}</td>
+                <td className={s.mono}>{r.finished}</td>
+                <td className={s.mono}>{r.paid}</td>
+                <td className={s.mono}>{pct(r.paid, r.numbers)}</td>
+                <td className={s.mono}><b>{money(r.revenue)}</b></td>
+                <td className={s.mono}>{r.pipeline ? money(r.pipeline) : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -414,6 +466,8 @@ export default function AdminDashboard() {
             })()}
           </div>
         ) : null}
+
+        {tab === 'dashboard' && leadsData?.campaigns ? <Campaigns rows={leadsData.campaigns} /> : null}
 
         {tab === 'leads' ? <LeadsTable data={leadsData} filter={leadFilter} setFilter={setLeadFilter} /> : null}
 

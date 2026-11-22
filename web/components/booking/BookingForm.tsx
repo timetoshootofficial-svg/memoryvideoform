@@ -5,6 +5,7 @@ import { makeT, type Lang, type StringKey } from '@/lib/i18n';
 import * as L from '@/lib/logic';
 import { inr, waUrl } from '@/lib/format';
 import { useFunnel, sessionId } from './useFunnel';
+import { pixelReachedPrice, pixelLead } from '@/lib/pixel';
 
 const OCCASIONS = [
   { v: 'Anniversary',           k: 'occ_anniversary', icon: 'heart'  },
@@ -145,6 +146,9 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   const next = (from: number) => {
     if (!validate(from)) return;
     capture(from + 1, data);
+    /* Reaching the price step is the strongest mid-funnel signal this page
+       has. Meta needs volume to learn from, and bookings alone are too few. */
+    if (from + 1 === LAST_STEP) pixelReachedPrice(L.calcPrice(config, data.filmLength, data.follower).total);
     goStep(from + 1);
   };
 
@@ -213,6 +217,9 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
 
       setBooking(j as BookingSuccess);
       goStep(RESULT_STEP, true);
+      /* The value is what the booking is worth, so Meta can optimise toward
+         revenue rather than toward whoever is cheapest to show an ad to. */
+      pixelLead(Number((j as BookingSuccess).total) || 0, data.filmLength);
       track('booking_created', LAST_STEP);
       flush();
     } catch {

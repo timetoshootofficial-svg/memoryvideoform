@@ -4,10 +4,11 @@ import Stats from './Stats';
 /* A plain anchor, not a button with a scroll handler: it works before React
    has loaded, which on a phone opening this from an Instagram ad is the
    moment the visitor is most likely to tap. */
-export default function Hero({ t, lang, clients }: {
+export default function Hero({ t, lang, clients, fromPrice }: {
   t: T;
   lang: Lang;
   clients: string;
+  fromPrice: number;
 }) {
   return (
     <section className="hero">
@@ -30,6 +31,12 @@ export default function Hero({ t, lang, clients }: {
         <p className="sub">{t('hero_sub')}</p>
         <Stats lang={lang} clients={clients} />
         <a className="btn btn-primary" href="#book">{t('start_cta')}</a>
+        {/* The advertisement quotes this price, so the page must carry it
+            before the form does. Read at the moment the thumb is already on
+            the button, which is when the question is actually being asked. */}
+        {fromPrice > 0 ? (
+          <p className="fromprice">{t('hero_price', { amount: fromPrice.toLocaleString('en-IN') })}</p>
+        ) : null}
       </div>
     </section>
   );

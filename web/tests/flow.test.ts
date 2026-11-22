@@ -399,3 +399,39 @@ test('choosing a length is tapping an option, not dragging a slider', () => {
     'each option must price itself');
   assert.ok(/₹\{inr\(p\.total\)\}/.test(block), 'each option must show that price');
 });
+
+test('the pixel is only ever loaded with a real id, and never on admin', () => {
+  const px = readFileSync(new URL('../components/MetaPixel.tsx', import.meta.url), 'utf8');
+  assert.ok(/\^\\d\{10,20\}\$/.test(px), 'a malformed id must inject nothing at all');
+  assert.ok(/strategy="afterInteractive"/.test(px), 'it must not compete with the first paint');
+
+  const home = readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
+  const admin = readFileSync(new URL('../app/admin/page.tsx', import.meta.url), 'utf8');
+  const privacy = readFileSync(new URL('../app/privacy/page.tsx', import.meta.url), 'utf8');
+  assert.ok(home.includes('<MetaPixel'), 'the pixel belongs on the page the ads point at');
+  assert.ok(!admin.includes('MetaPixel'), 'the dashboard is not advertising traffic');
+  assert.ok(!privacy.includes('MetaPixel'), 'the privacy page is not advertising traffic');
+});
+
+test('no personal detail is ever sent to Meta', () => {
+  /* Meta needs the value of a booking. It does not need who made it, and
+     sending a name or a phone number to an ad platform is a line this site
+     does not cross. */
+  const px = readFileSync(new URL('../lib/pixel.ts', import.meta.url), 'utf8');
+  for (const forbidden of ['name', 'phone', 'email', 'occasion'])
+    assert.ok(!new RegExp(`\\b${forbidden}\\b\\s*[:,]`).test(px.replace(/\/\*[\s\S]*?\*\//g, '')),
+      `pixel.ts appears to send ${forbidden}`);
+  assert.ok(/currency: 'INR'/.test(px), 'the value needs its currency or Meta cannot use it');
+  assert.ok((px.match(/catch \{/g) || []).length >= 2,
+    'every pixel call must swallow its own failure; a blocked script cannot break the form');
+});
+
+test('the hero carries the price the advertisement quotes', () => {
+  const hero = readFileSync(new URL('../components/Hero.tsx', import.meta.url), 'utf8');
+  const page = readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
+  assert.ok(/t\('hero_price'/.test(hero), 'the hero must show a starting price');
+  assert.ok(/fromPrice > 0 \?/.test(hero), 'with nothing priced it must show nothing, not zero');
+  /* Read from config, so the hero cannot drift from what the form charges. */
+  assert.ok(/Math\.min\(\.\.\.priced\)/.test(page), 'the figure must be the cheapest live price');
+  assert.ok(!/2,?999/.test(hero), 'the price must not be written into the component');
+});

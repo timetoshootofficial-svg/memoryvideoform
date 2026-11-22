@@ -65,5 +65,17 @@ export interface LeadsPayload {
   ok: true;
   leads: Lead[];
   stages: Record<StageWindow, StageCounts>;
+  campaigns?: CampaignRow[];
   today: string;
+}
+
+export interface CampaignRow {
+  campaign: string;
+  numbers: number;    // gave a phone number
+  finished: number;   // pressed Book now
+  bookings: number;
+  confirmed: number;
+  paid: number;
+  revenue: number;    // money actually in, from bookings you marked Paid
+  pipeline: number;   // agreed but not yet paid
 }

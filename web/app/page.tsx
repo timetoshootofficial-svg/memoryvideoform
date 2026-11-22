@@ -1,6 +1,7 @@
 import { getBootstrap } from '@/lib/supabase';
 import { getLang } from '@/lib/lang';
 import { makeT } from '@/lib/i18n';
+import { availableLengths, basePrice } from '@/lib/logic';
 import LangToggle from '@/components/LangToggle';
 import Hero from '@/components/Hero';
 import WorkMarquee from '@/components/WorkMarquee';
@@ -11,6 +12,7 @@ import Faq from '@/components/Faq';
 import Footer from '@/components/Footer';
 import StickyCta from '@/components/StickyCta';
 import WhatsAppFab from '@/components/WhatsAppFab';
+import MetaPixel from '@/components/MetaPixel';
 
 /* Prices and availability are fetched on the server and arrive inside the
    HTML. The static site had to ask for them after the page had painted,
@@ -22,6 +24,11 @@ export default async function Page() {
   const t = makeT(lang);
   const c = data.config;
 
+  /* The cheapest film on offer, read from config rather than written down,
+     so the hero cannot drift away from what the form charges. */
+  const priced = availableLengths(c).map((l) => basePrice(c, l)).filter((n) => n > 0);
+  const fromPrice = priced.length ? Math.min(...priced) : 0;
+
   return (
     <>
       <header>
@@ -32,7 +39,7 @@ export default async function Page() {
       </header>
 
       <main>
-        <Hero t={t} lang={lang} clients={String(c.clients_count)} />
+        <Hero t={t} lang={lang} clients={String(c.clients_count)} fromPrice={fromPrice} />
         <div className="strip" aria-hidden="true" />
         <WorkMarquee lang={lang} />
         <Process t={t} deliveryText={String(c.delivery_text)} />
@@ -44,6 +51,7 @@ export default async function Page() {
       <Footer t={t} instagram={String(c.instagram_handle)} whatsapp={String(c.whatsapp_link)} />
       <StickyCta lang={lang} />
       <WhatsAppFab lang={lang} number={String(c.whatsapp_number)} link={String(c.whatsapp_link)} />
+      <MetaPixel id={process.env.NEXT_PUBLIC_PIXEL_ID ?? ''} />
     </>
   );
 }
