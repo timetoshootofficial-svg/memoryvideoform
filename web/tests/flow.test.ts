@@ -791,3 +791,20 @@ test('a saving is only shown when it is a saving', () => {
     assert.ok((STRINGS[lang] as Record<string, string>).you_save?.includes('{amount}'),
       `${lang}.you_save must carry the amount`);
 });
+
+test('the original-price field says what it wants', () => {
+  /* The first thing typed into it was 1000, meaning "₹1,000 off". It is the
+     price BEFORE the discount, so 1000 sat below 2999, nothing was struck
+     through, and the page gave no clue why. */
+  const pkg = readFileSync(new URL('../app/admin/Packages.tsx', import.meta.url), 'utf8');
+
+  assert.ok(!/Was \(struck through\)/.test(pkg), 'the old ambiguous label must be gone');
+  assert.ok(/Original price/.test(pkg), 'it must name what it wants');
+  assert.ok(/not the discount/.test(pkg), 'and say what it is not');
+
+  /* When the number is below the price it must say so, and offer the sum —
+     which is what the person meant. */
+  assert.ok(/r\.list > 0 && r\.list <= r\.price/.test(pkg), 'it must notice the mistake');
+  assert.ok(/Did you mean/.test(pkg), 'and offer the figure they meant');
+  assert.ok(/list: r\.price \+ r\.list/.test(pkg), 'which is the price plus what they typed');
+});

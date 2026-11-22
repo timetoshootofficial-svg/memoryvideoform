@@ -41,9 +41,11 @@ export default function Packages(
     <div className={s.sec}>
       <h2>Packages</h2>
       <p className={s.hint}>
-        Turn a length off and it disappears from the booking form. The
-        &ldquo;was&rdquo; price is struck through on the site, and only shows when it is
-        higher than the price you charge.
+        Turn a length off and it disappears from the booking form.{' '}
+        <b>Original price</b> is the higher figure struck through on the site —
+        not the discount. For &ldquo;₹1,000 off a ₹2,999 film&rdquo;, the price is
+        2999 and the original price is <b>3999</b>. Leave it at 0 for no
+        struck-through price.
       </p>
 
       <div className={s.pkgs}>
@@ -71,7 +73,7 @@ export default function Packages(
                          onChange={(e) => set(r.code, { price: Math.max(0, Number(e.target.value) || 0) })} />
                 </label>
                 <label>
-                  <span className={s.sub}>Was (struck through)</span>
+                  <span className={s.sub}>Original price</span>
                   <input type="number" inputMode="numeric" min={0} value={r.list}
                          disabled={!on}
                          onChange={(e) => set(r.code, { list: Math.max(0, Number(e.target.value) || 0) })} />
@@ -79,12 +81,28 @@ export default function Packages(
               </div>
 
               {on ? (
-                <p className={s.pkgPrev}>
-                  {save > 0
-                    ? <>Shows as <s>₹{inr(r.list)}</s> <b>₹{inr(r.price)}</b> <em>Save ₹{inr(save)}</em></>
-                    : <>Shows as <b>₹{inr(r.price)}</b>{r.list > 0 && r.list <= r.price
-                        ? ' — the "was" price is not higher, so it stays hidden' : ''}</>}
-                </p>
+                <>
+                  <p className={s.pkgPrev}>
+                    {save > 0
+                      ? <>Shows as <s>₹{inr(r.list)}</s> <b>₹{inr(r.price)}</b> <em>Save ₹{inr(save)}</em></>
+                      : <>Shows as <b>₹{inr(r.price)}</b></>}
+                  </p>
+
+                  {/* The commonest mistake is typing the saving here instead
+                      of the price it was before. The number is then lower
+                      than the price, nothing appears on the site, and there
+                      is no clue why. So say it, and offer the sum. */}
+                  {r.list > 0 && r.list <= r.price ? (
+                    <p className={s.pkgWarn}>
+                      ₹{inr(r.list)} is not higher than ₹{inr(r.price)}, so nothing is
+                      struck through.{' '}
+                      <button type="button" className={s.link}
+                              onClick={() => set(r.code, { list: r.price + r.list })}>
+                        Did you mean ₹{inr(r.price + r.list)}?
+                      </button>
+                    </p>
+                  ) : null}
+                </>
               ) : null}
             </div>
           );

@@ -148,3 +148,6 @@
 .pkgFoot p + p{margin-top:4px}
 .okmsg{color:var(--ok);font-size:13.5px;margin:12px 0 0}
 .errmsg{color:var(--danger);font-size:13.5px;margin:12px 0 0}
+.pkgWarn{margin:8px 0 0;font-size:12.5px;color:var(--warn);line-height:1.5}
+.link{background:none;border:none;padding:0;color:var(--yellow);font:inherit;
+  text-decoration:underline;cursor:pointer}
