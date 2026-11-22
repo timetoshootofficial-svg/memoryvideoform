@@ -226,6 +226,20 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
     }
   }
 
+  /* Nothing has been paid yet — the booking fee is not being taken on this
+     page until Razorpay is live — so the ticket shows the total and no more.
+     When it is, this is the one line that changes. */
+  const paidPaise = Number(booking?.paidPaise ?? 0) || 0;
+
+  /* The day they booked, in the language they are reading. Rendered on the
+     client only, from the browser's own clock, so there is nothing for the
+     server and the browser to disagree about. */
+  const bookedOn = useMemo(
+    () => new Date().toLocaleDateString(lang === 'ta' ? 'ta-IN' : 'en-IN',
+                                        { day: 'numeric', month: 'short', year: 'numeric' }),
+    [lang],
+  );
+
   const waHref = booking
     ? waUrl(config.whatsapp_number, t('wa_message', {
         name: data.name, id: booking.bookingId, occasion: occName(data.occasion),
@@ -368,18 +382,63 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
             <div className={`step${step === RESULT_STEP ? ' on' : ''}`}>
               {booking ? (
                 <div className="result">
-                  <div className="tick">
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A"
-                         strokeWidth="3" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                  {/* A receipt they can screenshot, not a paragraph that
+                      congratulates them. The reference is the biggest thing
+                      on it because it is the only part they will be asked
+                      for again. */}
+                  <div className="ticket">
+                    <div className="thead">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                           strokeWidth="3" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+                      <span>{paidPaise > 0 ? t('ticket_held') : t('ticket_received')}</span>
+                    </div>
+
+                    <div className="tbody">
+                      <p className="tref">{booking.bookingId}</p>
+                      <p className="thint">{t('ticket_hint')}</p>
+
+                      <div className="trow">
+                        <span className="k">{t('ticket_occasion')}</span>
+                        <span className="v">{occName(data.occasion)}</span>
+                      </div>
+                      <div className="trow">
+                        <span className="k">{t('ticket_film')}</span>
+                        <span className="v">{lenLabel(data.filmLength)}</span>
+                      </div>
+                      <div className="trow big">
+                        <span className="k">{t('ticket_total')}</span>
+                        <span className="v">₹{inr(booking.total)}</span>
+                      </div>
+
+                      {paidPaise > 0 ? (
+                        <>
+                          <div className="trow">
+                            <span className="k">{t('ticket_paid')}</span>
+                            <span className="v">₹{inr(Math.round(paidPaise / 100))}</span>
+                          </div>
+                          <div className="trow due">
+                            <span className="k">{t('ticket_due')}</span>
+                            <span className="v">
+                              ₹{inr(Math.max(0, booking.total - Math.round(paidPaise / 100)))}
+                            </span>
+                          </div>
+                        </>
+                      ) : null}
+
+                    </div>
+
+                    {/* a direct child of the ticket, so the notches sit on its
+                        own edges rather than inside the padding */}
+                    <div className="tear"><div className="tline" /></div>
+
+                    <div className="tfoot">
+                      <span>Timetoshoot</span>
+                      <span>{bookedOn}</span>
+                    </div>
                   </div>
-                  <h3 className="display">{t('success_title')}</h3>
-                  <p>{t('success_body', { id: booking.bookingId })}</p>
-                  <div className="minisum" style={{ margin: '0 0 16px' }}>
-                    <span>{t('mini_sum', {
-                      length: lenLabel(data.filmLength), occasion: occName(data.occasion),
-                    })}</span>
-                    <span><b>₹{inr(booking.total)}</b></span>
-                  </div>
+
+                  <p className="sub muted" style={{ margin: '0 0 14px' }}>{t('ticket_screenshot')}</p>
+
                   {/* btn-wa is the quiet outline style; this is the one thing
                       the whole page is for, so it gets the primary treatment
                       and the icon that says where it goes. */}

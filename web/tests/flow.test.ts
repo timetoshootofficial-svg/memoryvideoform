@@ -279,7 +279,11 @@ test('the headline itself is never animated, clipped or faded', () => {
   /* Only the overlay carries the animation, and it slides a mask rather than
      a hard-edged clip: a clip gives the bar straight sides and the light
      arrives and leaves like a shutter. */
-  const kf = css.slice(css.indexOf('@keyframes bar-slide'));
+  /* This block, not everything after it. Slicing to the end of the file
+     made every rule added to globals.css later part of the headline's
+     business, which it is not — the ticket's notches tripped it. */
+  const kfAt = css.indexOf('@keyframes bar-slide');
+  const kf = css.slice(kfAt, css.indexOf('\n}', kfAt) + 2);
   assert.ok(/mask-position/.test(kf), 'the bar should slide a mask, not repaint the text');
   assert.ok(!/clip-path/.test(kf), 'a clipped band has sharp edges');
   const band = /--band:linear-gradient\(([\s\S]*?)\);/.exec(lit)?.[1] ?? '';
@@ -640,4 +644,51 @@ test('the Tamil page is really Tamil, and says the same thing', () => {
     for (const [k, v] of Object.entries(STRINGS[lang] as Record<string, string>))
       assert.ok(!/nothing is charged on this page/i.test(v),
         `${lang}.${k} promises the page never charges`);
+});
+
+test('the thank-you screen is a ticket they can keep', () => {
+  /* It is the only thing a customer takes away from the page, and the only
+     part of it they will be asked for again is the reference. So the
+     reference is the biggest thing on it, and the screen says to screenshot
+     it. */
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+
+  assert.ok(/className="ticket"/.test(form), 'the result must be a ticket');
+  assert.ok(/className="tref">\{booking\.bookingId\}/.test(form),
+    'the booking reference is what the ticket is for');
+  assert.ok(/t\('ticket_screenshot'\)/.test(form), 'it must tell them to keep it');
+
+  /* The WhatsApp button is the one action on the screen. */
+  const result = form.slice(form.indexOf('<div className="result">'));
+  assert.ok(/btn btn-primary/.test(result) && /waHref/.test(result),
+    'WhatsApp must be the primary action under the ticket');
+
+  /* The notch is a circle half outside the card; it only reads as a bite
+     because the card clips it, and only sits on the edge because the tear is
+     a child of the ticket rather than of its padded body. */
+  assert.ok(/\.ticket\{[^}]*overflow:hidden/s.test(css), 'the ticket must clip its notches');
+  const body = form.slice(form.indexOf('className="tbody"'), form.indexOf('className="tfoot"'));
+  assert.ok(!/className="tear"/.test(body.slice(0, body.indexOf('</div>\n\n'))) ||
+            form.indexOf('className="tear"') > form.indexOf('</div>\n\n                    {/*'),
+    'the tear must not sit inside the padded body');
+
+  /* Both languages, and the Tamil must be Tamil — this screen is where a
+     missing translation would be most embarrassing. */
+  for (const k of ['ticket_held', 'ticket_received', 'ticket_hint', 'ticket_occasion',
+                   'ticket_film', 'ticket_total', 'ticket_paid', 'ticket_due',
+                   'ticket_screenshot']) {
+    assert.ok((STRINGS.en as Record<string, string>)[k], `en.${k} missing`);
+    assert.ok(/[஀-௿]/.test((STRINGS.ta as Record<string, string>)[k]),
+      `ta.${k} is not in Tamil`);
+  }
+
+  /* The slot is already booked by the time this button is on screen. */
+  for (const lang of ['en', 'ta'] as const)
+    assert.ok(!/book your slot|ஸ்லாட் புக் செய்/i.test(
+      (STRINGS[lang] as Record<string, string>).open_whatsapp),
+      `${lang}.open_whatsapp still asks them to book what they just booked`);
+
+  /* A long label must never push the icon onto its own line. */
+  assert.ok(/\.btn svg\{[^}]*flex:0 0 auto/.test(css), 'the button icon must not shrink or wrap');
 });

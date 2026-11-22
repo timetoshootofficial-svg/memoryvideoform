@@ -62,6 +62,10 @@ export interface BookingSuccess {
   units: number;
   deliveryDate: string;
   slotTime: string;
+  /* Paise already received, once the booking fee is being taken. Absent
+     until then, which is why the ticket only shows the paid rows when it
+     is a real number. */
+  paidPaise?: number;
   holdUntil: string | null;
   holdHours: number;
   spam?: boolean;

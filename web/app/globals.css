@@ -779,3 +779,68 @@ html[lang="ta"] .lens .len .t{font-size:12.5px}
 }
 .fromprice::first-line{color:var(--muted)}
 @media (min-width:1024px){ .fromprice{font-size:15px} }
+
+/* =============================== TICKET ============================== */
+/* The thank-you screen is the only thing a customer keeps. A receipt they
+   can screenshot beats a paragraph that congratulates them. The notches and
+   the tear line are drawn in CSS so the whole thing is text: it scales with
+   the phone's font setting and reads correctly to a screen reader. */
+.ticket{
+  position:relative; text-align:left; margin:0 0 18px;
+  background:var(--card-2); border:1px solid var(--border);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+  /* each notch is a circle half outside the card; this cuts that half off
+     and leaves the bite */
+  overflow:hidden;
+}
+.ticket .thead{
+  display:flex; align-items:center; gap:10px;
+  background:var(--yellow); color:var(--on-yellow);
+  padding:13px 18px; border-radius:15px 15px 0 0;
+  font-weight:700; font-size:13px; letter-spacing:1.4px; text-transform:uppercase;
+}
+.ticket .thead svg{flex:0 0 auto}
+.ticket .tbody{padding:20px 18px 16px}
+.ticket .tref{
+  font-family:var(--display); font-weight:800; letter-spacing:.5px;
+  font-size:clamp(30px,9vw,38px); line-height:1.1; color:var(--ink);
+  margin:0; font-variant-numeric:tabular-nums;
+}
+.ticket .thint{margin:4px 0 16px; font-size:13.5px; color:var(--muted)}
+.ticket .trow{
+  display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+  padding:9px 0; border-top:1px solid var(--border); font-size:15px;
+}
+.ticket .trow:first-of-type{border-top:none}
+.ticket .trow .k{color:var(--muted); flex:0 0 auto}
+.ticket .trow .v{color:var(--ink); font-weight:600; text-align:right}
+.ticket .trow.big .v{font-size:18px; font-weight:700; white-space:nowrap}
+.ticket .trow.due .v{color:var(--ok)}
+
+/* the tear-off line, with a notch punched out of each edge */
+.ticket .tear{position:relative; height:0}
+.ticket .tear::before,.ticket .tear::after{
+  content:''; position:absolute; top:-10px; width:20px; height:20px;
+  border-radius:50%; background:var(--card); border:1px solid var(--border);
+}
+.ticket .tear::before{left:-11px}
+.ticket .tear::after{right:-11px}
+.ticket .tline{
+  height:0; border-top:2px dashed var(--border-2); margin:0 12px;
+}
+.ticket .tfoot{
+  padding:12px 18px 14px; font-size:12.5px; color:var(--muted);
+  display:flex; justify-content:space-between; gap:10px;
+}
+html[lang="ta"] .ticket .thead{letter-spacing:.4px; font-size:12.5px}
+html[lang="ta"] .ticket .tref{font-family:var(--body)}
+
+/* The icon must never be squeezed or pushed onto its own line when the label
+   is long — Tamil labels are routinely half as long again as the English. */
+.btn svg{flex:0 0 auto}
+
+/* The full-width button under the ticket. Tamil labels run about half as long
+   again as the English, and "வாட்ஸ்அப்பில் பேசுங்கள்" missed one line by two
+   pixels at 375px. Tighter side padding buys it back; below that it wraps to
+   two lines, which is tidy as long as the icon stays put (see .btn svg). */
+.result .btn-primary{padding-left:14px; padding-right:14px}
