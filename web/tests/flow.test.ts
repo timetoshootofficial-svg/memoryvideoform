@@ -710,3 +710,16 @@ test('nothing on the page says payment does not happen on it', () => {
   assert.ok(/not refundable/i.test((STRINGS.en as Record<string, string>).pay_note),
     'and they must say it is not refundable, as the refund page does');
 });
+
+test('the contact page carries every way to reach them', () => {
+  /* Razorpay checks these against the account. A missing support address is
+     one of the commoner reasons an activation comes back. */
+  const biz = readFileSync(new URL('../lib/business.ts', import.meta.url), 'utf8');
+  const email = biz.match(/email:\s*'([^']+)'/)?.[1] ?? '';
+  assert.match(email, /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i, 'business.ts needs a real email address');
+
+  const page = readFileSync(new URL('../app/contact/page.tsx', import.meta.url), 'utf8');
+  for (const must of ['B.email', 'phoneDisplay()', 'addressLines()', 'B.hours'])
+    assert.ok(page.includes(must), `the contact page does not show ${must}`);
+  assert.ok(/mailto:/.test(page), 'the email must be tappable');
+});

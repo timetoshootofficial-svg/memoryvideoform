@@ -16,6 +16,9 @@ export const BUSINESS = {
   /** The same number on WhatsApp, with the country code. */
   whatsapp: '917448326503',
 
+  /** The address Razorpay has on file for this account. */
+  email: 'timetoshootofficial@gmail.com',
+
   address: {
     line1: 'No. 45/6, ASMR City 2',
     line2: 'Kirupandavariyar Nagar, Poonamallee',

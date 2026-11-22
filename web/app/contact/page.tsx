@@ -43,6 +43,10 @@ export default async function ContactPage() {
           <div className={s.rowv}><a href={`tel:+91${B.phone}`}>{phoneDisplay()}</a></div>
         </div>
         <div className={s.row}>
+          <div className={s.rowk}>Email</div>
+          <div className={s.rowv}><a href={`mailto:${B.email}`}>{B.email}</a></div>
+        </div>
+        <div className={s.row}>
           <div className={s.rowk}>Instagram</div>
           <div className={s.rowv}>
             <a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener">@{ig}</a>
