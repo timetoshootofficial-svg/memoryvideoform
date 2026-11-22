@@ -22,7 +22,8 @@ export const backendHost = () => URL_;
 
 type Rpc = 'tts_bootstrap' | 'tts_log_events' | 'tts_create_lead'
          | 'tts_create_booking' | 'tts_save_partial'
-         | 'tts_admin_data' | 'tts_admin_leads' | 'tts_admin_set_status';
+         | 'tts_admin_data' | 'tts_admin_leads' | 'tts_admin_set_status'
+         | 'tts_payment_started' | 'tts_payment_captured';
 
 async function rpc<T>(
   fn: Rpc,
@@ -126,3 +127,17 @@ export const adminData = (pin: string) =>
 export const adminSetStatus = (pin: string, bookingId: string, status: string) =>
   rpc<Record<string, unknown>>('tts_admin_set_status',
     { p_pin: pin, p_booking_id: bookingId, p_status: status }, { timeoutMs: 15000 });
+
+/* ------------------------------- payments ------------------------------ */
+
+/** Written the moment Razorpay hands back an order id. The amount recorded
+ *  here is the one a capture is later believed for, so it must come from the
+ *  config table rather than from anything the browser sent. */
+export const paymentStarted = (payload: Record<string, unknown>) =>
+  rpc<{ ok: boolean; code?: string }>('tts_payment_started', { p: payload }, { timeoutMs: 12000 });
+
+/** Called after a signature has been checked — by the browser's return trip,
+ *  by the webhook, or by both. Running it twice changes nothing. */
+export const paymentCaptured = (payload: Record<string, unknown>) =>
+  rpc<{ ok: boolean; code?: string; booking?: string | null; paid_paise?: number; kind?: string }>(
+    'tts_payment_captured', { p: payload }, { timeoutMs: 12000 });
