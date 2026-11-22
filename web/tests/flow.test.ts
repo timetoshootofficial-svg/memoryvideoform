@@ -452,3 +452,37 @@ test('the form no longer asks when the occasion is', () => {
     assert.ok(!(k in ta), `ta.${k} is dead copy`);
   }
 });
+
+test('the drop-off chart only names steps the page actually has', () => {
+  /* The calendar rows survived the calendar's removal and sat at a permanent
+     zero, so the chart read as if two thirds of people vanished at a screen
+     that no longer exists. Every row must name an event something still
+     fires. */
+  const admin = readFileSync(new URL('../app/admin/AdminDashboard.tsx', import.meta.url), 'utf8');
+  const funnel = readFileSync(new URL('../components/booking/useFunnel.ts', import.meta.url), 'utf8');
+
+  const block = admin.match(/const FUNNEL_STEPS[^=]*=\s*\[([\s\S]*?)\];/);
+  assert.ok(block, 'FUNNEL_STEPS must be a literal list');
+  const rows = [...block[1].matchAll(/\['([a-z0-9_]+)'/g)].map((m) => m[1]);
+  assert.ok(rows.length > 0, 'the chart must have rows');
+
+  /* What the browser can really send: literal track() names, plus the
+     template that produces step_2 and step_3. */
+  const src = form + funnel;
+  const fired = new Set([...src.matchAll(/track\('([a-z0-9_]+)'/g)].map((m) => m[1]));
+  if (/track\(`step_\$\{n\}`/.test(src)) for (const n of [1, 2, 3, 4]) fired.add(`step_${n}`);
+
+  for (const key of rows)
+    assert.ok(fired.has(key), `the chart shows "${key}", which nothing fires any more`);
+
+  for (const dead of ['step_4', 'date_selected', 'time_selected'])
+    assert.ok(!rows.includes(dead), `${dead} belongs to the removed calendar`);
+
+  /* Someone can tap three occasions before settling, so occasion_selected is
+     counted more than once per person and its bar would run backwards. */
+  assert.ok(!rows.includes('occasion_selected'),
+    'occasion_selected can fire repeatedly, so it cannot be a drop-off row');
+
+  /* And the summary underneath must not promise a reservation either. */
+  assert.ok(!/Visit to reservation/.test(admin), 'nothing reserves a slot any more');
+});

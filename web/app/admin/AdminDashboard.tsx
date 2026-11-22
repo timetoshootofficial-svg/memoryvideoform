@@ -5,15 +5,18 @@ import type { AdminPayload, AdminBooking, LeadsPayload, Lead, StageWindow, Campa
 
 const STATUSES = ['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Expired'] as const;
 
+/* These are the steps the page actually has. The calendar rows (reached the
+   calendar, picked a date, picked a time) were removed with the calendar
+   itself, so they sat here at a permanent zero and made the chart look broken.
+   occasion_selected is deliberately not a row: someone can tap three occasions
+   before settling, so its count can exceed the step above it and the bar would
+   run backwards. */
 const FUNNEL_STEPS: Array<[string, string]> = [
   ['page_view', 'Opened the page'],
   ['form_start', 'Started the form'],
   ['step_2', 'Gave name and number'],
-  ['step_3', 'Chose an occasion'],
-  ['step_4', 'Reached the calendar'],
-  ['date_selected', 'Picked a date'],
-  ['time_selected', 'Picked a time'],
-  ['booking_created', 'Reserved a slot'],
+  ['step_3', 'Saw the price'],
+  ['booking_created', 'Pressed Book now'],
   ['whatsapp_redirect', 'Went to WhatsApp'],
 ];
 
@@ -529,7 +532,7 @@ export default function AdminDashboard() {
               );
             })}
             <p style={{ color: 'var(--muted)', fontSize: 12.5, margin: '10px 0 0' }}>
-              Visit to reservation: <b style={{ color: 'var(--yellow)' }}>
+              Visit to booking: <b style={{ color: 'var(--yellow)' }}>
                 {pct(f.booking_created ?? 0, f.page_view ?? 0)}
               </b>{' · '}unique visitors all time: {data.funnel.sessions}
             </p>
