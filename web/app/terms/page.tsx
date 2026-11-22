@@ -57,7 +57,7 @@ export default async function TermsPage() {
       <h2>How a booking works</h2>
       <table><tbody>
         <tr><th>Step</th><th>What happens</th></tr>
-        <tr><td>1</td><td>You choose a plan and pay ₹{B.bookingFee}. Your slot is held.</td></tr>
+        <tr><td>1</td><td>You choose a plan and pay ₹{B.bookingFee}. Your slot is held. The fee is <strong>not refundable</strong>, and it comes off the price of your film.</td></tr>
         <tr><td>2</td><td>We message you on WhatsApp to collect your photographs and understand the occasion.</td></tr>
         <tr><td>3</td><td>You pay 50% of the remaining amount as an advance.</td></tr>
         <tr><td>4</td><td>We prepare a <strong>storyboard</strong> — the plan of your film — and send it to you for approval.</td></tr>
