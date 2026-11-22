@@ -1,6 +1,17 @@
 -- ============================================================================
 -- Timetoshoot — clear everything that testing created
 -- ----------------------------------------------------------------------------
+--
+--   ####  DO NOT RUN THIS ONCE REAL CUSTOMERS EXIST.  ####
+--
+--   The deletes below carry no WHERE clause. They empty the tables. Real
+--   bookings, real leads and every visit recorded in the drop-off chart go
+--   with the test rows, and none of it can be brought back.
+--
+--   To remove only your own test rows, use 10_remove_test_rows_only.sql,
+--   which deletes by phone number and leaves everything else standing.
+--
+-- ----------------------------------------------------------------------------
 -- Paste the whole file into Supabase → SQL Editor → Run.
 --
 -- The site went live only minutes ago, so every row in these three tables was
