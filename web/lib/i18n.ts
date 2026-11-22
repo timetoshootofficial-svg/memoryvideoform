@@ -171,7 +171,10 @@ const STRINGS = {
     footer_instagram: 'Instagram',
     footer_whatsapp: 'WhatsApp',
     footer_privacy: 'Your name and number are used only to contact you about your booking. We do not sell or share your details.',
-    footer_privacy_link: 'Read our Privacy Policy',
+    footer_privacy_link: 'Privacy Policy',
+    footer_terms_link: 'Terms',
+    footer_refunds_link: 'Refunds & Cancellation',
+    footer_contact_link: 'Contact us',
     footer_rights: '© {year} Timetoshoot. All rights reserved.'
   },
 
@@ -322,7 +325,10 @@ const STRINGS = {
     footer_instagram: 'இன்ஸ்டாகிராம்',
     footer_whatsapp: 'வாட்ஸ்அப்',
     footer_privacy: 'உங்கள் பெயரும் எண்ணும் உங்கள் புக்கிங் தொடர்பாக மட்டுமே பயன்படுத்தப்படும். உங்கள் விவரங்களை விற்கவோ பங்கிடவோ மாட்டோம்.',
-    footer_privacy_link: 'தனியுரிமைக் கொள்கையைப் படிக்க',
+    footer_privacy_link: 'தனியுரிமைக் கொள்கை',
+    footer_terms_link: 'விதிமுறைகள்',
+    footer_refunds_link: 'பணத்திருப்பம் & ரத்து',
+    footer_contact_link: 'எங்களை தொடர்பு கொள்ள',
     footer_rights: '© {year} Timetoshoot. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.'
   }
 };

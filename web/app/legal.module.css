@@ -29,3 +29,13 @@
 .pfoot{border-top:1px solid var(--border);background:var(--bg-2);padding:28px 0 40px;font-size:14px;color:var(--muted)}
 .pfoot a{color:var(--ink);font-weight:500}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 22px;border-radius:12px;background:var(--yellow);color:var(--on-yellow);font-weight:600;text-decoration:none;box-shadow:0 2px 0 #F0C200;margin-top:6px}
+
+/* Contact page: the details block. */
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:20px 20px 18px;margin:0 0 20px}
+.card h2{margin-top:0}
+.row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.rowk{min-width:104px;color:var(--muted);font-size:14px;padding-top:1px}
+.rowv{color:var(--ink);font-weight:500}
+.rowv a{color:var(--ink)}
+.addr{font-style:normal;line-height:1.6}

@@ -30,8 +30,18 @@ export default function Footer({ t, instagram, whatsapp }:
           </div>
           <div>
             <p className="fnote">{t('footer_privacy')}</p>
+            {/* Razorpay looks for these four, and looks for them linked from
+                the page people actually pay on. */}
             <p className="fnote">
-              <a href="/privacy" style={{ textDecoration: 'underline' }}>{t('footer_privacy_link')}</a>
+              {([['/terms', 'footer_terms_link'],
+                 ['/refunds', 'footer_refunds_link'],
+                 ['/privacy', 'footer_privacy_link'],
+                 ['/contact', 'footer_contact_link']] as const).map(([href, key], i) => (
+                <span key={href}>
+                  {i > 0 ? ' \u00b7 ' : ''}
+                  <a href={href} style={{ textDecoration: 'underline' }}>{t(key)}</a>
+                </span>
+              ))}
             </p>
             <p className="fnote">{t('footer_rights', { year: new Date().getFullYear() })}</p>
           </div>

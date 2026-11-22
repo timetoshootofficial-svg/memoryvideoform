@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getBootstrap } from '@/lib/supabase';
-import s from './privacy.module.css';
+import s from '../legal.module.css';
 import WhatsAppFab from '@/components/WhatsAppFab';
 import { getLang } from '@/lib/lang';
 
@@ -168,7 +168,7 @@ export default async function PrivacyPage() {
         <p><a className={s.btn} href={wa} target="_blank" rel="noopener">Message us on WhatsApp</a></p>
         <p style={{ marginTop: '18px' }}>
           Timetoshoot &middot; Tamil Nadu, India<br />
-          Instagram: <a href="https://instagram.com/timetoshoot" target="_blank" rel="noopener">@timetoshoot</a>
+          Instagram: <a href="https://instagram.com/timetoshoot_" target="_blank" rel="noopener">@timetoshoot_</a>
         </p>
       </main>
 

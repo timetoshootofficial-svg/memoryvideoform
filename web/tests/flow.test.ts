@@ -517,3 +517,47 @@ test('the build does not need Google to be up', () => {
   for (const [, lo, hi] of ranges)
     assert.ok(Number(hi) > Number(lo), `weight range ${lo} ${hi} is not a range`);
 });
+
+test('the pages a payment provider looks for are all there and agree', () => {
+  /* Razorpay checks the site before it activates an account, and it checks
+     that the refund terms on the page match what the account claims. These
+     four pages must exist, link to each other, and be linked from the page
+     people pay on. */
+  const pages = ['terms', 'refunds', 'privacy', 'contact'];
+  for (const p of pages)
+    assert.ok(statSync(new URL(`../app/${p}/page.tsx`, import.meta.url)).size > 500,
+      `/${p} is missing`);
+
+  const footer = readFileSync(new URL('../components/Footer.tsx', import.meta.url), 'utf8');
+  for (const p of pages)
+    assert.ok(footer.includes(`'/${p}'`), `the footer does not link /${p}`);
+
+  /* Both languages need the label, or the Tamil footer silently shows a key. */
+  const en = STRINGS.en as Record<string, string>;
+  const ta = STRINGS.ta as Record<string, string>;
+  for (const k of ['footer_terms_link', 'footer_refunds_link',
+                   'footer_privacy_link', 'footer_contact_link']) {
+    assert.ok(en[k], `en.${k} missing`);
+    assert.ok(ta[k], `ta.${k} missing`);
+    assert.notEqual(en[k], ta[k], `${k} was never translated`);
+  }
+
+  /* One source for the contact details, so the three pages cannot disagree
+     with each other or with the Razorpay account. */
+  const biz = readFileSync(new URL('../lib/business.ts', import.meta.url), 'utf8');
+  for (const must of ['phone', 'whatsapp', 'address', 'hours', 'revisions',
+                      'bookingFee', 'refundDays'])
+    assert.ok(new RegExp(`\\b${must}\\s*:`).test(biz), `business.ts has no ${must}`);
+
+  /* The account is an individual one. Claiming a company would not survive
+     the check, and would not be true. */
+  const terms = readFileSync(new URL('../app/terms/page.tsx', import.meta.url), 'utf8');
+  assert.ok(/not a separately registered company/.test(terms),
+    'the terms must not imply a registered company');
+
+  /* The one rule the whole refund policy turns on. */
+  const refunds = readFileSync(new URL('../app/refunds/page.tsx', import.meta.url), 'utf8');
+  assert.ok(/storyboard/i.test(refunds), 'the refund cut-off is the storyboard');
+  assert.ok(/not refundable|not\s*<\/strong>\s*refundable/i.test(refunds),
+    'the booking fee terms must say it is not refundable');
+});
