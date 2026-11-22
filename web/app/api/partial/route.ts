@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
    must never stop someone booking. */
 const FIELDS = [
   'sessionId', 'step', 'name', 'phone', 'occasion', 'eventDate',
-  'filmLength', 'follower', 'price', 'language',
+  'filmLength', 'price', 'language',
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_content',
   'ad_id', 'fbclid', 'referrer',
 ] as const;

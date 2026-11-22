@@ -395,7 +395,7 @@ test('choosing a length is tapping an option, not dragging a slider', () => {
     'the options must announce themselves as a choice');
   /* Each option carries its own price, so the cost and the choice are one thing. */
   const block = form.slice(form.indexOf('className="lens"'), form.indexOf('</div>', form.indexOf('className="lens"')) + 2000);
-  assert.ok(/L\.calcPrice\(config, code, data\.follower\)/.test(block),
+  assert.ok(/L\.calcPrice\(config, code\)/.test(block),
     'each option must price itself');
   assert.ok(/₹\{inr\(p\.total\)\}/.test(block), 'each option must show that price');
 });
@@ -560,4 +560,84 @@ test('the pages a payment provider looks for are all there and agree', () => {
   assert.ok(/storyboard/i.test(refunds), 'the refund cut-off is the storyboard');
   assert.ok(/not refundable|not\s*<\/strong>\s*refundable/i.test(refunds),
     'the booking fee terms must say it is not refundable');
+});
+
+test('the follower discount is gone from every place it lived', () => {
+  /* It came off on 22 November 2026. It touched the price, the form, the copy
+     in both languages, the two API routes and the privacy page, so a partial
+     removal is easy — and a half-removed discount is a price the advertisement
+     does not quote. */
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  assert.ok(!/follower/i.test(form), 'the booking form still mentions the follower offer');
+
+  for (const f of ['../app/api/partial/route.ts', '../app/api/booking/route.ts']) {
+    const src = readFileSync(new URL(f, import.meta.url), 'utf8');
+    assert.ok(!/'follower'/.test(src), `${f} still accepts the follower field`);
+  }
+
+  /* The copy, in both languages. A key left in one and not the other is how a
+     Tamil page ends up showing a raw key. */
+  for (const lang of ['en', 'ta'] as const)
+    assert.ok(!('follower_check' in (STRINGS[lang] as Record<string, string>)),
+      `${lang} still carries the follower checkbox copy`);
+
+  /* calcPrice must not take the flag back as an argument. */
+  const logic = readFileSync(new URL('../lib/logic.ts', import.meta.url), 'utf8');
+  assert.ok(!/isFollower/.test(logic), 'calcPrice still takes a follower argument');
+
+  const privacy = readFileSync(new URL('../app/privacy/page.tsx', import.meta.url), 'utf8');
+  assert.ok(!/follower discount/i.test(privacy),
+    'the privacy policy still says we collect it');
+
+  /* And the server has to be shut too, or a hand-made request still claims
+     the ₹200. The SQL that does it must exist for the owner to run. */
+  const sql = readFileSync(new URL('../../supabase/11_remove_follower_discount.sql', import.meta.url), 'utf8');
+  assert.ok(/update public\.config set value = '0' where key = 'follower_discount'/.test(sql),
+    'the config value must be set to zero server-side');
+});
+
+test('the Tamil page is really Tamil, and says the same thing', () => {
+  /* Half the people who see this page read it in Tamil. Until now the
+     delivery sentence came out of the config table as one English string and
+     was dropped into both languages, so the Tamil page showed an English
+     line in the middle of it. */
+  const en = STRINGS.en as Record<string, string>;
+  const ta = STRINGS.ta as Record<string, string>;
+
+  const ek = Object.keys(en), tk = Object.keys(ta);
+  assert.deepEqual(ek.filter((k) => !(k in ta)), [], 'keys missing from Tamil');
+  assert.deepEqual(tk.filter((k) => !(k in en)), [], 'keys only in Tamil');
+
+  /* A placeholder that exists in one language and not the other renders as
+     literal {text} to whoever reads that language. */
+  const ph = (v: string) => (String(v).match(/\{\w+\}/g) ?? []).sort().join(',');
+  for (const k of ek)
+    assert.equal(ph(ta[k]), ph(en[k]), `${k}: placeholders differ between languages`);
+
+  /* Every string a reader sees must contain Tamil letters. The exceptions are
+     the brand and strings that are nothing but a placeholder. */
+  const tamil = /[஀-௿]/;
+  const onlyPlaceholders = (v: string) => !/[A-Za-z]{3,}/.test(String(v).replace(/\{\w+\}/g, ''));
+  for (const k of ek) {
+    if (k === 'brand') continue;
+    if (onlyPlaceholders(ta[k])) continue;
+    assert.ok(tamil.test(ta[k]), `ta.${k} was never translated: ${JSON.stringify(ta[k])}`);
+  }
+
+  /* The calendar went months ago. Three answers still described it, in both
+     languages, telling people to pick a date on a screen that is not there. */
+  for (const lang of ['en', 'ta'] as const) {
+    const all = Object.entries(STRINGS[lang] as Record<string, string>);
+    for (const [k, v] of all) {
+      assert.ok(!/calendar/i.test(v), `${lang}.${k} still mentions the calendar`);
+      assert.ok(!/காலெண்டர்/.test(v), `${lang}.${k} still mentions the calendar`);
+    }
+  }
+
+  /* And nothing may promise that the page never charges: the ₹99 booking fee
+     is paid on it. */
+  for (const lang of ['en', 'ta'] as const)
+    for (const [k, v] of Object.entries(STRINGS[lang] as Record<string, string>))
+      assert.ok(!/nothing is charged on this page/i.test(v),
+        `${lang}.${k} promises the page never charges`);
 });

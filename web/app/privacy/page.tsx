@@ -55,8 +55,7 @@ export default async function PrivacyPage() {
           <tr><td>Your WhatsApp number</td><td>To confirm your booking and send your film</td></tr>
           <tr><td>Occasion and, if you give one, the date of that occasion</td><td>To shape the film and make sure it is ready in time</td></tr>
           <tr><td>The film length you choose</td><td>To price the work before we talk</td></tr>
-          <tr><td>Whether you follow us on Instagram</td><td>Only to apply the follower discount</td></tr>
-          <tr><td>Language you used the site in</td><td>So we reply in the same language</td></tr>
+            <tr><td>Language you used the site in</td><td>So we reply in the same language</td></tr>
         </tbody></table>
       
         <p>

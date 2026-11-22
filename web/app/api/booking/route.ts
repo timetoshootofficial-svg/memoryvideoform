@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
    Keeping one set of rules in one place is why the two can never disagree. */
 const FIELDS = [
   'name', 'phone', 'consent', 'occasion', 'eventDate', 'filmLength',
-  'follower', 'honeypot', 'language',
+  'honeypot', 'language',
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_content',
   'ad_id', 'fbclid', 'referrer', 'notes',
 ] as const;

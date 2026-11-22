@@ -30,7 +30,6 @@ export const SITE = {
     list_price_30s: 0, list_price_1m: 0, list_price_2m: 0,
     list_price_3m: 0, list_price_4m: 0, list_price_5m: 0,
     units_30s: 1, units_1m: 1, units_2m: 2, units_3m: 2, units_4m: 3, units_5m: 3,
-    follower_discount: 200,
     time_slots: ['11:00 AM', '1:00 PM', '4:00 PM', '7:00 PM'],
     daily_capacity: 4,
     min_lead_days: 3,

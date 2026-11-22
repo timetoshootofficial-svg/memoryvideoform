@@ -7,7 +7,7 @@ const STEPS = [
   { n: '04', k: 'how_4', who: 'who_us', cls: '' },
 ] as const;
 
-export default function Process({ t, deliveryText }: { t: T; deliveryText: string }) {
+export default function Process({ t, deliveryDays }: { t: T; deliveryDays: number }) {
   return (
     <section id="how" className="alt-bg">
       <div className="wrap">
@@ -19,7 +19,7 @@ export default function Process({ t, deliveryText }: { t: T; deliveryText: strin
               <span className="n">{s.n}</span>
               <div>
                 <b>{t(`${s.k}_t` as 'how_1_t')}</b>
-                <p>{t(`${s.k}_d` as 'how_1_d', { delivery: deliveryText })}</p>
+                <p>{t(`${s.k}_d` as 'how_1_d', { delivery: t('delivery_line', { days: deliveryDays }) })}</p>
                 <span className="who">{t(s.who)}</span>
               </div>
             </li>

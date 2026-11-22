@@ -34,12 +34,19 @@ test('only lengths that carry a price are offered', () => {
   assert.deepEqual(L.availableLengths({ price_1m: 4999, price_2m: 0 } as never), ['1m']);
 });
 
-test('the follower discount never makes a film free or negative', () => {
-  const p = L.calcPrice(CONFIG, '1m', true);
-  assert.equal(p.total, 4799);
-  const tiny = L.calcPrice({ price_1m: 100, follower_discount: 5000 } as never, '1m', true);
-  assert.equal(tiny.total, 0);
-  assert.ok(tiny.discount <= tiny.base);
+test('nothing takes money off the listed price any more', () => {
+  /* The Instagram-follower discount was removed on 22 November 2026. The ad
+     quotes the list price, so anything that quietly reduced it would put the
+     advertisement and the page back out of step — the exact problem the
+     price-match work fixed. */
+  const p = L.calcPrice(CONFIG, '1m');
+  assert.equal(p.total, p.base, 'the total must be the listed price');
+  assert.equal(p.discount, 0);
+
+  /* Even if a stale follower_discount is still sitting in the config table,
+     the page must ignore it. */
+  const stale = L.calcPrice({ price_1m: 4999, follower_discount: 200 } as never, '1m');
+  assert.equal(stale.total, 4999, 'a leftover config value must not reach the price');
 });
 
 test('a struck price is only shown when it is genuinely higher', () => {

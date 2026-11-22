@@ -14,7 +14,6 @@ export type Occasion = (typeof OCCASIONS)[number];
 /** Everything the `config` table hands the page. Numbers arrive as numbers. */
 export interface SiteConfig {
   today: string;
-  follower_discount: number;
   daily_capacity: number;
   min_lead_days: number;
   booking_window_days: number;

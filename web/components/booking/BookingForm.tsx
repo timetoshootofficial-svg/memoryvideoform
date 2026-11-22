@@ -29,7 +29,7 @@ const RESULT_STEP = 4;
 interface Data {
   name: string; phone: string;
   occasion: string;
-  filmLength: string; follower: boolean;
+  filmLength: string;
 }
 
 /**
@@ -65,7 +65,6 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
        Cheapest by PRICE, not by duration: the two happen to agree today, but
        a price change in the config table should not quietly move the default. */
     filmLength: cheapest,
-    follower: false,
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -82,7 +81,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
      does not wait for it and never shows an error if it fails. */
   const saved = useRef('');
   const capture = (step: number, d: Data) => {
-    const sig = `${step}|${d.name}|${d.phone}|${d.occasion}|${d.filmLength}|${d.follower}`;
+    const sig = `${step}|${d.name}|${d.phone}|${d.occasion}|${d.filmLength}`;
     if (saved.current === sig) return;
     saved.current = sig;
     try {
@@ -92,8 +91,8 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
         body: JSON.stringify({
           sessionId: sessionId(), step,
           name: d.name, phone: d.phone, occasion: d.occasion,
-          filmLength: d.filmLength, follower: String(d.follower),
-          price: L.calcPrice(config, d.filmLength, d.follower).total,
+          filmLength: d.filmLength,
+          price: L.calcPrice(config, d.filmLength).total,
           language: lang,
           utm_source: utm.current.utm_source ?? '', utm_medium: utm.current.utm_medium ?? '',
           utm_campaign: utm.current.utm_campaign ?? '', utm_content: utm.current.utm_content ?? '',
@@ -108,7 +107,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
   const set = (patch: Partial<Data>) => setData((d) => ({ ...d, ...patch }));
   dataRef.current = data;
   stepRef.current = step;
-  const price = L.calcPrice(config, data.filmLength, data.follower);
+  const price = L.calcPrice(config, data.filmLength);
 
   /* The funnel chart counts form_start, so it fires the first time someone
      actually types, not when the section scrolls into view. */
@@ -146,18 +145,18 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
     capture(from + 1, data);
     /* Reaching the price step is the strongest mid-funnel signal this page
        has. Meta needs volume to learn from, and bookings alone are too few. */
-    if (from + 1 === LAST_STEP) pixelReachedPrice(L.calcPrice(config, data.filmLength, data.follower).total);
+    if (from + 1 === LAST_STEP) pixelReachedPrice(L.calcPrice(config, data.filmLength).total);
     goStep(from + 1);
   };
 
-  /* They may change the length, or tick the follower box, and then leave
+  /* They may change the length and then leave
      without pressing the button. That is still worth knowing. */
   useEffect(() => {
     if (step !== LAST_STEP) return;
     const id = setTimeout(() => capture(LAST_STEP, data), 900);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, data.filmLength, data.follower]);
+  }, [step, data.filmLength]);
 
   /* And if they close the tab mid-step, take what there is. */
   useEffect(() => {
@@ -195,7 +194,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
           sessionId: sessionId(),
           name: data.name, phone: data.phone, consent: 'true',
           occasion: data.occasion,
-          filmLength: data.filmLength, follower: String(data.follower),
+          filmLength: data.filmLength,
           honeypot: hpRef.current?.value ?? '', language: lang,
           utm_source: utm.current.utm_source ?? '', utm_medium: utm.current.utm_medium ?? '',
           utm_campaign: utm.current.utm_campaign ?? '', utm_content: utm.current.utm_content ?? '',
@@ -330,7 +329,7 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
                   now its own button with its own price on it. */}
               <div className="lens" role="radiogroup" aria-label={t('s3_title')}>
                 {lengths.map((code) => {
-                  const p = L.calcPrice(config, code, data.follower);
+                  const p = L.calcPrice(config, code);
                   const on = data.filmLength === code;
                   return (
                     <button type="button" key={code} role="radio" aria-checked={on}
@@ -349,21 +348,8 @@ export default function BookingForm({ config, lang }: { config: SiteConfig; lang
                   <span>₹{inr(price.total)}</span>
                   {price.list > 0 ? <s className="was">₹{inr(price.list)}</s> : null}
                 </div>
-                <div className="off">
-                  {data.follower && price.discount > 0
-                    ? t('discount_applied', { amount: inr(price.discount) })
-                    : t('total_label')}
-                </div>
+                <div className="off">{t('total_label')}</div>
               </div>
-              <label className="check">
-                <input type="checkbox" checked={data.follower}
-                       onChange={(e) => set({ follower: e.target.checked })} />
-                <span>{t('follower_check', {
-                  amount: inr(Number(config.follower_discount) || 0),
-                  handle: config.instagram_handle,
-                })}</span>
-              </label>
-
               {err[LAST_STEP] ? <p className="err on">{err[LAST_STEP]}</p> : <p className="err" />}
 
               <div className="navrow">

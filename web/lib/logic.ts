@@ -101,13 +101,13 @@ export function listPrice(config: Partial<SiteConfig>, filmLength: string): numb
   return n > basePrice(config, filmLength) ? n : 0;
 }
 
-export function calcPrice(config: Partial<SiteConfig>, filmLength: string, isFollower: boolean) {
+/* The Instagram-follower discount was removed on 22 November 2026. The shape
+   of what this returns is unchanged so the price box and the tests that read
+   it did not all have to move at once; discount is simply always zero. */
+export function calcPrice(config: Partial<SiteConfig>, filmLength: string) {
   const base = basePrice(config, filmLength);
   if (!base) return { base: 0, discount: 0, total: 0, list: 0 };
-  let discount = isFollower ? num(config.follower_discount, 0) : 0;
-  if (discount < 0) discount = 0;
-  if (discount > base) discount = base;
-  return { base, discount, total: base - discount, list: listPrice(config, filmLength) };
+  return { base, discount: 0, total: base, list: listPrice(config, filmLength) };
 }
 
 /* ----------------------------- availability ---------------------------- */

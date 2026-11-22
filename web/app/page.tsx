@@ -10,6 +10,7 @@ import BookingForm from '@/components/booking/BookingForm';
 import Reviews from '@/components/Reviews';
 import Faq from '@/components/Faq';
 import Footer from '@/components/Footer';
+import { BUSINESS } from '@/lib/business';
 import StickyCta from '@/components/StickyCta';
 import WhatsAppFab from '@/components/WhatsAppFab';
 import MetaPixel from '@/components/MetaPixel';
@@ -42,10 +43,11 @@ export default async function Page() {
         <Hero t={t} lang={lang} clients={String(c.clients_count)} fromPrice={fromPrice} />
         <div className="strip" aria-hidden="true" />
         <WorkMarquee lang={lang} />
-        <Process t={t} deliveryText={String(c.delivery_text)} />
+        <Process t={t} deliveryDays={Number(c.delivery_days) || BUSINESS.deliveryDays} />
         <BookingForm config={c} lang={lang} />
         <Reviews lang={lang} />
-        <Faq t={t} deliveryText={String(c.delivery_text)} revisionsText={String(c.revisions_text ?? '')} />
+        <Faq t={t} deliveryDays={Number(c.delivery_days) || BUSINESS.deliveryDays}
+             revisions={BUSINESS.revisions} />
       </main>
 
       <Footer t={t} instagram={String(c.instagram_handle)} whatsapp={String(c.whatsapp_link)} />
