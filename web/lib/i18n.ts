@@ -129,6 +129,7 @@ const STRINGS = {
     privacy_inline: 'Your name and number are used only to contact you about this film.',
 
     /* ---- result ---- */
+    you_save: 'You save ₹{amount}',
     pay_cta: 'Hold my slot — ₹{amount}',
     pay_note: '₹{amount} holds your slot and comes off the price of your film. It is not refundable.',
     pay_opening: 'Opening payment…',
@@ -302,6 +303,7 @@ const STRINGS = {
     submitting: 'உங்கள் இடத்தை பிடிக்கிறோம்…',
     privacy_inline: 'உங்கள் பெயரும் எண்ணும் இந்த படம் தொடர்பாக மட்டுமே பயன்படுத்தப்படும்.',
 
+    you_save: '₹{amount} மிச்சம்',
     pay_cta: 'இடத்தைப் பிடிக்க — ₹{amount}',
     pay_note: '₹{amount} உங்கள் இடத்தைப் பிடிக்கும், அது படத்தின் விலையிலிருந்து கழிக்கப்படும். இது திரும்பத் தரப்படாது.',
     pay_opening: 'பேமெண்ட் திறக்கிறது…',

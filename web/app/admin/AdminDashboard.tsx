@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import s from './admin.module.css';
+import Packages, { type PackageRow } from './Packages';
 import type { AdminPayload, AdminBooking, LeadsPayload, Lead, StageWindow, CampaignRow,
               PaymentsPayload } from './types';
 
@@ -251,7 +252,10 @@ export default function AdminDashboard() {
   const [data, setData] = useState<AdminPayload | null>(null);
   const [leadsData, setLeadsData] = useState<LeadsPayload | null>(null);
   const [payData, setPayData] = useState<PaymentsPayload | null>(null);
-  const [tab, setTab] = useState<'dashboard' | 'leads' | 'bookings'>('dashboard');
+  const [tab, setTab] = useState<'dashboard' | 'leads' | 'bookings' | 'packages'>('dashboard');
+  const [pkgs, setPkgs] = useState<PackageRow[] | null>(null);
+  const [pkgBusy, setPkgBusy] = useState(false);
+  const [pkgNote, setPkgNote] = useState('');
   const [stageWin, setStageWin] = useState<StageWindow>('all');
   const [leadFilter, setLeadFilter] = useState<'all' | 'abandoned' | 'finished'>('all');
   const [err, setErr] = useState<React.ReactNode>('');
@@ -273,16 +277,18 @@ export default function AdminDashboard() {
   const load = useCallback(async (usePin: string) => {
     setBusy(true);
     setErr('');
-    const [j, lj, pj] = await Promise.all([
+    const [j, lj, pj, kj] = await Promise.all([
       call({ pin: usePin }),
       call({ action: 'leads', pin: usePin }),
       call({ action: 'payments', pin: usePin }),
+      call({ action: 'packages', pin: usePin }),
     ]);
     setBusy(false);
     setLeadsData(lj?.ok ? (lj as LeadsPayload) : null);
     /* Null until 14_admin_payments.sql is installed; every use is guarded,
        so the page works exactly as before without it. */
     setPayData(pj?.ok ? (pj as PaymentsPayload) : null);
+    setPkgs(kj?.ok && Array.isArray(kj.packages) ? (kj.packages as PackageRow[]) : null);
 
     if (!j?.ok) {
       setData(null);
@@ -426,6 +432,9 @@ export default function AdminDashboard() {
             Bookings
             <span className={s.count}>{data.bookings.length}</span>
           </button>
+          <button role="tab" aria-selected={tab === 'packages'} onClick={() => setTab('packages')}>
+            Packages
+          </button>
         </div>
 
         {tab === 'dashboard' && leadsData ? (
@@ -485,6 +494,28 @@ export default function AdminDashboard() {
         {tab === 'dashboard' && leadsData?.campaigns ? <Campaigns rows={leadsData.campaigns} /> : null}
 
         {tab === 'leads' ? <LeadsTable data={leadsData} filter={leadFilter} setFilter={setLeadFilter} /> : null}
+
+        {tab === 'packages' && pkgs ? (
+          <Packages
+            rows={pkgs ?? []}
+            busy={pkgBusy}
+            note={pkgNote}
+            onSave={async (values) => {
+              setPkgBusy(true);
+              setPkgNote('');
+              const r = await call({ action: 'setPackages', pin, values });
+              setPkgBusy(false);
+              if (r?.ok) {
+                setPkgNote('Saved. The site is updated.');
+                /* Read it back, so what the page shows is what the database
+                   now holds rather than what was typed into the form. */
+                await load(pin);
+              } else {
+                setPkgNote(r?.message || 'Could not save. Nothing was changed.');
+              }
+            }}
+          />
+        ) : null}
 
         {tab === 'dashboard' ? (
         <>

@@ -844,3 +844,8 @@ html[lang="ta"] .ticket .tref{font-family:var(--body)}
    pixels at 375px. Tighter side padding buys it back; below that it wraps to
    two lines, which is tidy as long as the icon stays put (see .btn svg). */
 .result .btn-primary{padding-left:14px; padding-right:14px}
+
+/* The saving, said in words under the price. Green, because it is the one
+   number on that card the eye should land on after the price itself. */
+.pricebox .off.save{color:var(--ok); font-weight:700; font-size:14.5px}
+.len .was{display:block; margin-top:1px}

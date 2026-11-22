@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, statSync } from 'node:fs';
 import { STRINGS } from '../lib/i18n.ts';
+import * as L from '../lib/logic.ts';
 
 const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
 const sql = readFileSync(new URL('../../supabase/02_no_calendar.sql', import.meta.url), 'utf8');
@@ -743,4 +744,50 @@ test('the admin page shows money that arrived, not only money somebody typed', (
   assert.ok(/tts_admin_check\(p_pin\)/.test(sql), 'it must be behind the PIN like every other admin call');
   assert.ok(/status = 'captured'/.test(sql), 'only captured payments count as money');
   assert.ok(/grant execute on function public\.tts_admin_payments/.test(sql), 'it must be callable');
+});
+
+test('packages are run from the admin page, and only packages', () => {
+  /* The prices already lived in the config table and the booking form already
+     hid a length priced at 0 — what was missing was a way to change them
+     without opening Supabase. */
+  const sql = readFileSync(new URL('../../supabase/15_admin_packages.sql', import.meta.url), 'utf8');
+
+  assert.ok(/tts_admin_check\(p_pin\)/.test(sql), 'both functions must sit behind the PIN');
+
+  /* The narrow bit: it writes twelve keys and nothing else. If it could write
+     any key, a bug here could change the WhatsApp number or the admin PIN. */
+  assert.ok(/price_' \|\| v_len/.test(sql) && /list_price_' \|\| v_len/.test(sql),
+    'it must build the key from a fixed list of lengths');
+  assert.ok(!/jsonb_each/.test(sql), 'it must not loop over whatever keys it was handed');
+  assert.ok(/\^\[0-9\]\{1,7\}\$/.test(sql), 'values must be whole numbers within a sane range');
+
+  /* And it checks the whole result before writing, so a save that would leave
+     nothing to sell changes nothing at all. */
+  const check = sql.indexOf('ALL_OFF');
+  const write = sql.indexOf('insert into public.config');
+  assert.ok(check > 0 && write > check, 'the all-off check must come before any write');
+
+  /* The page caches for 60 seconds; Publish drops that cache so the change is
+     visible straight away rather than whenever the window turns over. */
+  const route = readFileSync(new URL('../app/api/admin/route.ts', import.meta.url), 'utf8');
+  assert.ok(/revalidatePath\('\/'\)/.test(route), 'publishing must drop the cached page');
+  assert.ok(/\^\(list_\)\?price_\(30s\|1m\|2m\|3m\|4m\|5m\)\$/.test(route),
+    'the route must filter the keys too, not just trust the browser');
+});
+
+test('a saving is only shown when it is a saving', () => {
+  /* A struck-through price that is not higher than what you charge is an
+     invented discount, which is the thing consumer law objects to. */
+  const CFG = { price_1m: 4999, list_price_1m: 5999, price_2m: 7999, list_price_2m: 7999 } as never;
+  assert.equal(L.listPrice(CFG, '1m'), 5999, 'a higher was-price shows');
+  assert.equal(L.listPrice(CFG, '2m'), 0, 'an equal was-price must not show');
+  assert.equal(L.listPrice({ price_1m: 4999, list_price_1m: 3000 } as never, '1m'), 0,
+    'a lower was-price must not show');
+
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  assert.ok(/price\.list > price\.total/.test(form), 'the saving line must be conditional');
+  assert.ok(/t\('you_save'/.test(form), 'and it must say the amount in words');
+  for (const lang of ['en', 'ta'] as const)
+    assert.ok((STRINGS[lang] as Record<string, string>).you_save?.includes('{amount}'),
+      `${lang}.you_save must carry the amount`);
 });

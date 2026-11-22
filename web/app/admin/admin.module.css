@@ -125,3 +125,26 @@
 .stepdot i{width:7px;height:7px;border-radius:50%;background:var(--border-2);display:block}
 .stepdot i.on{background:var(--yellow)}
 .stepdot i.done{background:#2FA36B}
+
+/* ---------------------------- packages ---------------------------- */
+.hint{color:var(--muted);font-size:13.5px;margin:0 0 14px;max-width:62ch}
+.pkgs{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.pkg{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--card)}
+.pkgOff{opacity:.55}
+.pkgHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.sw{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--text);cursor:pointer}
+.sw input{width:18px;height:18px;accent-color:var(--yellow);cursor:pointer}
+.pkgRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pkgRow label{display:flex;flex-direction:column;gap:4px}
+.pkgRow input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);font-size:15px;font-variant-numeric:tabular-nums}
+.pkgRow input:disabled{opacity:.45}
+.pkgPrev{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.pkgPrev b{color:var(--text)}
+.pkgPrev s{opacity:.6}
+.pkgPrev em{color:var(--ok);font-style:normal;font-weight:600}
+.pkgFoot{margin:14px 0 0;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.pkgFoot p{margin:0}
+.pkgFoot p + p{margin-top:4px}
+.okmsg{color:var(--ok);font-size:13.5px;margin:12px 0 0}
+.errmsg{color:var(--danger);font-size:13.5px;margin:12px 0 0}

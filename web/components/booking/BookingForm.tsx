@@ -450,7 +450,15 @@ export default function BookingForm(
                   <span>₹{inr(price.total)}</span>
                   {price.list > 0 ? <s className="was">₹{inr(price.list)}</s> : null}
                 </div>
-                <div className="off">{t('total_label')}</div>
+                {/* A struck price nobody reads is decoration. The amount
+                    saved, in words, is the part that makes someone look
+                    twice — and it only appears when the saving is real,
+                    because calcPrice refuses a "was" that is not higher. */}
+                <div className={price.list > price.total ? 'off save' : 'off'}>
+                  {price.list > price.total
+                    ? t('you_save', { amount: inr(price.list - price.total) })
+                    : t('total_label')}
+                </div>
               </div>
               {payments ? (
                 /* The refund policy says we tell them before they pay. This is

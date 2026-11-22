@@ -23,7 +23,7 @@ export const backendHost = () => URL_;
 type Rpc = 'tts_bootstrap' | 'tts_log_events' | 'tts_create_lead'
          | 'tts_create_booking' | 'tts_save_partial'
          | 'tts_admin_data' | 'tts_admin_leads' | 'tts_admin_set_status'
-         | 'tts_payment_started' | 'tts_payment_captured' | 'tts_admin_payments';
+         | 'tts_payment_started' | 'tts_payment_captured' | 'tts_admin_payments' | 'tts_admin_set_packages' | 'tts_admin_packages';
 
 async function rpc<T>(
   fn: Rpc,
@@ -145,3 +145,13 @@ export const paymentCaptured = (payload: Record<string, unknown>) =>
 /** What has genuinely been received, per booking, for the admin page. */
 export const adminPayments = (pin: string) =>
   rpc<Record<string, unknown>>('tts_admin_payments', { p_pin: pin }, { timeoutMs: 15000 });
+
+/** The six packages as the database holds them, for the admin page. */
+export const adminPackages = (pin: string) =>
+  rpc<{ ok: boolean; packages?: Array<{ code: string; price: number; list: number }> }>(
+    'tts_admin_packages', { p_pin: pin }, { timeoutMs: 12000 });
+
+/** Prices and on/off for the six packages, from the admin page. */
+export const adminSetPackages = (pin: string, values: Record<string, number>) =>
+  rpc<{ ok: boolean; code?: string; message?: string; written?: number; live?: number }>(
+    'tts_admin_set_packages', { p_pin: pin, p: values }, { timeoutMs: 15000 });
