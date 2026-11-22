@@ -60,12 +60,22 @@ function StepDots({ step, completed }: { step: number; completed: boolean }) {
   );
 }
 
+/* ₹3,42,760 set at 33px is 159px wide; the card has 129px. A rupee figure
+   broken across two lines is unreadable, so the long ones are set smaller.
+   Only the component knows how long the number is — CSS cannot. */
+function sizeFor(v: string | number): string {
+  const n = String(v).length;
+  if (n >= 9) return ' ' + s.vsm;
+  if (n >= 7) return ' ' + s.vmed;
+  return '';
+}
+
 function Stat({ k, v, sub, cls, hi }:
   { k: string; v: string | number; sub?: string; cls?: string; hi?: boolean }) {
   return (
     <div className={`${s.stat}${hi ? ' ' + s.hi : ''}`}>
       <div className={s.k}>{k}</div>
-      <div className={`${s.v} ${cls ? s[cls] : ''}`}>{v}</div>
+      <div className={`${s.v}${sizeFor(v)} ${cls ? s[cls] : ''}`}>{v}</div>
       {sub ? <div className={s.s}>{sub}</div> : null}
     </div>
   );

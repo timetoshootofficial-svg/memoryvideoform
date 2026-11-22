@@ -814,3 +814,30 @@ test('the admin asks for the discount, because that is how it is thought about',
   assert.ok(/r\.list > 0 && r\.list <= r\.price/.test(pkg), 'it must notice a leftover');
   assert.ok(/Use it as/.test(pkg), 'and offer to read it as the discount');
 });
+
+test('the admin page fits the screen it is read on', () => {
+  const css = readFileSync(new URL('../app/admin/admin.module.css', import.meta.url), 'utf8');
+  const tsx = readFileSync(new URL('../app/admin/AdminDashboard.tsx', import.meta.url), 'utf8');
+
+  /* The sign-in box has a 14vh top margin. Without flow-root it collapses out
+     through .admin, pushes the whole dark panel 114px down the page, and the
+     white body shows above it — which is what "half white, half black" was. */
+  const admin = css.slice(css.indexOf('.admin{min-height:100vh'));
+  assert.ok(/display:flow-root/.test(admin.slice(0, 600)),
+    '.admin must contain its children’s margins');
+
+  /* At 375px the header put the date and two buttons on one line with the
+     brand and made the page 83px wider than the phone. */
+  assert.ok(/\.hrow\{[^}]*flex-wrap:wrap/.test(css), 'the header must be allowed to wrap');
+  const phone = css.slice(css.indexOf('@media (max-width:640px)'));
+  assert.ok(/\.hactions\{[^}]*width:100%/.test(phone),
+    'on a phone the buttons must take their own line');
+
+  /* ₹3,42,760 at 33px is 159px wide and the card gives it 129px. It cannot
+     wrap — a rupee figure split over two lines is unreadable — so the longer
+     the number, the smaller it is set. Only the component knows its length. */
+  assert.ok(/function sizeFor/.test(tsx), 'the value must be sized to its own length');
+  assert.ok(/n >= 9/.test(tsx) && /n >= 7/.test(tsx), 'both steps must be there');
+  assert.ok(/\.stat \.v\.vsm\{font-size:2[0-9]px/.test(css), 'and the small step must be defined');
+  assert.ok(/\.stat \.v\.vmed\{font-size:2[0-9]px/.test(css), 'and the middle one');
+});

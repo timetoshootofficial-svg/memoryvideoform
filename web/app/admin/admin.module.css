@@ -11,7 +11,11 @@
   --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }
 .admin *, .admin *::before, .admin *::after{box-sizing:border-box}
-.admin{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.admin{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  /* The sign-in box has a 14vh top margin. Without this it collapses out
+     through this box, pushes the whole dark panel down the page and leaves
+     a white band above it. */
+  display:flow-root}
 .admin button, .admin input, .admin select{font:inherit;color:inherit}
 .admin button{cursor:pointer}
 .admin a{color:var(--yellow)}
@@ -20,11 +24,11 @@
 .display{font-family:var(--display);letter-spacing:.5px;text-transform:uppercase;font-weight:400}
 
 .head{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
-.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:9px;font-family:var(--body);font-weight:700;font-size:17px;letter-spacing:1.9px}
 .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);box-shadow:0 0 10px var(--yellow)}
 .brand small{font-family:var(--body);font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;font-weight:600}
-.hactions{display:flex;align-items:center;gap:8px}
+.hactions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 14px;border-radius:10px;border:1px solid var(--border-2);background:var(--card);color:var(--text);font-size:14px;font-weight:600}
 .btn:hover{border-color:var(--yellow)}
 .btn-primary{background:var(--yellow);color:var(--on-yellow);border-color:var(--yellow)}
@@ -101,9 +105,23 @@
 .kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px}
 .kv:last-child{border-bottom:0}
 .kv b{font-variant-numeric:tabular-nums}
+/* ₹3,42,760 at 33px is 159px wide and the card has 129px to give it. The
+   number cannot wrap — a rupee figure broken across two lines is unreadable —
+   so the longer it is, the smaller it is set. */
+.stat .v.vmed{font-size:27px}
+.stat .v.vsm{font-size:23px;letter-spacing:-.02em}
+
 @media (max-width:640px){
   .frow{grid-template-columns:118px 1fr 78px;font-size:13px}
   .stat .v{font-size:28px}
+  .stat .v.vmed{font-size:24px}
+  .stat .v.vsm{font-size:21px}
+
+  /* On a phone the date and the two buttons do not fit beside the brand.
+     They drop onto their own line instead of widening the page. */
+  .hrow{height:auto;padding:10px 0;row-gap:8px}
+  .hactions{width:100%;justify-content:space-between}
+  .stamp{order:2;font-size:11.5px}
 }
 
 /* tabs — added with the Leads view */
