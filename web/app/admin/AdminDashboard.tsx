@@ -1,7 +1,8 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import s from './admin.module.css';
-import type { AdminPayload, AdminBooking, LeadsPayload, Lead, StageWindow, CampaignRow } from './types';
+import type { AdminPayload, AdminBooking, LeadsPayload, Lead, StageWindow, CampaignRow,
+              PaymentsPayload } from './types';
 
 const STATUSES = ['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Expired'] as const;
 
@@ -249,6 +250,7 @@ export default function AdminDashboard() {
   const [entry, setEntry] = useState('');
   const [data, setData] = useState<AdminPayload | null>(null);
   const [leadsData, setLeadsData] = useState<LeadsPayload | null>(null);
+  const [payData, setPayData] = useState<PaymentsPayload | null>(null);
   const [tab, setTab] = useState<'dashboard' | 'leads' | 'bookings'>('dashboard');
   const [stageWin, setStageWin] = useState<StageWindow>('all');
   const [leadFilter, setLeadFilter] = useState<'all' | 'abandoned' | 'finished'>('all');
@@ -271,9 +273,16 @@ export default function AdminDashboard() {
   const load = useCallback(async (usePin: string) => {
     setBusy(true);
     setErr('');
-    const [j, lj] = await Promise.all([call({ pin: usePin }), call({ action: 'leads', pin: usePin })]);
+    const [j, lj, pj] = await Promise.all([
+      call({ pin: usePin }),
+      call({ action: 'leads', pin: usePin }),
+      call({ action: 'payments', pin: usePin }),
+    ]);
     setBusy(false);
     setLeadsData(lj?.ok ? (lj as LeadsPayload) : null);
+    /* Null until 14_admin_payments.sql is installed; every use is guarded,
+       so the page works exactly as before without it. */
+    setPayData(pj?.ok ? (pj as PaymentsPayload) : null);
 
     if (!j?.ok) {
       setData(null);
@@ -503,6 +512,13 @@ export default function AdminDashboard() {
             <Stat k="Pending" v={money(st.revenuePending)} sub="not spoken to yet" cls="warn" />
             <Stat k="To chase" v={money(st.revenueConfirmed + st.revenuePending)} sub="confirmed + pending" />
             <Stat k="Avg paid" v={st.paid ? money(Math.round(st.revenuePaid / st.paid)) : '—'} sub="per booking" />
+            {/* Every other figure in this row is one you set by hand. This one
+                is not: it is what Razorpay actually captured. */}
+            {payData ? (
+              <Stat k="Fees received" hi
+                    v={money(Math.round(payData.totals.feesPaise / 100))}
+                    sub={`${payData.totals.count} payment${payData.totals.count === 1 ? '' : 's'}`} />
+            ) : null}
           </div>
         </div>
 
@@ -591,6 +607,17 @@ export default function AdminDashboard() {
                     <td>
                       {LEN[b.filmLength] ?? b.filmLength ?? '—'}
                       {b.follower === 'Y' ? <span className={s.sub}>follower discount</span> : null}
+                      {(() => {
+                        const paise = payData?.byBooking?.[b.id] ?? 0;
+                        if (paise <= 0) return null;
+                        const got = Math.round(paise / 100);
+                        return (
+                          <span className={`${s.sub} ${s.paid}`}>
+                            ₹{got.toLocaleString('en-IN')} received
+                            {b.total > got ? ` · ₹${(b.total - got).toLocaleString('en-IN')} to go` : ''}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td>
                       {fmtDate(b.deliveryDate)}

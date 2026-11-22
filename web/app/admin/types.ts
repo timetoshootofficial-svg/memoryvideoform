@@ -79,3 +79,16 @@ export interface CampaignRow {
   revenue: number;    // money actually in, from bookings you marked Paid
   pipeline: number;   // agreed but not yet paid
 }
+
+export interface PaymentRow {
+  paymentId: string; bookingId: string; kind: string;
+  paise: number; method: string; at: string;
+}
+
+export interface PaymentsPayload {
+  ok: true;
+  /** booking reference -> paise captured against it */
+  byBooking: Record<string, number>;
+  recent: PaymentRow[];
+  totals: { feesPaise: number; count: number; todayPaise: number };
+}

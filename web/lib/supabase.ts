@@ -23,7 +23,7 @@ export const backendHost = () => URL_;
 type Rpc = 'tts_bootstrap' | 'tts_log_events' | 'tts_create_lead'
          | 'tts_create_booking' | 'tts_save_partial'
          | 'tts_admin_data' | 'tts_admin_leads' | 'tts_admin_set_status'
-         | 'tts_payment_started' | 'tts_payment_captured';
+         | 'tts_payment_started' | 'tts_payment_captured' | 'tts_admin_payments';
 
 async function rpc<T>(
   fn: Rpc,
@@ -141,3 +141,7 @@ export const paymentStarted = (payload: Record<string, unknown>) =>
 export const paymentCaptured = (payload: Record<string, unknown>) =>
   rpc<{ ok: boolean; code?: string; booking?: string | null; paid_paise?: number; kind?: string }>(
     'tts_payment_captured', { p: payload }, { timeoutMs: 12000 });
+
+/** What has genuinely been received, per booking, for the admin page. */
+export const adminPayments = (pin: string) =>
+  rpc<Record<string, unknown>>('tts_admin_payments', { p_pin: pin }, { timeoutMs: 15000 });

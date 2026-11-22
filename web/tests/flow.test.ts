@@ -723,3 +723,24 @@ test('the contact page carries every way to reach them', () => {
     assert.ok(page.includes(must), `the contact page does not show ${must}`);
   assert.ok(/mailto:/.test(page), 'the email must be tappable');
 });
+
+test('the admin page shows money that arrived, not only money somebody typed', () => {
+  /* Every figure in the value row is a status set by hand — which means the
+     revenue column is only as true as somebody's memory. What Razorpay
+     captured is a fact, and it now sits beside them. */
+  const admin = readFileSync(new URL('../app/admin/AdminDashboard.tsx', import.meta.url), 'utf8');
+
+  assert.ok(/action: 'payments'/.test(admin), 'admin must ask for the payments');
+  assert.ok(/payData\?\.byBooking/.test(admin), 'each booking must show what came in against it');
+  assert.ok(/Fees received/.test(admin), 'the total received must be on the page');
+
+  /* It has to keep working before 14_admin_payments.sql is installed, or
+     installing the payments work would take the admin page down. */
+  assert.ok(/payData \? \(/.test(admin), 'the payment panels must be guarded');
+  assert.ok(/payData\?\.byBooking\?\.\[/.test(admin), 'the per-booking lookup must be guarded');
+
+  const sql = readFileSync(new URL('../../supabase/14_admin_payments.sql', import.meta.url), 'utf8');
+  assert.ok(/tts_admin_check\(p_pin\)/.test(sql), 'it must be behind the PIN like every other admin call');
+  assert.ok(/status = 'captured'/.test(sql), 'only captured payments count as money');
+  assert.ok(/grant execute on function public\.tts_admin_payments/.test(sql), 'it must be callable');
+});

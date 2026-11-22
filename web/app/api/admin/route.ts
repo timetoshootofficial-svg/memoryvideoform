@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminData, adminLeads, adminSetStatus } from '@/lib/supabase';
+import { adminData, adminLeads, adminPayments, adminSetStatus } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +18,7 @@ export async function POST(req: Request) {
   if (!pin) return NextResponse.json({ ok: false, code: 'BAD_PIN' });
 
   if (body.action === 'leads') return NextResponse.json(await adminLeads(pin));
+  if (body.action === 'payments') return NextResponse.json(await adminPayments(pin));
 
   if (body.action === 'setStatus') {
     return NextResponse.json(

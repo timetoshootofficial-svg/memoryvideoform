@@ -88,6 +88,8 @@
 .wa:hover{border-color:var(--yellow)}
 .empty{padding:34px 16px;text-align:center;color:var(--muted)}
 .hold{color:var(--warn);font-size:11.5px}
+/* Money that really arrived, as opposed to a status somebody typed. */
+.paid{color:var(--ok);font-size:11.5px;font-weight:600}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:40;background:var(--card);border:1px solid var(--yellow);border-radius:11px;padding:11px 18px;font-size:14px;box-shadow:0 10px 34px rgba(0,0,0,.6);display:none}
 .toast.on{display:block}
 .toast.bad{border-color:var(--danger)}
