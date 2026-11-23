@@ -19,6 +19,9 @@ const FUNNEL_STEPS: Array<[string, string]> = [
   ['step_2', 'Gave name and number'],
   ['step_3', 'Saw the price'],
   ['booking_created', 'Pressed Book now'],
+  /* Recorded since the booking fee went live, and until now not shown — so
+     the one number that says whether ₹99 is working was invisible. */
+  ['hold_paid', 'Paid ₹99'],
   ['whatsapp_redirect', 'Went to WhatsApp'],
 ];
 

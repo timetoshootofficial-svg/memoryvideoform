@@ -849,3 +849,12 @@ html[lang="ta"] .ticket .tref{font-family:var(--body)}
    number on that card the eye should land on after the price itself. */
 .pricebox .off.save{color:var(--ok); font-weight:700; font-size:14.5px}
 .len .was{display:block; margin-top:1px}
+
+/* The way out of the payment step. A quiet link, not a second button: two
+   buttons of equal weight and most people take the free one, which is the
+   thing the fee exists to prevent. */
+.orwa{margin:10px 0 0; text-align:center}
+.orwa a{font-size:13.5px; color:var(--muted); text-decoration:underline;
+  text-underline-offset:3px; display:inline-block; min-height:var(--tap);
+  line-height:var(--tap)}
+.orwa a:hover{color:var(--ink)}

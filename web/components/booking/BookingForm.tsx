@@ -328,6 +328,16 @@ export default function BookingForm(
     [lang],
   );
 
+  /* They have not pressed the button yet, so there is no reference. This
+     carries what they have chosen instead, which is what the conversation
+     would otherwise start by asking for. */
+  const waPrefillHref = waUrl(config.whatsapp_number, t('wa_enquiry', {
+    name: data.name || '—',
+    occasion: occName(data.occasion),
+    length: lenShort(data.filmLength),
+    amount: inr(price.total),
+  }));
+
   const waHref = booking
     ? waUrl(config.whatsapp_number, t('wa_message', {
         name: data.name, id: booking.bookingId, occasion: occName(data.occasion),
@@ -465,6 +475,20 @@ export default function BookingForm(
                    where that promise is kept. */
                 <p className="sub muted" style={{ margin: '0 0 2px', fontSize: 13 }}>
                   {t('pay_note', { amount: inr(fee) })}
+                </p>
+              ) : null}
+
+              {/* A way out that is not closing the tab.
+                  Deliberately a quiet link and not a second button: the whole
+                  point of the fee is to separate the people who will pay from
+                  the people who will not, and two buttons of equal weight
+                  would hand most of them the free one. Whoever takes this
+                  still arrives on WhatsApp with their booking reference. */}
+              {payments ? (
+                <p className="orwa">
+                  <a href={waPrefillHref} onClick={() => { track('wa_instead', LAST_STEP); flush(true); }}>
+                    {t('pay_or_wa')}
+                  </a>
                 </p>
               ) : null}
 

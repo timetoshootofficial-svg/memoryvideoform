@@ -841,3 +841,47 @@ test('the admin page fits the screen it is read on', () => {
   assert.ok(/\.stat \.v\.vsm\{font-size:2[0-9]px/.test(css), 'and the small step must be defined');
   assert.ok(/\.stat \.v\.vmed\{font-size:2[0-9]px/.test(css), 'and the middle one');
 });
+
+test('the price step has a way out that is not closing the tab', () => {
+  /* Everyone who will not pay ₹99 was leaving from this screen. The booking
+     is already recorded by then, but the person had nowhere to go. */
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+
+  assert.ok(/t\('pay_or_wa'\)/.test(form), 'the price step must offer WhatsApp');
+  assert.ok(/waPrefillHref/.test(form), 'and carry what they chose into the message');
+  assert.ok(/track\('wa_instead'/.test(form), 'and record that they took it');
+
+  /* Quiet link, not a second button: the fee exists to separate the people
+     who will pay from the people who will not, and two buttons of equal
+     weight hand most of them the free one. */
+  const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  assert.ok(/\.orwa a\{[^}]*text-decoration:underline/s.test(css), 'it must read as a link');
+  assert.ok(!/className="orwa[^"]*btn/.test(form), 'it must not be styled as a button');
+  /* Still a 48px target: it is on a phone like everything else. */
+  assert.ok(/\.orwa a\{[^}]*min-height:var\(--tap\)/s.test(css), 'it must still be tappable');
+
+  /* The message has to carry the choice, or the conversation opens by asking
+     for what the form already knows. */
+  for (const lang of ['en', 'ta'] as const) {
+    const m = (STRINGS[lang] as Record<string, string>).wa_enquiry;
+    assert.ok(m, `${lang}.wa_enquiry missing`);
+    for (const f of ['{name}', '{occasion}', '{length}', '{amount}'])
+      assert.ok(m.includes(f), `${lang}.wa_enquiry must carry ${f}`);
+  }
+});
+
+test('the drop-off chart shows whether the fee is working', () => {
+  /* hold_paid has been recorded since the fee went live and was not on the
+     chart, so the one number that answers "is ₹99 costing me customers"
+     could not be seen. */
+  const admin = readFileSync(new URL('../app/admin/AdminDashboard.tsx', import.meta.url), 'utf8');
+  const block = admin.match(/const FUNNEL_STEPS[^=]*=\s*\[([\s\S]*?)\];/)?.[1] ?? '';
+  const rows = [...block.matchAll(/\['([a-z0-9_]+)'/g)].map((m) => m[1]);
+
+  assert.ok(rows.includes('hold_paid'), 'the chart must show how many paid');
+  assert.ok(rows.indexOf('hold_paid') > rows.indexOf('booking_created'),
+    'and show it after pressing the button, which is the order it happens in');
+
+  const form = readFileSync(new URL('../components/booking/BookingForm.tsx', import.meta.url), 'utf8');
+  assert.ok(/track\('hold_paid'/.test(form), 'and the form must still record it');
+});
