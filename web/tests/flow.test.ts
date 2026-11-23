@@ -851,14 +851,13 @@ test('the price step has a way out that is not closing the tab', () => {
   assert.ok(/waPrefillHref/.test(form), 'and carry what they chose into the message');
   assert.ok(/track\('wa_instead'/.test(form), 'and record that they took it');
 
-  /* Quiet link, not a second button: the fee exists to separate the people
-     who will pay from the people who will not, and two buttons of equal
-     weight hand most of them the free one. */
+  /* A button, by the owner's decision — but the outline style, not the
+     filled one, so ₹99 is still what the eye lands on. */
   const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
-  assert.ok(/\.orwa a\{[^}]*text-decoration:underline/s.test(css), 'it must read as a link');
-  assert.ok(!/className="orwa[^"]*btn/.test(form), 'it must not be styled as a button');
-  /* Still a 48px target: it is on a phone like everything else. */
-  assert.ok(/\.orwa a\{[^}]*min-height:var\(--tap\)/s.test(css), 'it must still be tappable');
+  assert.ok(/className="btn btn-wa wayout"/.test(form), 'it must be the outline button');
+  assert.ok(!/btn-primary[^>]*wayout|wayout[^>]*btn-primary/.test(form),
+    'it must not take the filled style, which belongs to the fee');
+  assert.ok(/\.wayout\{[^}]*width:100%/s.test(css), 'and sit on its own line');
 
   /* The message has to carry the choice, or the conversation opens by asking
      for what the form already knows. */

@@ -478,18 +478,21 @@ export default function BookingForm(
                 </p>
               ) : null}
 
-              {/* A way out that is not closing the tab.
-                  Deliberately a quiet link and not a second button: the whole
-                  point of the fee is to separate the people who will pay from
-                  the people who will not, and two buttons of equal weight
-                  would hand most of them the free one. Whoever takes this
-                  still arrives on WhatsApp with their booking reference. */}
+              {/* A way out that is not closing the tab. A real button, by the
+                  owner's decision: enough people were leaving this screen
+                  that reaching them mattered more than keeping the fee the
+                  only road on. It is the outline style, not the filled one,
+                  so ₹99 is still the thing the eye lands on.
+                  wa_instead and hold_paid are both on the chart, so which
+                  one people take is a fact rather than a feeling. */}
               {payments ? (
-                <p className="orwa">
-                  <a href={waPrefillHref} onClick={() => { track('wa_instead', LAST_STEP); flush(true); }}>
-                    {t('pay_or_wa')}
-                  </a>
-                </p>
+                <a className="btn btn-wa wayout" href={waPrefillHref}
+                   onClick={() => { track('wa_instead', LAST_STEP); flush(true); }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 2a8 8 0 110 16 8 8 0 01-4.2-1.2l-.4-.2-2.6.7.7-2.5-.3-.4A8 8 0 0112 4zm-2.2 3.6c-.2 0-.5.1-.7.3-.3.3-.8.9-.8 1.8s.6 1.8 1.6 2.9 2 1.7 3.4 2.1c.6.2 1.1.1 1.5-.1.4-.2.8-.7.9-1.1.1-.4 0-.6-.1-.7l-1.4-.7c-.2-.1-.4 0-.5.1l-.5.6c-.1.1-.2.1-.4 0a6 6 0 01-1.6-1 5 5 0 01-1-1.3c-.1-.2 0-.3.1-.4l.4-.5.1-.4-.6-1.4c-.1-.1-.2-.2-.3-.2z" />
+                  </svg>
+                  {t('pay_or_wa')}
+                </a>
               ) : null}
 
               {err[LAST_STEP] ? <p className="err on">{err[LAST_STEP]}</p> : <p className="err" />}
