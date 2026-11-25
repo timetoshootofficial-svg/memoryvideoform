@@ -857,3 +857,8 @@ html[lang="ta"] .ticket .tref{font-family:var(--body)}
 /* Tamil needs 260px of the 249px the default padding leaves, so it broke
    onto two lines by eleven pixels. Tighter sides buy it back. */
 .wayout{width:100%; gap:8px; margin:12px 0 2px; padding-left:12px; padding-right:12px}
+/* The outline stays — yellow is the fee's and two filled buttons would
+   compete — but the icon takes WhatsApp's own green, so the button is
+   recognised before it is read. */
+.wayout svg{color:#25D366}
+.wayout:hover{border-color:#25D366}
